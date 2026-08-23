@@ -1,4 +1,4 @@
-# 🎯 Smart Job Market & Skill-Gap Advisor
+# Smart Job Market & Skill-Gap Advisor
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg?style=for-the-badge&logo=openjdk)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.3-green.svg?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
@@ -14,19 +14,19 @@ An enterprise-grade, production-ready full-stack AI platform designed to compare
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-- **💡 Weighted Skill Gap Engine**: Evaluates candidate skill vectors against target job roles, differentiating core critical requirements from secondary nice-to-haves.
-- **📊 Real-Time Market Intelligence**: Interactive data visualizations powered by Recharts, displaying top trending skills, industry hiring metrics, and salary benchmarks.
-- **🔐 JWT Authentication & RBAC Security**: Multi-tier role-based access control supporting `ROLE_USER`, `ROLE_MANAGER`, and `ROLE_ADMIN` with encrypted session management.
-- **🎓 Personalized Upskilling Recommendations**: Maps identified skill gaps directly to top-rated courses, certifications, and step-by-step career roadmaps.
-- **🎨 Glassmorphism Modern UI**: Premium responsive UI built with React 18, Tailwind CSS, Lucide icons, Framer Motion, and fluid Light/Dark mode toggles.
-- **📑 OpenAPI & Swagger Documentation**: Complete interactive API sandbox and testing interface available at `/swagger-ui.html`.
-- **🐳 Full Containerization**: Pre-configured multi-container orchestration with Docker and Docker Compose.
+- **Weighted Skill Gap Engine**: Evaluates candidate skill vectors against target job roles, differentiating core critical requirements from secondary nice-to-haves.
+- **Real-Time Market Intelligence**: Interactive data visualizations powered by Recharts, displaying top trending skills, industry hiring metrics, and salary benchmarks.
+- **JWT Authentication & RBAC Security**: Multi-tier role-based access control supporting `ROLE_USER`, `ROLE_MANAGER`, and `ROLE_ADMIN` with encrypted session management.
+- **Personalized Upskilling Recommendations**: Maps identified skill gaps directly to top-rated courses, certifications, and step-by-step career roadmaps.
+- **Modern Responsive UI**: Premium responsive interface built with React 18, Tailwind CSS, Lucide icons, Framer Motion, and fluid Light/Dark mode toggles.
+- **OpenAPI & Swagger Documentation**: Complete interactive API sandbox and testing interface available at `/swagger-ui.html`.
+- **Full Containerization**: Pre-configured multi-container orchestration with Docker and Docker Compose.
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Layer | Technologies & Tools |
 | :--- | :--- |
@@ -39,7 +39,7 @@ An enterprise-grade, production-ready full-stack AI platform designed to compare
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 smart-job-market-skillgap-advisor/
@@ -65,7 +65,7 @@ smart-job-market-skillgap-advisor/
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### Prerequisites
 
@@ -116,7 +116,7 @@ npm run dev
 
 ---
 
-## 🔑 Default Credentials
+## Default Credentials
 
 The platform comes pre-seeded with sample user accounts for testing:
 
@@ -128,7 +128,7 @@ The platform comes pre-seeded with sample user accounts for testing:
 
 ---
 
-## 🌐 API Endpoints Summary
+## API Endpoints Summary
 
 All backend API routes are prefixed under `/api/v1`. Below is an overview:
 
@@ -147,13 +147,13 @@ All backend API routes are prefixed under `/api/v1`. Below is an overview:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 👤 Author
+## Author
 
 **Omkar Kakumanu**
 - GitHub: [@omkar-kakumanu](https://github.com/omkar-kakumanu)
