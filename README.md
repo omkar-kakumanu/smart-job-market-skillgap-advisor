@@ -14,12 +14,6 @@ An enterprise-grade, production-ready full-stack AI platform designed to compare
 
 ---
 
-## 📸 Platform Interface
-
-![Smart Job Market Skill-Gap Advisor UI](./skillgap_advisor_ui_mockup_1786635690011.jpg)
-
----
-
 ## ✨ Key Features
 
 - **💡 Weighted Skill Gap Engine**: Evaluates candidate skill vectors against target job roles, differentiating core critical requirements from secondary nice-to-haves.
@@ -29,29 +23,6 @@ An enterprise-grade, production-ready full-stack AI platform designed to compare
 - **🎨 Glassmorphism Modern UI**: Premium responsive UI built with React 18, Tailwind CSS, Lucide icons, Framer Motion, and fluid Light/Dark mode toggles.
 - **📑 OpenAPI & Swagger Documentation**: Complete interactive API sandbox and testing interface available at `/swagger-ui.html`.
 - **🐳 Full Containerization**: Pre-configured multi-container orchestration with Docker and Docker Compose.
-
----
-
-## 🏗️ System Architecture
-
-```mermaid
-graph TD
-    User([👤 Candidate / Manager]) -->|HTTPS / REST| UI[📱 React 18 Single Page App]
-    UI -->|JWT Auth Header| Gateway[🌐 Spring Security JWT Filter]
-    Gateway --> Ctrl[🎮 REST Controllers]
-    Ctrl --> Engine[⚡ Skill Gap Engine & Business Services]
-    Engine --> JPA[💾 Spring Data JPA Repositories]
-    JPA --> DB[(🗄️ MySQL 8.0 Database)]
-    
-    subgraph Containerized Stack (Docker Compose)
-        UI
-        Gateway
-        Ctrl
-        Engine
-        JPA
-        DB
-    end
-```
 
 ---
 
@@ -81,21 +52,12 @@ smart-job-market-skillgap-advisor/
 │   └── vite.config.js        # Vite build & proxy settings
 ├── database/                 # Database scripts & ER diagrams
 │   ├── schema.sql            # Table definitions & constraints
-│   ├── seed.sql              # Initial market data & sample job postings
-│   └── er_diagram_description.md
+│   └── seed.sql              # Initial market data & sample job postings
 ├── docker/                   # Containerization configs
 │   ├── Dockerfile.backend    # Spring Boot container image spec
 │   ├── Dockerfile.frontend   # React Nginx container image spec
 │   └── docker-compose.yml    # Multi-container stack compose file
-├── docs/                     # Comprehensive documentation suite
-│   ├── architecture.md       # System design & calculation algorithm
-│   ├── api_documentation.md  # API endpoints specification
-│   ├── installation_guide.md # Step-by-step setup guide
-│   ├── user_manual.md        # User workflow guide
-│   ├── admin_manual.md       # Admin management guide
-│   ├── deployment_guide.md   # Deployment instructions
-│   └── troubleshooting.md    # Common issues & resolutions
-├── skillgap_advisor_ui_mockup_1786635690011.jpg # UI Preview Image
+├── docs/                     # Documentation suite
 ├── .gitignore                # Git exclusion rules
 ├── LICENSE                   # Apache 2.0 Open Source License
 └── README.md                 # Project README
@@ -182,20 +144,6 @@ All backend API routes are prefixed under `/api/v1`. Below is an overview:
 | `/courses` | `GET` | Public | Browse recommended learning resources |
 
 *For complete request/response schemas, visit the live **Swagger UI** at `http://localhost:8080/swagger-ui.html`.*
-
----
-
-## 📘 Complete Documentation Suite
-
-For detailed guides, refer to the documentation in the [`docs/`](./docs) directory:
-
-- 📖 [**Installation Guide**](./docs/installation_guide.md)
-- 📐 [**System Architecture & Algorithms**](./docs/architecture.md)
-- 🔌 [**API Specification & Endpoints**](./docs/api_documentation.md)
-- 👤 [**Candidate User Manual**](./docs/user_manual.md)
-- 🛠️ [**Admin & Manager Manual**](./docs/admin_manual.md)
-- 🚀 [**Deployment Guide**](./docs/deployment_guide.md)
-- 🔧 [**Troubleshooting & FAQ**](./docs/troubleshooting.md)
 
 ---
 

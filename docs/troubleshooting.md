@@ -5,7 +5,7 @@
 - Verify database `skillgap_advisor` exists or run `database/schema.sql`.
 - Check credentials in `backend/src/main/resources/application.properties`:
   - `username=root`
-  - `password=Omkar1707mysql`
+  - `password=YOUR_MYSQL_PASSWORD`
 
 ## 2. CORS Errors in Browser Console
 - Verify Vite frontend is running on `http://localhost:5173`.

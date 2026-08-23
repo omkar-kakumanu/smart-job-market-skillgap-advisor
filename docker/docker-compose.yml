@@ -5,7 +5,7 @@ services:
     image: mysql:8.0
     container_name: skillgap_mysql
     environment:
-      MYSQL_ROOT_PASSWORD: Omkar1707mysql
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-YOUR_MYSQL_PASSWORD}
       MYSQL_DATABASE: skillgap_advisor
     ports:
       - "3306:3306"
@@ -25,7 +25,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/skillgap_advisor?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: Omkar1707mysql
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-YOUR_MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:-YOUR_SECURE_RANDOM_JWT_SECRET_KEY_HERE_MIN_64_CHARS}
     depends_on:
       - mysqldb
     restart: always

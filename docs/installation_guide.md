@@ -31,7 +31,7 @@ Check `backend/src/main/resources/application.properties`:
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/skillgap_advisor?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 spring.datasource.username=root
-spring.datasource.password=Omkar1707mysql
+spring.datasource.password=YOUR_MYSQL_PASSWORD
 ```
 
 To build and run:
@@ -50,5 +50,5 @@ npm run dev
 ```
 
 Visit `http://localhost:5173` in your browser.
-Default Admin Account: `admin@skillgap.com` / `password123`
-Default Candidate Account: `john.doe@example.com` / `password123`
+Default Admin Account: `admin@skillgap.com` / `AdminPass123!`
+Default Candidate Account: `user@skillgap.com` / `Password123!`
