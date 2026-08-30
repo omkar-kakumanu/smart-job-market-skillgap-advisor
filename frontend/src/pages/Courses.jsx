@@ -52,7 +52,7 @@ const Courses = () => {
               <span>Learning & Skill Bridge Courses</span>
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              Curated masterclasses and certifications to bridge identified skill gaps.
+              Curated Masterclasses and certifications to bridge identified skill gaps.
             </p>
           </div>
 
