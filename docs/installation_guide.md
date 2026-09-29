@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-1. **Java Development Kit (JDK 21)**
+1. **Java Development Kit (JDK 25)**
    Verify installation: `java -version`
 
 2. **Node.js (v18+) & NPM**

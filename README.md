@@ -1,6 +1,6 @@
 # Smart Job Market & Skill-Gap Advisor
 
-[![Java 21](https://img.shields.io/badge/Java-21-orange.svg?style=for-the-badge&logo=openjdk)](https://www.oracle.com/java/)
+[![Java 25](https://img.shields.io/badge/Java-25-orange.svg?style=for-the-badge&logo=openjdk)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.3-green.svg?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18-blue.svg?style=for-the-badge&logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-5.0-646CFF.svg?style=for-the-badge&logo=vite)](https://vitejs.dev/)
@@ -28,7 +28,7 @@ A custom full-stack web application designed to compare candidate skill profiles
 | Layer | Technologies & Tools |
 | :--- | :--- |
 | **Frontend** | React 18, Vite 5, Tailwind CSS, Lucide Icons, Recharts, Framer Motion, Axios |
-| **Backend** | Java 21 LTS, Spring Boot 3.2.3, Spring Security, Spring Data JPA, Lombok |
+| **Backend** | Java 25 LTS, Spring Boot 3.2.3, Spring Security, Spring Data JPA, Lombok |
 | **Security** | JSON Web Tokens (JWT HMAC SHA-512), BCrypt Password Hashing |
 | **Database** | MySQL 8.0 |
 | **API Docs** | Swagger UI / OpenAPI 3.0 (`/swagger-ui.html`) |
@@ -65,7 +65,7 @@ smart-job-market-skillgap-advisor/
 ### Prerequisites
 
 Ensure you have the following installed on your machine:
-- **Java JDK 21** or higher
+- **Java JDK 25** or higher
 - **Maven** (installed locally)
 - **Node.js** (v18.x or later) & `npm`
 - **MySQL Server 8.0** running on `localhost:3306`
