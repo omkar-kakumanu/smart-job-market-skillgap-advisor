@@ -33,7 +33,7 @@ const VIDEOS = [
 const STAT_ITEMS = [
   {
     value: '99.8%',
-    label: 'AI Match Accuracy',
+    label: 'Match Accuracy',
     description: 'Weighted core vs secondary technical skill evaluation',
     icon: Target,
     color: 'text-amber-400',
@@ -141,7 +141,7 @@ const Home = () => {
 
             {/* Simple Classic Subtext */}
             <p className="text-xs sm:text-sm md:text-base max-w-xl font-normal text-white/80 leading-relaxed">
-              Analyze real-time job market requirements, evaluate your candidate readiness score, and follow AI-curated learning roadmaps for career success.
+              Analyze real-time job market requirements, evaluate your candidate readiness score, and follow curated learning roadmaps for career success.
             </p>
 
             {/* Simple Target Role Search Form */}
@@ -237,7 +237,7 @@ const Home = () => {
               <div className="w-12 h-12 rounded-2xl bg-amber-400/10 flex items-center justify-center text-amber-400">
                 <Target className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-medium text-white">Weighted AI Skill Engine</h3>
+              <h3 className="text-lg font-medium text-white">Weighted Skill Matrix Engine</h3>
               <p className="text-xs text-gray-400 leading-relaxed font-normal">
                 Evaluates critical tech skills against secondary requirements to yield accurate career readiness scores.
               </p>

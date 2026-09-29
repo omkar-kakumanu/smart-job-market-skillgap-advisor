@@ -24,7 +24,7 @@ const Sidebar = () => {
 
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/advisor', label: 'AI Gap Advisor', icon: Sparkles },
+    { to: '/advisor', label: 'Skill Gap Advisor', icon: Sparkles },
     { to: '/trends', label: 'Market Trends', icon: TrendingUp },
     { to: '/courses', label: 'Courses Directory', icon: BookOpen },
     { to: '/certificates', label: 'Skill Certificates', icon: Award },

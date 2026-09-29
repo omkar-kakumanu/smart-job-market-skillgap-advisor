@@ -91,7 +91,7 @@ const Profile = () => {
             <span>Candidate Profile & Skill Inventory</span>
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-            Keep your skills and target role updated for accurate AI gap matching.
+            Keep your skills and target role updated for accurate gap matching.
           </p>
         </div>
 

@@ -1,22 +1,26 @@
-# Production Deployment Guide (Docker & AWS/Cloud)
+# Deployment & Production Build Guide
 
-## Docker Compose One-Command Deployment
+## Building for Local Production Deployment
 
-The application includes multi-stage Dockerfiles for both frontend and backend along with Nginx reverse proxy configuration.
+This guide outlines how to build and run the React frontend and Spring Boot backend locally without containers.
 
-### Deployment Command
+### 1. Build the Frontend Production Bundle
 ```bash
-cd docker
-docker-compose up --build -d
+cd frontend
+npm install
+npm run build
 ```
+The compiled static assets will be located in the `frontend/dist` directory.
 
-Services started:
-- `skillgap_mysql`: MySQL 8.0 container on port `3306` with initialized schema and seed data.
-- `skillgap_backend`: Java 21 Spring Boot REST API container on port `8080`.
-- `skillgap_frontend`: React Vite static production build served by Nginx on port `80`.
-
-### Health Check & Logs
+### 2. Build the Backend JAR
 ```bash
-docker-compose logs -f backend
-docker-compose ps
+cd backend
+mvn clean package -DskipTests
 ```
+The generated executable JAR file will be located in `backend/target/advisor-1.0.0.jar`.
+
+### 3. Running the Backend JAR
+```bash
+java -jar backend/target/advisor-1.0.0.jar
+```
+*The Spring Boot server will run on `http://localhost:8080`.*

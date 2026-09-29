@@ -21,11 +21,11 @@ const Footer = () => {
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-gray-400 font-sans leading-relaxed">
-              Enterprise-grade AI platform comparing candidate skill profiles with live market job demands to generate custom learning roadmaps.
+              A full-stack web application comparing candidate skill profiles with market job demands to generate learning roadmaps.
             </p>
             <div className="flex items-center space-x-2 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
               <CheckCircle className="w-4 h-4 text-emerald-500" />
-              <span>Spring Boot 3 + React + MySQL Live Engine</span>
+              <span>Spring Boot + React + MySQL</span>
             </div>
           </div>
 
@@ -38,13 +38,13 @@ const Footer = () => {
               <li>
                 <Link to="/advisor" className="hover:text-sky-600 dark:hover:text-emerald-300 flex items-center space-x-1.5 transition">
                   <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  <span>AI Gap Advisor Engine</span>
+                  <span>Skill Gap Advisor</span>
                 </Link>
               </li>
               <li>
                 <Link to="/trends" className="hover:text-sky-600 dark:hover:text-emerald-300 flex items-center space-x-1.5 transition">
                   <TrendingUp className="w-3.5 h-3.5 text-sky-500 dark:text-emerald-400" />
-                  <span>Market Intelligence Trends</span>
+                  <span>Market Trends</span>
                 </Link>
               </li>
               <li>
@@ -151,7 +151,7 @@ const Footer = () => {
           </p>
           <div className="flex items-center space-x-4">
             <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
-              v1.0.0 Enterprise Production
+              v1.0.0
             </span>
           </div>
         </div>

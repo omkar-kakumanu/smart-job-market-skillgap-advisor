@@ -49,7 +49,7 @@ const Dashboard = () => {
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
-                Welcome back, {user?.fullName?.split(' ')[0]}! 👋
+                Welcome back, {user?.fullName?.split(' ')[0]}!
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                 Target Career Role: <span className="font-semibold text-brand-600 dark:text-brand-400">{user?.targetCareerRole || 'Software Engineer'}</span>
@@ -60,7 +60,7 @@ const Dashboard = () => {
               className="px-6 py-3 text-sm font-bold text-white gradient-btn rounded-xl shadow-lg flex items-center space-x-2"
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>Run AI Gap Analysis</span>
+              <span>Run Skill Gap Analysis</span>
             </Link>
           </div>
         </div>

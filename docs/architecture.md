@@ -5,7 +5,7 @@
 The application follows an N-Tier Layered Full-Stack Architecture:
 
 ```text
-[ React 18 Single Page App ]  (Port 5173 / Nginx 80)
+[ React 18 Single Page App ]  (Port 5173)
            |
            | HTTP REST / JSON (JWT Authorization Header)
            v

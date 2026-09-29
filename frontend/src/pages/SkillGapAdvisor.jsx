@@ -64,7 +64,7 @@ const SkillGapAdvisor = () => {
           <div>
             <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2">
               <Sparkles className="w-7 h-7 text-amber-500" />
-              <span>AI Skill Gap Advisor</span>
+              <span>Skill Gap Advisor</span>
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
               Compare your current profile skills with active industry job requirements.
@@ -196,7 +196,7 @@ const SkillGapAdvisor = () => {
                     <div key={c.id} className="p-4 rounded-2xl bg-white/40 dark:bg-darkcard/40 border border-gray-200/30 dark:border-gray-800/30 flex items-center justify-between">
                       <div>
                         <h4 className="font-bold text-sm text-gray-900 dark:text-white">{c.title}</h4>
-                        <p className="text-xs text-gray-500">{c.provider} &bull; {c.difficulty} &bull; Rating: {c.rating}⭐</p>
+                        <p className="text-xs text-gray-500">{c.provider} &bull; {c.difficulty} &bull; Rating: {c.rating}/5</p>
                         <span className="inline-block mt-1 text-[10px] font-bold text-brand-600 dark:text-brand-400">
                           Bridges: {c.primarySkillName}
                         </span>

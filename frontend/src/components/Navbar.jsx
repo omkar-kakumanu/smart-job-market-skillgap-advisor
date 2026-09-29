@@ -37,7 +37,7 @@ const Navbar = () => {
                 </span>
               </div>
               <span className="text-[11px] font-tech font-bold text-sky-600 dark:text-emerald-400 uppercase tracking-widest -mt-1">
-                Enterprise Market Intelligence
+                Skill-Gap Analysis System
               </span>
             </div>
           </Link>
@@ -55,7 +55,7 @@ const Navbar = () => {
               <>
                 <Link to="/advisor" className="flex items-center space-x-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-500 transition hover:scale-105 font-black">
                   <Sparkles className="w-4 h-4 text-amber-500 animate-bounce" />
-                  <span>AI Gap Advisor</span>
+                  <span>Skill Gap Advisor</span>
                 </Link>
                 <Link to="/certificates" className="flex items-center space-x-1.5 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
                   <Award className="w-4 h-4 text-amber-500" />

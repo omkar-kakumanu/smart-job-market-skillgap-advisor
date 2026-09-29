@@ -146,7 +146,7 @@ const Certificates = () => {
               <span>Verified Skill Certificate Generator</span>
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              Insert your technical & soft skills into an official AI-verified certificate and export/sync to your profile.
+              Insert your technical & soft skills into an official verified certificate and export/sync to your profile.
             </p>
           </div>
 
@@ -451,7 +451,7 @@ const Certificates = () => {
                   </div>
                   <div className="h-0.5 w-40 bg-gradient-to-r from-transparent via-amber-400 to-transparent sm:ml-auto" />
                   <div className="text-[10px] uppercase tracking-widest text-amber-400/80 font-bold">
-                    Chief AI Skill Gap Officer & Verification Board
+                    Lead Skill Gap Evaluator & Verification Board
                   </div>
                   <div className="text-[10px] text-amber-100/60">
                     Issued Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
