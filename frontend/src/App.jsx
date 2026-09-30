@@ -18,6 +18,10 @@ import JobMarketTrends from './pages/JobMarketTrends';
 import Courses from './pages/Courses';
 import Profile from './pages/Profile';
 import Certificates from './pages/Certificates';
+import InterviewSimulation from './pages/InterviewSimulation';
+import VoiceScreening from './pages/VoiceScreening';
+import ResumeUploader from './pages/ResumeUploader';
+import AtsPipeline from './pages/AtsPipeline';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFound from './pages/NotFound';
 
@@ -39,12 +43,16 @@ function App() {
                     <Route path="/trends" element={<JobMarketTrends />} />
                     <Route path="/courses" element={<Courses />} />
 
-                    {/* Authenticated Candidate Routes */}
+                    {/* Authenticated Candidate & Engineering Routes */}
                     <Route element={<ProtectedRoute />}>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/advisor" element={<SkillGapAdvisor />} />
-                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/interview" element={<InterviewSimulation />} />
+                      <Route path="/voice-screening" element={<VoiceScreening />} />
+                      <Route path="/resume" element={<ResumeUploader />} />
+                      <Route path="/ats" element={<AtsPipeline />} />
                       <Route path="/certificates" element={<Certificates />} />
+                      <Route path="/profile" element={<Profile />} />
                     </Route>
 
                     {/* Admin Only Routes */}

@@ -2,7 +2,22 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
-import { Sun, Moon, Sparkles, LogOut, LayoutDashboard, Shield, BookOpen, TrendingUp, Cpu, Award } from 'lucide-react';
+import { 
+  Sun, 
+  Moon, 
+  Sparkles, 
+  LogOut, 
+  LayoutDashboard, 
+  Shield, 
+  BookOpen, 
+  TrendingUp, 
+  Cpu, 
+  Award,
+  Bot,
+  Mic,
+  FileText,
+  GitBranch
+} from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -42,33 +57,45 @@ const Navbar = () => {
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center space-x-6 font-tech text-base tracking-wide">
-            <Link to="/trends" className="flex items-center space-x-1.5 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
-              <TrendingUp className="w-4 h-4 text-sky-500 dark:text-emerald-500" />
-              <span>Market Trends</span>
+          <div className="hidden lg:flex items-center space-x-5 font-tech text-sm tracking-wide">
+            <Link to="/trends" className="flex items-center space-x-1 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
+              <TrendingUp className="w-3.5 h-3.5 text-sky-500 dark:text-emerald-500" />
+              <span>Trends</span>
             </Link>
-            <Link to="/courses" className="flex items-center space-x-1.5 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
-              <BookOpen className="w-4 h-4 text-sky-500 dark:text-emerald-500" />
-              <span>Courses Directory</span>
+            <Link to="/courses" className="flex items-center space-x-1 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
+              <BookOpen className="w-3.5 h-3.5 text-sky-500 dark:text-emerald-500" />
+              <span>Courses</span>
             </Link>
             {isAuthenticated && (
               <>
-                <Link to="/advisor" className="flex items-center space-x-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-500 transition hover:scale-105 font-black">
-                  <Sparkles className="w-4 h-4 text-amber-500 animate-bounce" />
-                  <span>Skill Gap Advisor</span>
+                <Link to="/advisor" className="flex items-center space-x-1 text-amber-600 dark:text-amber-400 hover:text-amber-500 transition hover:scale-105 font-black">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Advisor</span>
                 </Link>
-                <Link to="/certificates" className="flex items-center space-x-1.5 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
-                  <Award className="w-4 h-4 text-amber-500" />
-                  <span>Certificates</span>
+                <Link to="/interview" className="flex items-center space-x-1 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
+                  <Bot className="w-3.5 h-3.5 text-sky-500 dark:text-emerald-500" />
+                  <span>AI Interview</span>
                 </Link>
-                <Link to="/dashboard" className="flex items-center space-x-1.5 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
-                  <LayoutDashboard className="w-4 h-4 text-sky-500 dark:text-emerald-500" />
+                <Link to="/voice-screening" className="flex items-center space-x-1 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
+                  <Mic className="w-3.5 h-3.5 text-purple-500" />
+                  <span>Voice Screening</span>
+                </Link>
+                <Link to="/resume" className="flex items-center space-x-1 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
+                  <FileText className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Resume</span>
+                </Link>
+                <Link to="/ats" className="flex items-center space-x-1 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
+                  <GitBranch className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>ATS</span>
+                </Link>
+                <Link to="/dashboard" className="flex items-center space-x-1 text-slate-700 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition hover:scale-105 font-bold">
+                  <LayoutDashboard className="w-3.5 h-3.5 text-sky-500 dark:text-emerald-500" />
                   <span>Dashboard</span>
                 </Link>
                 {user?.role === 'ROLE_ADMIN' && (
-                  <Link to="/admin" className="flex items-center space-x-1.5 text-purple-600 dark:text-purple-400 hover:text-purple-500 transition hover:scale-105 font-bold">
-                    <Shield className="w-4 h-4 text-purple-500" />
-                    <span>Admin Console</span>
+                  <Link to="/admin" className="flex items-center space-x-1 text-purple-600 dark:text-purple-400 hover:text-purple-500 transition hover:scale-105 font-bold">
+                    <Shield className="w-3.5 h-3.5 text-purple-500" />
+                    <span>Admin</span>
                   </Link>
                 )}
               </>
@@ -78,7 +105,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-3">
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl text-sky-600 dark:text-emerald-400 hover:bg-sky-100 dark:hover:bg-emerald-950/50 border border-sky-400/30 dark:border-emerald-500/30 transition-all duration-200 shadow-sm"
+              className="p-2.5 rounded-xl text-sky-600 dark:text-emerald-400 hover:bg-sky-100 dark:hover:bg-emerald-950/50 border border-sky-400/30 dark:border-emerald-500/30 transition-all duration-200 shadow-sm cursor-pointer"
               aria-label="Toggle Theme"
               title="Toggle Light/Dark Theme"
             >
@@ -100,27 +127,31 @@ const Navbar = () => {
                       {getInitials(user?.fullName)}
                     </div>
                   )}
-                  <span className="hidden sm:inline-block text-sm font-tech font-bold text-slate-800 dark:text-gray-200">
+                  <span className="hidden sm:inline font-tech font-bold text-xs text-slate-800 dark:text-white">
                     {user?.fullName?.split(' ')[0]}
                   </span>
                 </Link>
+
                 <button
-                  onClick={() => {
-                    logout();
-                    navigate('/login');
-                  }}
-                  className="p-2 rounded-xl text-slate-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
+                  onClick={logout}
+                  className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-transparent hover:border-rose-400/30 transition cursor-pointer"
                   title="Logout"
                 >
-                  <LogOut className="w-5 h-5" />
+                  <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
               <div className="flex items-center space-x-2 font-tech">
-                <Link to="/login" className="px-4 py-2 text-sm font-bold text-slate-800 hover:text-sky-600 dark:text-gray-300 dark:hover:text-emerald-400 transition">
+                <Link
+                  to="/login"
+                  className="px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-gray-300 hover:text-sky-600 dark:hover:text-emerald-400 transition"
+                >
                   Sign In
                 </Link>
-                <Link to="/register" className="px-4 py-2 text-sm font-bold text-white gradient-btn rounded-xl border border-sky-400/40 dark:border-emerald-400/40 shadow-sky-glow dark:shadow-emerald-glow">
+                <Link
+                  to="/register"
+                  className="px-4 py-2 text-xs font-extrabold text-white gradient-btn rounded-xl shadow-sm hover:scale-105 transition"
+                >
                   Get Started
                 </Link>
               </div>

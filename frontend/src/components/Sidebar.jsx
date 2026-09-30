@@ -11,8 +11,10 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ArrowLeftRight,
-  ChevronLeft,
-  ChevronRight,
+  Bot,
+  Mic,
+  FileText,
+  GitBranch,
   Sliders
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -25,6 +27,10 @@ const Sidebar = () => {
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/advisor', label: 'Skill Gap Advisor', icon: Sparkles },
+    { to: '/interview', label: 'AI Interview', icon: Bot },
+    { to: '/voice-screening', label: 'Voice Screening', icon: Mic },
+    { to: '/resume', label: 'Resume Parser', icon: FileText },
+    { to: '/ats', label: 'ATS Pipeline', icon: GitBranch },
     { to: '/trends', label: 'Market Trends', icon: TrendingUp },
     { to: '/courses', label: 'Courses Directory', icon: BookOpen },
     { to: '/certificates', label: 'Skill Certificates', icon: Award },
@@ -82,7 +88,7 @@ const Sidebar = () => {
       </div>
 
       {/* Menu Nav Links */}
-      <nav className="flex-1 space-y-1.5">
+      <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
         {links.map((link) => {
           const Icon = link.icon;
           return (
@@ -91,8 +97,8 @@ const Sidebar = () => {
               to={link.to}
               title={isCollapsed ? link.label : ''}
               className={({ isActive }) =>
-                `flex items-center font-bold text-sm transition-all duration-300 ${
-                  isCollapsed ? 'justify-center px-3 py-3 rounded-xl' : 'space-x-3 px-4 py-3 rounded-xl'
+                `flex items-center font-bold text-xs transition-all duration-200 ${
+                  isCollapsed ? 'justify-center px-3 py-2.5 rounded-xl' : 'space-x-3 px-3.5 py-2.5 rounded-xl'
                 } ${
                   isActive
                     ? 'gradient-btn text-white shadow-solo-glow dark:shadow-emerald-glow border border-sky-300/40 dark:border-emerald-400/40'
@@ -100,7 +106,7 @@ const Sidebar = () => {
                 }`
               }
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              <Icon className="w-4 h-4 flex-shrink-0" />
               {!isCollapsed && <span className="truncate">{link.label}</span>}
             </NavLink>
           );
@@ -109,9 +115,9 @@ const Sidebar = () => {
 
       {/* Bottom Status / Mode indicator when expanded */}
       {!isCollapsed && (
-        <div className="pt-2 border-t border-sky-400/20 dark:border-emerald-500/20 text-[11px] text-gray-500 dark:text-gray-400 px-2 flex items-center justify-between font-sans">
+        <div className="pt-2 border-t border-sky-400/20 dark:border-emerald-500/20 text-[10px] text-gray-500 dark:text-gray-400 px-2 flex items-center justify-between font-sans">
           <span>Position: <strong className="uppercase text-sky-600 dark:text-emerald-400">{position}</strong></span>
-          <span>Width: <strong className="uppercase text-sky-600 dark:text-emerald-400">Maximized</strong></span>
+          <span>Status: <strong className="uppercase text-emerald-500">Live</strong></span>
         </div>
       )}
     </aside>

@@ -53,6 +53,11 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/interviews/questions/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/interviews/evaluate").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/voice-screening/questions/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/voice-screening/evaluate").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/resume/parse").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/skills/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/courses/**").permitAll()
