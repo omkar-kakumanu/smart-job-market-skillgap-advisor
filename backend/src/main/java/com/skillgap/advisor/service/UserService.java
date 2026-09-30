@@ -38,7 +38,9 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        user.setFullName(dto.getFullName());
+        if (dto.getFullName() != null && !dto.getFullName().isBlank()) {
+            user.setFullName(dto.getFullName().trim());
+        }
         if (dto.getTargetCareerRole() != null) user.setTargetCareerRole(dto.getTargetCareerRole());
         if (dto.getExperienceLevel() != null) user.setExperienceLevel(dto.getExperienceLevel());
         if (dto.getBio() != null) user.setBio(dto.getBio());

@@ -28,54 +28,44 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        if (userRepository.count() == 0) {
-            log.info("Seeding initial application database data...");
-            seedUsers();
+        log.info("Verifying and seeding platform user accounts...");
+        seedUsers();
+
+        if (skillRepository.count() == 0) {
+            log.info("Seeding initial skills, jobs, and courses data...");
             seedSkillsAndJobs();
-            log.info("Database seeding completed successfully!");
+            log.info("Database skills and jobs seeding completed successfully!");
         }
     }
 
     private void seedUsers() {
-        String defaultPassword = passwordEncoder.encode("Password123!");
+        createIfMissing("admin@copilot.com", "J Manju Raghvin (Main Super-Admin)", "admin123", "System Administrator & Hiring Director", "LEAD", Role.ROLE_ADMIN);
+        createIfMissing("recruiter@copilot.com", "Sarah Jenkins", "recruiter123", "Talent Acquisition Specialist", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+        createIfMissing("candidate@copilot.com", "Sarah Johnson", "candidate123", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
+        createIfMissing("sarah.johnson@example.com", "Sarah Johnson", "candidate123", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
+        createIfMissing("sarah.jenkins@gmail.com", "Sarah Jenkins", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+        createIfMissing("j.manju.raghvin@gmail.com", "J Manju Raghvin", "admin123", "System Administrator & Hiring Director", "LEAD", Role.ROLE_ADMIN);
+        createIfMissing("admin@skillgap.com", "System Administrator", "AdminPass123!", "System Admin", "LEAD", Role.ROLE_ADMIN);
+        createIfMissing("user@skillgap.com", "John Doe", "Password123!", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
+        createIfMissing("manager@skillgap.com", "Sarah Manager", "Password123!", "Engineering Hiring Manager", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+    }
 
-        User admin = User.builder()
-                .fullName("System Administrator")
-                .email("admin@skillgap.com")
-                .password(passwordEncoder.encode("AdminPass123!"))
-                .targetCareerRole("System Admin")
-                .experienceLevel("LEAD")
-                .bio("Administrator account for platform management.")
-                .role(Role.ROLE_ADMIN)
-                .isActive(true)
-                .isVerified(true)
-                .build();
-
-        User candidate = User.builder()
-                .fullName("John Doe")
-                .email("user@skillgap.com")
-                .password(defaultPassword)
-                .targetCareerRole("Full Stack Java Developer")
-                .experienceLevel("MID_LEVEL")
-                .bio("Passionate Java & React developer aiming for Senior Engineer role.")
-                .role(Role.ROLE_USER)
-                .isActive(true)
-                .isVerified(true)
-                .build();
-
-        User manager = User.builder()
-                .fullName("Sarah Manager")
-                .email("manager@skillgap.com")
-                .password(defaultPassword)
-                .targetCareerRole("Engineering Hiring Manager")
-                .experienceLevel("SENIOR_LEVEL")
-                .bio("Recruiting lead for Software Engineering positions.")
-                .role(Role.ROLE_MANAGER)
-                .isActive(true)
-                .isVerified(true)
-                .build();
-
-        userRepository.saveAll(List.of(admin, candidate, manager));
+    private void createIfMissing(String email, String fullName, String rawPassword, String targetRole, String expLevel, Role role) {
+        if (userRepository.findByEmail(email).isEmpty()) {
+            User user = User.builder()
+                    .fullName(fullName)
+                    .email(email)
+                    .password(passwordEncoder.encode(rawPassword))
+                    .targetCareerRole(targetRole)
+                    .experienceLevel(expLevel)
+                    .bio("Verified profile for " + fullName + ".")
+                    .role(role)
+                    .isActive(true)
+                    .isVerified(true)
+                    .build();
+            userRepository.save(user);
+            log.info("Seeded account: {} with role {}", email, role);
+        }
     }
 
     private void seedSkillsAndJobs() {

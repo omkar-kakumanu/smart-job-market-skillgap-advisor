@@ -10,4 +10,9 @@ export const authService = {
     const res = await api.post('/auth/register', userData);
     return res.data.data;
   },
+
+  googleSso: async (googleData) => {
+    const res = await api.post('/auth/google-sso', googleData);
+    return res.data.data;
+  },
 };

@@ -38,16 +38,24 @@ const Profile = () => {
     init();
   }, []);
 
-  const handleUpdateProfile = async (e) => {
+    const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const updated = await userService.updateProfile(profile);
+      const payload = {
+        fullName: profile?.fullName || user?.fullName || 'Candidate',
+        profileImageUrl: profile?.profileImageUrl || '',
+        targetCareerRole: profile?.targetCareerRole || 'Software Engineer',
+        experienceLevel: profile?.experienceLevel || 'ENTRY_LEVEL',
+        bio: profile?.bio || ''
+      };
+      const updated = await userService.updateProfile(payload);
       setProfile(updated);
       updateUserProfile(updated);
-      showToast('Profile updated successfully!', 'success');
+      showToast('Profile & preferences saved successfully!', 'success');
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to update profile';
+      console.error('Update profile error:', err);
+      const msg = err.response?.data?.message || 'Failed to save profile & preferences';
       showToast(msg, 'error');
     } finally {
       setSaving(false);
@@ -172,7 +180,7 @@ const Profile = () => {
                 className="px-6 py-2.5 text-sm font-bold text-white gradient-btn rounded-xl shadow-md flex items-center space-x-2"
               >
                 <Save className="w-4 h-4" />
-                <span>{saving ? 'Saving...' : 'Save Profile Changes'}</span>
+                <span>{saving ? 'Saving Preferences...' : 'Save Profile & Preferences'}</span>
               </button>
             </form>
           </div>
