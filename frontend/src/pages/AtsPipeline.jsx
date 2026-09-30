@@ -29,7 +29,7 @@ const AtsPipeline = () => {
   // Form State for Scheduling
   const [scheduledDate, setScheduledDate] = useState('2026-10-02');
   const [scheduledTime, setScheduledTime] = useState('11:00 AM IST');
-  const [interviewerName, setInterviewerName] = useState('Sarah Jenkins (Lead Technical Recruiter)');
+  const [interviewerName, setInterviewerName] = useState('Talent Acquisition Lead');
   const [interviewType, setInterviewType] = useState('TECHNICAL_INTERVIEW');
   const [notes, setNotes] = useState('Technical architecture and hands-on coding assessment.');
 
@@ -54,12 +54,12 @@ const AtsPipeline = () => {
           {
             id: 'int-1',
             jobTitle: user?.targetCareerRole || 'Full Stack Java Developer',
-            interviewerName: 'Sarah Jenkins (Lead Recruiter)',
+            interviewerName: 'Talent Acquisition Lead',
             scheduledDate: 'Tomorrow',
             scheduledTime: '11:00 AM IST',
             durationMinutes: 45,
             interviewType: 'TECHNICAL_INTERVIEW',
-            meetingLink: 'https://meet.google.com/hiring-copilot-room',
+            meetingLink: 'https://meet.google.com/tech-interview-room',
             status: 'CONFIRMED',
             notes: 'Discussion on Java 21, Spring Boot architecture, and high-concurrency database optimizations.'
           }

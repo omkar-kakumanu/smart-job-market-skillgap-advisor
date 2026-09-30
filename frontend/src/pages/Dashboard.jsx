@@ -63,7 +63,7 @@ const Dashboard = () => {
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-500/15 dark:bg-emerald-500/15 text-sky-700 dark:text-emerald-300 rounded-full text-xs font-bold mb-2">
-                <span>Enterprise Talent & Skill Copilot</span>
+                <span>Enterprise Talent & Skill Intelligence</span>
                 <span>•</span>
                 <span>Java 21 Spring Boot Backend</span>
               </div>
@@ -93,7 +93,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* AI Smart Hiring & Skill Copilot Suite (4 Interactive Feature Cards) */}
+        {/* AI Smart Hiring & Skill-Gap Suite (4 Interactive Feature Cards) */}
         <div className="mb-8 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">

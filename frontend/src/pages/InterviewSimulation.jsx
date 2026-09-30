@@ -202,7 +202,7 @@ const InterviewSimulation = () => {
           <div className="space-y-1 z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 dark:bg-emerald-500/10 text-sky-700 dark:text-emerald-400 rounded-full font-bold text-xs border border-sky-400/20 dark:border-emerald-500/20">
               <span className="w-2 h-2 rounded-full bg-sky-500 dark:bg-emerald-400 animate-pulse" />
-              <span>Neural AI Interview Copilot • Java Spring Boot Backend</span>
+              <span>Neural AI Interview Simulator • Java Spring Boot Backend</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
               AI Interview Simulation & Multi-Attempt Practice

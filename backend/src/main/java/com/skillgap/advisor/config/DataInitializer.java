@@ -39,20 +39,26 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedUsers() {
-        createIfMissing("admin@copilot.com", "J Manju Raghvin (Main Super-Admin)", "admin123", "System Administrator & Hiring Director", "LEAD", Role.ROLE_ADMIN);
-        createIfMissing("recruiter@copilot.com", "Sarah Jenkins", "recruiter123", "Talent Acquisition Specialist", "SENIOR_LEVEL", Role.ROLE_MANAGER);
-        createIfMissing("candidate@copilot.com", "Sarah Johnson", "candidate123", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
-        createIfMissing("sarah.johnson@example.com", "Sarah Johnson", "candidate123", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
-        createIfMissing("sarah.jenkins@gmail.com", "Sarah Jenkins", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_MANAGER);
-        createIfMissing("j.manju.raghvin@gmail.com", "J Manju Raghvin", "admin123", "System Administrator & Hiring Director", "LEAD", Role.ROLE_ADMIN);
-        createIfMissing("admin@skillgap.com", "System Administrator", "AdminPass123!", "System Admin", "LEAD", Role.ROLE_ADMIN);
-        createIfMissing("user@skillgap.com", "John Doe", "Password123!", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
-        createIfMissing("manager@skillgap.com", "Sarah Manager", "Password123!", "Engineering Hiring Manager", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+        // Professional Default Accounts for Smart Job Market Skill-Gap Advisor
+        createOrUpdateUser("admin@skillgap.com", "System Administrator", "admin123", "System Administrator", "LEAD", Role.ROLE_ADMIN);
+        createOrUpdateUser("admin@smartjobadvisor.com", "System Administrator", "admin123", "System Administrator", "LEAD", Role.ROLE_ADMIN);
+        createOrUpdateUser("admin@copilot.com", "System Administrator", "admin123", "System Administrator", "LEAD", Role.ROLE_ADMIN);
+
+        createOrUpdateUser("recruiter@skillgap.com", "Talent Acquisition Lead", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+        createOrUpdateUser("recruiter@smartjobadvisor.com", "Talent Acquisition Lead", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+        createOrUpdateUser("manager@skillgap.com", "Engineering Hiring Manager", "Password123!", "Engineering Hiring Manager", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+        createOrUpdateUser("recruiter@copilot.com", "Talent Acquisition Lead", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+
+        createOrUpdateUser("candidate@skillgap.com", "Candidate Applicant", "candidate123", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
+        createOrUpdateUser("candidate@smartjobadvisor.com", "Candidate Applicant", "candidate123", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
+        createOrUpdateUser("user@skillgap.com", "Alex Vance", "Password123!", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
+        createOrUpdateUser("candidate@copilot.com", "Candidate Applicant", "candidate123", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
     }
 
-    private void createIfMissing(String email, String fullName, String rawPassword, String targetRole, String expLevel, Role role) {
-        if (userRepository.findByEmail(email).isEmpty()) {
-            User user = User.builder()
+    private void createOrUpdateUser(String email, String fullName, String rawPassword, String targetRole, String expLevel, Role role) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            user = User.builder()
                     .fullName(fullName)
                     .email(email)
                     .password(passwordEncoder.encode(rawPassword))
@@ -65,6 +71,11 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             userRepository.save(user);
             log.info("Seeded account: {} with role {}", email, role);
+        } else {
+            user.setFullName(fullName);
+            user.setRole(role);
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            userRepository.save(user);
         }
     }
 
