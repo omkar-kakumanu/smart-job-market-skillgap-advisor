@@ -25,20 +25,20 @@ const Sidebar = () => {
   const { isCollapsed, toggleCollapse, position, togglePosition } = useSidebar();
 
   const links = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/dashboard', label: 'Candidate Dashboard', icon: LayoutDashboard },
     { to: '/advisor', label: 'Skill Gap Advisor', icon: Sparkles },
-    { to: '/interview', label: 'AI Interview', icon: Bot },
-    { to: '/voice-screening', label: 'Voice Screening', icon: Mic },
-    { to: '/resume', label: 'Resume Parser', icon: FileText },
-    { to: '/ats', label: 'ATS Pipeline', icon: GitBranch },
-    { to: '/trends', label: 'Market Trends', icon: TrendingUp },
-    { to: '/courses', label: 'Courses Directory', icon: BookOpen },
-    { to: '/certificates', label: 'Skill Certificates', icon: Award },
-    { to: '/profile', label: 'Skill Profile', icon: User },
+    { to: '/interview', label: 'AI Technical Interview', icon: Bot },
+    { to: '/voice-screening', label: 'Voice Competency Screening', icon: Mic },
+    { to: '/resume', label: 'Resume & ATS Analyzer', icon: FileText },
+    { to: '/ats', label: 'Talent Pipeline (ATS)', icon: GitBranch },
+    { to: '/trends', label: 'Market Demand Telemetry', icon: TrendingUp },
+    { to: '/courses', label: 'Accredited Courses', icon: BookOpen },
+    { to: '/certificates', label: 'Verified Credentials', icon: Award },
+    { to: '/profile', label: 'Candidate Profile', icon: User },
   ];
 
   if (user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_MANAGER') {
-    links.push({ to: '/admin', label: 'Admin Portal', icon: Shield });
+    links.push({ to: '/admin', label: 'Administrative Console', icon: Shield });
   }
 
   const isLeft = position === 'left';
@@ -47,16 +47,16 @@ const Sidebar = () => {
     <aside
       className={`glass hidden md:flex flex-col transition-all duration-300 min-h-[calc(100vh-4rem)] p-3 space-y-3 font-tech select-none ${
         isLeft
-          ? 'order-first border-r border-sky-400/30 dark:border-emerald-500/30'
-          : 'order-last border-l border-sky-400/30 dark:border-emerald-500/30'
+          ? 'order-first border-r border-slate-200/80 dark:border-emerald-500/30'
+          : 'order-last border-l border-slate-200/80 dark:border-emerald-500/30'
       } ${isCollapsed ? 'w-20' : 'w-64'}`}
     >
-      {/* Command Menu Control Header */}
-      <div className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-sky-500/10 dark:bg-emerald-500/10 border border-sky-400/20 dark:border-emerald-500/20">
+      {/* Navigation Control Header */}
+      <div className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-indigo-50/70 dark:bg-emerald-500/10 border border-indigo-100 dark:border-emerald-500/20">
         {!isCollapsed && (
-          <div className="flex items-center space-x-1.5 text-xs font-bold uppercase tracking-widest text-sky-700 dark:text-emerald-400 truncate">
-            <Sliders className="w-3.5 h-3.5 text-sky-500 dark:text-emerald-400" />
-            <span>Command Menu</span>
+          <div className="flex items-center space-x-1.5 text-xs font-bold uppercase tracking-widest text-indigo-700 dark:text-emerald-400 truncate">
+            <Sliders className="w-3.5 h-3.5 text-indigo-600 dark:text-emerald-400" />
+            <span>Navigation Console</span>
           </div>
         )}
 
@@ -65,8 +65,8 @@ const Sidebar = () => {
           <button
             onClick={togglePosition}
             type="button"
-            className="p-1.5 rounded-lg text-slate-600 dark:text-gray-300 hover:bg-sky-200/60 dark:hover:bg-emerald-900/50 hover:text-sky-700 dark:hover:text-emerald-300 transition-colors"
-            title={`Move menu bar to ${isLeft ? 'Right' : 'Left'} side`}
+            className="p-1.5 rounded-lg text-slate-600 dark:text-gray-300 hover:bg-indigo-100/70 dark:hover:bg-emerald-900/50 hover:text-indigo-700 dark:hover:text-emerald-300 transition-colors"
+            title={`Dock navigation to ${isLeft ? 'Right' : 'Left'}`}
           >
             <ArrowLeftRight className="w-4 h-4" />
           </button>
@@ -75,11 +75,11 @@ const Sidebar = () => {
           <button
             onClick={toggleCollapse}
             type="button"
-            className="p-1.5 rounded-lg text-slate-600 dark:text-gray-300 hover:bg-sky-200/60 dark:hover:bg-emerald-900/50 hover:text-sky-700 dark:hover:text-emerald-300 transition-colors"
-            title={isCollapsed ? 'Maximize Command Menu' : 'Minimize Command Menu'}
+            className="p-1.5 rounded-lg text-slate-600 dark:text-gray-300 hover:bg-indigo-100/70 dark:hover:bg-emerald-900/50 hover:text-indigo-700 dark:hover:text-emerald-300 transition-colors"
+            title={isCollapsed ? 'Expand Navigation Console' : 'Collapse Navigation Console'}
           >
             {isCollapsed ? (
-              <PanelLeftOpen className="w-4 h-4 text-sky-600 dark:text-emerald-400" />
+              <PanelLeftOpen className="w-4 h-4 text-indigo-600 dark:text-emerald-400" />
             ) : (
               <PanelLeftClose className="w-4 h-4" />
             )}
@@ -101,8 +101,8 @@ const Sidebar = () => {
                   isCollapsed ? 'justify-center px-3 py-2.5 rounded-xl' : 'space-x-3 px-3.5 py-2.5 rounded-xl'
                 } ${
                   isActive
-                    ? 'gradient-btn text-white shadow-solo-glow dark:shadow-emerald-glow border border-sky-300/40 dark:border-emerald-400/40'
-                    : 'text-slate-700 hover:bg-sky-100/80 hover:text-sky-600 dark:text-gray-300 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 hover:scale-[1.02]'
+                    ? 'gradient-btn text-white shadow-brand-glow dark:shadow-emerald-glow border border-indigo-300/40 dark:border-emerald-400/40'
+                    : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 hover:scale-[1.02]'
                 }`
               }
             >
@@ -115,9 +115,9 @@ const Sidebar = () => {
 
       {/* Bottom Status / Mode indicator when expanded */}
       {!isCollapsed && (
-        <div className="pt-2 border-t border-sky-400/20 dark:border-emerald-500/20 text-[10px] text-gray-500 dark:text-gray-400 px-2 flex items-center justify-between font-sans">
-          <span>Position: <strong className="uppercase text-sky-600 dark:text-emerald-400">{position}</strong></span>
-          <span>Status: <strong className="uppercase text-emerald-500">Live</strong></span>
+        <div className="pt-2 border-t border-slate-200 dark:border-emerald-500/20 text-[10px] text-gray-500 dark:text-gray-400 px-2 flex items-center justify-between font-sans">
+          <span>Dock: <strong className="uppercase text-indigo-600 dark:text-emerald-400">{position}</strong></span>
+          <span>System: <strong className="uppercase text-emerald-500">Active</strong></span>
         </div>
       )}
     </aside>

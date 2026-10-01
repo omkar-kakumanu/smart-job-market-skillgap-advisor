@@ -136,17 +136,17 @@ const Certificates = () => {
     <div className="flex min-h-[calc(100vh-4rem)]">
       <Sidebar />
       <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
-        <Breadcrumb items={[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Skill Certificate Generator' }]} />
+        <Breadcrumb items={[{ label: 'Candidate Dashboard', to: '/dashboard' }, { label: 'Verified Skill Credentials' }]} />
 
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2">
               <Award className="w-8 h-8 text-amber-500 animate-pulse" />
-              <span>Verified Skill Certificate Generator</span>
+              <span>Verified Competency Credential Generator</span>
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              Insert your technical & soft skills into an official verified certificate and export/sync to your profile.
+              Generate auditable, cryptographically verified candidate competency certificates complete with audit validation and verifiable QR code.
             </p>
           </div>
 
@@ -156,7 +156,7 @@ const Certificates = () => {
               className="px-4 py-2.5 rounded-xl border border-sky-400/40 dark:border-emerald-500/40 bg-sky-50 dark:bg-emerald-950/40 text-sky-700 dark:text-emerald-300 hover:bg-sky-100 text-xs font-bold font-tech flex items-center gap-2 transition"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>Sync Skills to Profile</span>
+              <span>Sync to Profile</span>
             </button>
 
             <button
@@ -164,7 +164,7 @@ const Certificates = () => {
               className="px-5 py-2.5 rounded-xl gradient-btn font-tech text-xs font-bold text-white shadow-md flex items-center gap-2 border border-sky-300/40 dark:border-emerald-400/40 uppercase tracking-wider"
             >
               <Printer className="w-4 h-4" />
-              <span>Print / Save PDF</span>
+              <span>Export Verified PDF</span>
             </button>
           </div>
         </div>

@@ -226,20 +226,20 @@ const VoiceScreening = () => {
     <div className="flex min-h-[calc(100vh-4rem)]">
       <Sidebar />
       <main className="flex-1 p-6 sm:p-8 overflow-y-auto font-sans">
-        <Breadcrumb items={[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Voice Screening Studio' }]} />
+        <Breadcrumb items={[{ label: 'Candidate Dashboard', to: '/dashboard' }, { label: 'Voice Competency Screening' }]} />
 
         {/* Top Header Banner */}
         <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
           <div className="space-y-1 z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 dark:bg-emerald-500/10 text-sky-700 dark:text-emerald-400 rounded-full font-bold text-xs border border-sky-400/20 dark:border-emerald-500/20">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Web Audio API • Real-Time Speech Analysis • Java Spring Boot</span>
+              <span>Voice Competency Intelligence • Acoustic Telemetry</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              AI Voice Screening & Assessment Studio
+              AI Voice Competency Screening Studio
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 font-medium max-w-2xl">
-              Conduct preliminary spoken screening with live microphone recording, real-time waveform visualization, Speech-to-Text transcript scoring, and fluency analysis.
+              Execute structured verbal evaluations featuring live acoustic spectral capture, automated phonetic transcription, and competency rubric scoring.
             </p>
           </div>
 
@@ -247,7 +247,7 @@ const VoiceScreening = () => {
             <button
               onClick={handleInjectSimulatedAnswer}
               className="px-4 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 font-bold text-xs rounded-xl border border-amber-400/40 transition flex items-center gap-2"
-              title="Click to simulate speaking an answer without microphone"
+              title="Inject verified candidate sample response"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               <span>Simulate Voice Answer</span>

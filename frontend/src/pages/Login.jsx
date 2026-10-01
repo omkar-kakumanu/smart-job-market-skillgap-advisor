@@ -349,7 +349,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                 Next-Gen Talent Acquisition
               </h1>
               <p className="text-white/75 text-xs leading-relaxed px-2 font-sans">
-                Accelerate hiring decisions with automated resume parsing, skill-gap analysis, and AI interview simulations.
+                Empowering modern enterprises and technical talent with predictive competency modeling, real-time labor market telemetry, and automated interview simulations.
               </p>
             </motion.div>
 
@@ -357,15 +357,15 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
             <motion.div variants={itemVariants} className="grid grid-cols-3 gap-2.5 w-full pt-1 font-tech">
               <div className="bg-white/5 border border-white/10 p-3 rounded-2xl text-center backdrop-blur-sm">
                 <span className="text-base font-black text-white block">98.4%</span>
-                <span className="text-[10px] text-white/60 font-semibold block leading-tight">Skill Match Accuracy</span>
+                <span className="text-[10px] text-white/60 font-semibold block leading-tight">Benchmark Accuracy</span>
               </div>
               <div className="bg-white/5 border border-white/10 p-3 rounded-2xl text-center backdrop-blur-sm">
                 <span className="text-base font-black text-sky-400 block">1,420+</span>
-                <span className="text-[10px] text-white/60 font-semibold block leading-tight">Resumes Parsed</span>
+                <span className="text-[10px] text-white/60 font-semibold block leading-tight">Profiles Evaluated</span>
               </div>
               <div className="bg-white/5 border border-white/10 p-3 rounded-2xl text-center backdrop-blur-sm">
                 <span className="text-base font-black text-emerald-400 block">10+ Roles</span>
-                <span className="text-[10px] text-white/60 font-semibold block leading-tight">Interview Question Banks</span>
+                <span className="text-[10px] text-white/60 font-semibold block leading-tight">Question Taxonomies</span>
               </div>
             </motion.div>
 
@@ -373,8 +373,8 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
             <motion.div variants={itemVariants} className="w-full space-y-2 text-left pt-2 font-tech">
               <StepItem
                 number={1}
-                text="Identity Verification & Portal Login"
-                subtext="Role-based access security & verification"
+                text="Identity Verification & Portal Access"
+                subtext="Role-based credential authorization"
                 active={activeStep === 1}
                 onClick={() => setActiveStep(1)}
               />
@@ -396,7 +396,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
           </motion.div>
 
           <div className="z-10 text-[11px] text-white/50 text-center font-tech">
-            Spring Boot 3.2.3 • Java 21 LTS Security Architecture
+            Enterprise Cloud Architecture • Cryptographic Security Standards
           </div>
         </div>
 
@@ -416,7 +416,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                   onClick={() => handleSelectMode('RECRUITER')}
                   className={`py-2 rounded-xl text-[11px] font-black transition-all text-center truncate cursor-pointer ${
                     mode === 'RECRUITER'
-                      ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                       : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
@@ -453,7 +453,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                       : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  4. Request
+                  4. Register
                 </button>
               </div>
 
@@ -472,12 +472,12 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
             <div className="space-y-1 font-tech">
               <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white font-display">
                 {mode === 'RECRUITER'
-                  ? 'Recruiter Gateway'
+                  ? 'Talent Acquisition Portal'
                   : mode === 'CANDIDATE'
-                  ? 'Candidate Applicant Portal'
+                  ? 'Candidate Career Portal'
                   : mode === 'ADMIN'
-                  ? 'Administrator Governance'
-                  : 'Create Candidate Account & Request Access'}
+                  ? 'Administrative Governance Console'
+                  : 'Create Professional Candidate Profile'}
               </h2>
               <p className="text-slate-500 dark:text-gray-400 text-xs font-medium">
                 {mode === 'RECRUITER'
@@ -549,7 +549,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                 <button
                   type="button"
                   onClick={() => handleQuickDemoFill(mode)}
-                  className="px-3 py-1 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs transition cursor-pointer shadow-sm"
+                  className="px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition cursor-pointer shadow-sm"
                 >
                   ⚡ Autofill {mode === 'RECRUITER' ? 'Recruiter' : mode === 'CANDIDATE' ? 'Candidate' : 'Admin'}
                 </button>
@@ -571,26 +571,26 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300 mb-1">First Name</label>
                       <div className="relative">
-                        <User className="w-4 h-4 text-sky-500 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <User className="w-4 h-4 text-indigo-600 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
                           placeholder="Alex"
-                          className="w-full pl-9 pr-3 py-2 rounded-xl border border-sky-300/60 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-sky-500 dark:focus:ring-emerald-400 focus:outline-none"
+                          className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none"
                         />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300 mb-1">Last Name</label>
                       <div className="relative">
-                        <User className="w-4 h-4 text-sky-500 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <User className="w-4 h-4 text-indigo-600 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
                           placeholder="Vance"
-                          className="w-full pl-9 pr-3 py-2 rounded-xl border border-sky-300/60 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-sky-500 dark:focus:ring-emerald-400 focus:outline-none"
+                          className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none"
                         />
                       </div>
                     </div>
@@ -600,13 +600,13 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300 mb-1">Target Career Role</label>
                       <div className="relative">
-                        <Briefcase className="w-4 h-4 text-sky-500 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Briefcase className="w-4 h-4 text-indigo-600 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
                           value={targetRole}
                           onChange={(e) => setTargetRole(e.target.value)}
                           placeholder="Full Stack Java Developer"
-                          className="w-full pl-9 pr-3 py-2 rounded-xl border border-sky-300/60 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-sky-500 dark:focus:ring-emerald-400 focus:outline-none"
+                          className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none"
                         />
                       </div>
                     </div>
@@ -616,7 +616,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                       <select
                         value={experienceLevel}
                         onChange={(e) => setExperienceLevel(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-sky-300/60 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-sky-500 dark:focus:ring-emerald-400 focus:outline-none"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none"
                       >
                         {EXPERIENCE_LEVELS.map((lvl) => (
                           <option key={lvl.value} value={lvl.value}>{lvl.label}</option>
@@ -632,7 +632,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                   {mode === 'SIGN_UP' ? 'Email Address' : mode === 'ADMIN' ? 'Admin Email' : mode === 'RECRUITER' ? 'Recruiter Work Email' : 'Candidate Email'}
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-sky-500 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-indigo-600 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
                     value={email}
@@ -647,7 +647,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                         : 'alex.vance@example.com'
                     }
                     required
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-sky-300/60 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-sky-500 dark:focus:ring-emerald-400 focus:outline-none font-medium"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none font-medium"
                   />
                 </div>
               </div>
@@ -655,14 +655,14 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300 mb-1">Password</label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-sky-500 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-indigo-600 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-sky-300/60 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-sky-500 dark:focus:ring-emerald-400 focus:outline-none font-medium"
+                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 dark:border-emerald-500/40 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none font-medium"
                   />
                   <button
                     type="button"
@@ -686,7 +686,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                     ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30'
                     : mode === 'CANDIDATE'
                     ? 'bg-purple-600 hover:bg-purple-700 shadow-purple-600/30'
-                    : 'bg-sky-500 hover:bg-sky-600 shadow-sky-500/30'
+                    : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/30'
                 }`}
               >
                 {submitting ? (
@@ -723,7 +723,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                   <button
                     type="button"
                     onClick={() => handleSelectMode('RECRUITER')}
-                    className="text-sky-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer uppercase tracking-wider"
+                    className="text-indigo-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer uppercase tracking-wider"
                   >
                     Log In Here
                   </button>
@@ -734,7 +734,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                   <button
                     type="button"
                     onClick={() => handleSelectMode('SIGN_UP')}
-                    className="text-sky-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer uppercase tracking-wider"
+                    className="text-indigo-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer uppercase tracking-wider"
                   >
                     Register / Sign Up Here
                   </button>
@@ -780,18 +780,18 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                   type="button"
                   disabled={googleSubmitting}
                   onClick={() => handleGoogleSelect('recruiter@skillgap.com', 'Talent Acquisition Lead', 'Talent Acquisition Lead')}
-                  className="w-full flex items-center justify-between p-3 border border-slate-200 dark:border-gray-700 rounded-2xl hover:border-sky-500 dark:hover:border-emerald-500 hover:bg-sky-50/50 dark:hover:bg-emerald-950/20 transition-all text-left cursor-pointer group"
+                  className="w-full flex items-center justify-between p-3 border border-slate-200 dark:border-gray-700 rounded-2xl hover:border-indigo-500 dark:hover:border-emerald-500 hover:bg-indigo-50/50 dark:hover:bg-emerald-950/20 transition-all text-left cursor-pointer group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-sky-500 text-white font-black text-xs flex items-center justify-center shadow-sm">
+                    <div className="w-9 h-9 rounded-full bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-sm">
                       TL
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white block group-hover:text-sky-600 dark:group-hover:text-emerald-400">Talent Acquisition Lead (Recruiter)</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block group-hover:text-indigo-600 dark:group-hover:text-emerald-400">Talent Acquisition Lead (Recruiter)</span>
                       <span className="text-[10px] text-slate-500 dark:text-gray-400 font-medium">recruiter@skillgap.com</span>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-sky-600 dark:group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
                 </button>
 
                 <button
@@ -843,12 +843,12 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                       value={customGmail}
                       onChange={(e) => setCustomGmail(e.target.value)}
                       placeholder="your.name@gmail.com"
-                      className="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-darkbg text-xs font-sans focus:outline-none focus:ring-1 focus:ring-sky-500 dark:focus:ring-emerald-400"
+                      className="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-darkbg text-xs font-sans focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-emerald-400"
                     />
                     <button
                       type="submit"
                       disabled={googleSubmitting}
-                      className="px-4 py-2 bg-sky-500 hover:bg-sky-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
                     >
                       {googleSubmitting ? 'Verifying...' : 'Sign In →'}
                     </button>

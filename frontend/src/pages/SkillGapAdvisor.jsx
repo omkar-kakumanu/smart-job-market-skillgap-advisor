@@ -64,10 +64,10 @@ const SkillGapAdvisor = () => {
           <div>
             <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2">
               <Sparkles className="w-7 h-7 text-amber-500" />
-              <span>Skill Gap Advisor</span>
+              <span>Competency Gap Advisor</span>
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              Compare your current profile skills with active industry job requirements.
+              Benchmark your candidate competency profile against real-time market requisitions and generate actionable upskilling pathways.
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@ const SkillGapAdvisor = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                  Select Target Job Posting
+                  Target Enterprise Job Requisition
                 </label>
                 {loadingJobs ? (
                   <SkeletonLoader height="h-11" />
@@ -91,7 +91,7 @@ const SkillGapAdvisor = () => {
                     }}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none"
                   >
-                    <option value="">-- Choose From Active Industry Jobs --</option>
+                    <option value="">-- Select Active Market Requisition --</option>
                     {jobs.map((job) => (
                       <option key={job.id} value={job.id}>
                         {job.title} ({job.company})
@@ -103,7 +103,7 @@ const SkillGapAdvisor = () => {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                  Or Type Target Career Title
+                  Or Specify Target Engineering Role
                 </label>
                 <input
                   type="text"
@@ -112,7 +112,7 @@ const SkillGapAdvisor = () => {
                     setCustomRole(e.target.value);
                     setSelectedJobId('');
                   }}
-                  placeholder="e.g. Senior Java Engineer"
+                  placeholder="e.g. Lead Cloud Architect, Senior Backend Engineer"
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none"
                 />
               </div>
@@ -126,12 +126,12 @@ const SkillGapAdvisor = () => {
               {analyzing ? (
                 <>
                   <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span>Computing Skill Matrix & Gap Analysis...</span>
+                  <span>Calculating Weighted Competency Matrix & Gap Index...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 text-amber-300" />
-                  <span>Analyze Skill Gap & Generate Roadmap</span>
+                  <span>Analyze Competency Alignment & Generate Roadmap</span>
                 </>
               )}
             </button>
@@ -148,10 +148,10 @@ const SkillGapAdvisor = () => {
                   Target Role: {result.targetJobTitle}
                 </span>
                 <h2 className="text-4xl font-black text-gray-900 dark:text-white">
-                  Skill Match: <span className="gradient-text">{result.matchPercentage}%</span>
+                  Alignment Index: <span className="gradient-text">{result.matchPercentage}%</span>
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Matched <strong className="text-emerald-500">{result.matchedSkillsCount} skills</strong> out of required skills. Missed <strong className="text-rose-500">{result.missingSkillsCount} skills</strong>.
+                  Validated <strong className="text-emerald-500">{result.matchedSkillsCount} technical proficiencies</strong> against target requirements. Identified <strong className="text-rose-500">{result.missingSkillsCount} developmental gaps</strong>.
                 </p>
               </div>
               <div>
@@ -168,7 +168,7 @@ const SkillGapAdvisor = () => {
               <div className="glass p-6 rounded-3xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm space-y-4">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center space-x-2">
                   <AlertTriangle className="w-5 h-5 text-rose-500" />
-                  <span>Identified Skill Gaps</span>
+                  <span>Identified Competency Deficits</span>
                 </h3>
                 <div className="space-y-3">
                   {result.missingSkills.map((ms, idx) => (
@@ -176,7 +176,7 @@ const SkillGapAdvisor = () => {
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-sm text-rose-700 dark:text-rose-300">{ms.skillName}</span>
                         <span className="text-xs font-semibold px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200">
-                          Weight: {ms.importanceWeight}/10
+                          Priority Weight: {ms.importanceWeight}/10
                         </span>
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-400">{ms.recommendedAction}</p>
@@ -189,7 +189,7 @@ const SkillGapAdvisor = () => {
               <div className="glass p-6 rounded-3xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm space-y-4">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center space-x-2">
                   <BookOpen className="w-5 h-5 text-brand-500" />
-                  <span>Recommended Learning Courses</span>
+                  <span>Targeted Upskilling Roadmaps</span>
                 </h3>
                 <div className="space-y-3">
                   {result.recommendedCourses.map((c) => (
@@ -198,7 +198,7 @@ const SkillGapAdvisor = () => {
                         <h4 className="font-bold text-sm text-gray-900 dark:text-white">{c.title}</h4>
                         <p className="text-xs text-gray-500">{c.provider} &bull; {c.difficulty} &bull; Rating: {c.rating}/5</p>
                         <span className="inline-block mt-1 text-[10px] font-bold text-brand-600 dark:text-brand-400">
-                          Bridges: {c.primarySkillName}
+                          Addresses Competency: {c.primarySkillName}
                         </span>
                       </div>
                       <a

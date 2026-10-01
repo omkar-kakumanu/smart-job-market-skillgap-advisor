@@ -12,14 +12,27 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const saved = localStorage.getItem('user');
     if (token) {
+      if (saved) {
+        try {
+          setUser(JSON.parse(saved));
+        } catch (e) {
+          // ignore corrupted localstorage
+        }
+      }
       userService.getProfile()
         .then((data) => {
-          setUser(data);
-          localStorage.setItem('user', JSON.stringify(data));
+          if (data) {
+            setUser(data);
+            localStorage.setItem('user', JSON.stringify(data));
+          }
         })
-        .catch(() => {
-          logout();
+        .catch((err) => {
+          // Only log out on explicit 401 Unauthorized from backend
+          if (err.response?.status === 401) {
+            logout();
+          }
         })
         .finally(() => setLoading(false));
     } else {

@@ -133,20 +133,20 @@ const AtsPipeline = () => {
     <div className="flex min-h-[calc(100vh-4rem)]">
       <Sidebar />
       <main className="flex-1 p-6 sm:p-8 overflow-y-auto font-sans">
-        <Breadcrumb items={[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Application ATS Pipeline' }]} />
+        <Breadcrumb items={[{ label: 'Candidate Dashboard', to: '/dashboard' }, { label: 'Talent Pipeline (ATS)' }]} />
 
         {/* Top Header Banner */}
         <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
           <div className="space-y-1 z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 dark:bg-emerald-500/10 text-sky-700 dark:text-emerald-400 rounded-full font-bold text-xs border border-sky-400/20 dark:border-emerald-500/20">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Applicant Tracking System (ATS) • Bi-directional Sync Hub</span>
+              <span>Enterprise ATS Integration Hub • Synchronization Gateway</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              Application Pipeline & ATS Tracking Center
+              Talent Pipeline & ATS Synchronization Center
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 font-medium max-w-2xl">
-              Real-time synchronization status with Greenhouse, Lever, and Workday recruitment engines, hiring stage progression, and scheduled interview rooms.
+              Real-time synchronization telemetry across enterprise recruitment engines (Greenhouse, Lever, Workday) with lifecycle stage progression.
             </p>
           </div>
 
@@ -156,7 +156,7 @@ const AtsPipeline = () => {
               className="px-4 py-2.5 text-xs font-black text-white gradient-btn rounded-xl shadow-md hover:scale-105 transition flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
-              <span>Schedule New Interview</span>
+              <span>Schedule Evaluation Round</span>
             </button>
           </div>
         </div>
@@ -166,7 +166,7 @@ const AtsPipeline = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-sky-400/20 dark:border-emerald-500/20 pb-4">
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                Application Hiring Stepper Pipeline
+                Candidate Lifecycle Progression
               </h3>
               <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">
                 Target Role: <strong>{pipelineData?.targetJobTitle || 'Full Stack Java Developer'}</strong>

@@ -39,10 +39,10 @@ const JobMarketTrends = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2">
             <TrendingUp className="w-7 h-7 text-brand-600 dark:text-brand-400" />
-            <span>Job Market Skills & Demand Trends</span>
+            <span>Labor Market Competency Telemetry</span>
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-            Real-time analytics on top requested technical skills, candidate supply, and experience levels.
+            Continuous intelligence aggregating global hiring demand, competency velocity, and candidate specialization benchmarks.
           </p>
         </div>
 
@@ -51,15 +51,15 @@ const JobMarketTrends = () => {
         ) : (
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard title="Active Jobs Tracked" value={trends?.totalActiveJobs || 0} icon={Briefcase} color="indigo" />
-              <StatCard title="Registered Candidates" value={trends?.totalRegisteredCandidates || 0} icon={Users} color="emerald" />
-              <StatCard title="Total Skills Catalog" value={trends?.totalSkillsTracked || 0} icon={Cpu} color="amber" />
-              <StatCard title="Top Demanded Skill" value={trends?.topDemandedSkills?.[0]?.name || 'Java 21'} icon={Award} color="rose" />
+              <StatCard title="Enterprise Requisitions" value={trends?.totalActiveJobs || 0} icon={Briefcase} color="indigo" />
+              <StatCard title="Talent Profiles Indexed" value={trends?.totalRegisteredCandidates || 0} icon={Users} color="emerald" />
+              <StatCard title="Competency Taxonomy" value={trends?.totalSkillsTracked || 0} icon={Cpu} color="amber" />
+              <StatCard title="Highest Velocity Competency" value={trends?.topDemandedSkills?.[0]?.name || 'Java 21'} icon={Award} color="rose" />
             </div>
 
             {/* Demand Chart */}
             <div className="glass p-6 rounded-3xl border border-gray-200/50 dark:border-gray-800/50 shadow-md space-y-4">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Top 10 Most Demanded Skills (Market Score /100)</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Top 10 High-Velocity Technical Competencies (Demand Index / 100)</h3>
               <div className="w-full h-80 pt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>

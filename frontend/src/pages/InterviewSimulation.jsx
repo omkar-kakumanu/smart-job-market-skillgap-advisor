@@ -202,13 +202,13 @@ const InterviewSimulation = () => {
           <div className="space-y-1 z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 dark:bg-emerald-500/10 text-sky-700 dark:text-emerald-400 rounded-full font-bold text-xs border border-sky-400/20 dark:border-emerald-500/20">
               <span className="w-2 h-2 rounded-full bg-sky-500 dark:bg-emerald-400 animate-pulse" />
-              <span>Neural AI Interview Simulator • Java Spring Boot Backend</span>
+              <span>AI Technical Assessment Simulator • Evaluator Engine</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              AI Interview Simulation & Multi-Attempt Practice
+              AI Technical Interview Simulation & Assessment
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 font-medium max-w-2xl">
-              10 role-tailored questions (5 descriptive + 5 objective MCQs) with interactive answering, automatic score evaluation, and attempt-by-attempt history tracking.
+              Structured 10-point technical assessment combining scenario architecture and objective questions with automated grading and longitudinal tracking.
             </p>
           </div>
 
@@ -237,7 +237,7 @@ const InterviewSimulation = () => {
               className="mt-4 px-4 py-2.5 text-xs font-extrabold text-white gradient-btn rounded-xl shadow-md hover:scale-105 transition-all flex items-center gap-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Start New Attempt</span>
+              <span>Initiate New Assessment</span>
             </button>
           </div>
         </div>
@@ -256,7 +256,7 @@ const InterviewSimulation = () => {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
-                      Live Simulation Console • Attempt #{currentAttemptNumber}
+                      Assessment Console • Session #{currentAttemptNumber}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">
                       Question {activeQuestionIndex + 1} of {questions.length || 10}
@@ -346,7 +346,7 @@ const InterviewSimulation = () => {
                   {/* Submit Button */}
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-[11px] text-slate-500 dark:text-gray-400 font-medium">
-                      Automated NLP & Objective Evaluator • Real-Time Scoring
+                      Automated Rubric & Objective Scoring • Real-Time Feedback
                     </span>
 
                     <button
@@ -358,11 +358,11 @@ const InterviewSimulation = () => {
                       {isEvaluating ? (
                         <>
                           <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>AI Evaluating...</span>
+                          <span>Evaluating Response...</span>
                         </>
                       ) : (
                         <>
-                          <span>Submit & Grade Answer</span>
+                          <span>Submit & Evaluate Response</span>
                           <Send className="w-3.5 h-3.5" />
                         </>
                       )}
@@ -442,10 +442,10 @@ const InterviewSimulation = () => {
             <div>
               <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <Layers className="w-5 h-5 text-sky-500 dark:text-emerald-400" />
-                <span>Simulation Attempt History (Separate Attempt Sections)</span>
+                <span>Longitudinal Assessment History</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">
-                Each simulation session is stored distinctly with 10 questions, attempt breakdown, and scores.
+                Distinct session archives containing question responses, performance analytics, and rubric scoring.
               </p>
             </div>
 

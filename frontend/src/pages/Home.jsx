@@ -33,29 +33,29 @@ const VIDEOS = [
 const STAT_ITEMS = [
   {
     value: '99.8%',
-    label: 'Match Accuracy',
-    description: 'Weighted core vs secondary technical skill evaluation',
+    label: 'Benchmark Accuracy',
+    description: 'High-precision weighted scoring evaluating core versus complementary technical proficiencies',
     icon: Target,
     color: 'text-amber-400',
   },
   {
     value: '10,000+',
-    label: 'Postings Scraped',
-    description: 'Real-time job requirements from top tech employers',
+    label: 'Market Signals Tracked',
+    description: 'Real-time hiring requisitions analyzed continuously from top-tier tech employers',
     icon: TrendingUp,
     color: 'text-sky-400',
   },
   {
     value: '500+',
-    label: 'Curated Courses',
-    description: 'Direct mapping of missing skills to top certifications',
+    label: 'Curated Skill Curricula',
+    description: 'Direct algorithmic mapping of detected competency gaps to accredited certifications',
     icon: BookOpen,
     color: 'text-emerald-400',
   },
   {
     value: 'Verified',
-    label: 'Real-Time Verification',
-    description: 'Official candidate certificates with QR code verification',
+    label: 'Auditable Credentials',
+    description: 'Official candidate competency certificates backed by cryptographically secure verification',
     icon: ShieldCheck,
     color: 'text-purple-400',
   },
@@ -130,7 +130,7 @@ const Home = () => {
             {/* Simple Classic Audience Badge */}
             <div className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-normal bg-white/10 backdrop-blur-md border border-white/20 text-white/90">
               <Sparkles className="w-3.5 h-3.5 mr-2 text-amber-300" />
-              <span>Over 10,000 candidates achieving market alignment</span>
+              <span>Trusted by over 10,000 professionals and talent leaders</span>
             </div>
 
             {/* Simple Classic Main Heading */}
@@ -141,7 +141,7 @@ const Home = () => {
 
             {/* Simple Classic Subtext */}
             <p className="text-xs sm:text-sm md:text-base max-w-xl font-normal text-white/80 leading-relaxed">
-              Analyze real-time job market requirements, evaluate your candidate readiness score, and follow curated learning roadmaps for career success.
+              Synthesize real-time labor market telemetry, benchmark your technical readiness score, and execute targeted capability roadmaps for sustainable career mobility.
             </p>
 
             {/* Simple Target Role Search Form */}
@@ -152,14 +152,14 @@ const Home = () => {
                   type="text"
                   value={targetRoleInput}
                   onChange={(e) => setTargetRoleInput(e.target.value)}
-                  placeholder="Enter target role, e.g. Full Stack Java Engineer"
+                  placeholder="Enter target role (e.g., Senior Full Stack Engineer, Cloud Architect)"
                   className="w-full px-3 py-1.5 bg-transparent text-xs sm:text-sm focus:outline-none text-white placeholder:text-white/50 font-normal"
                 />
                 <button
                   type="submit"
                   className="flex-shrink-0 px-5 py-2 text-xs font-medium text-black bg-white rounded-full hover:bg-gray-100 transition shadow whitespace-nowrap"
                 >
-                  Analyze Skill Gap
+                  Analyze Skill Alignment
                 </button>
               </div>
             </form>
@@ -222,13 +222,13 @@ const Home = () => {
         <div className="max-w-7xl mx-auto space-y-16">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <span className="text-xs font-medium text-amber-400">
-              Integrated Skill-Gap Intelligence
+              Enterprise Competency Analytics
             </span>
             <h2 className="text-2xl sm:text-4xl font-medium text-white">
-              Bridge your potential with live market realities
+              Align Talent Potential with Live Industry Demands
             </h2>
             <p className="text-sm text-gray-400 leading-relaxed font-normal">
-              Compare your candidate profile against active market demands, calculate weighted readiness percentages, and execute custom learning paths.
+              Evaluate candidate capability matrices against active market requirements, establish objective readiness benchmarks, and deploy structured upskilling pathways.
             </p>
           </div>
 
@@ -237,9 +237,9 @@ const Home = () => {
               <div className="w-12 h-12 rounded-2xl bg-amber-400/10 flex items-center justify-center text-amber-400">
                 <Target className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-medium text-white">Weighted Skill Matrix Engine</h3>
+              <h3 className="text-lg font-medium text-white">Weighted Competency Matrix</h3>
               <p className="text-xs text-gray-400 leading-relaxed font-normal">
-                Evaluates critical tech skills against secondary requirements to yield accurate career readiness scores.
+                Accurately assesses core engineering disciplines against secondary domain prerequisites to deliver definitive readiness scores.
               </p>
             </div>
 
@@ -247,9 +247,9 @@ const Home = () => {
               <div className="w-12 h-12 rounded-2xl bg-sky-400/10 flex items-center justify-center text-sky-400">
                 <TrendingUp className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-medium text-white">Market Intelligence Trends</h3>
+              <h3 className="text-lg font-medium text-white">Real-Time Market Telemetry</h3>
               <p className="text-xs text-gray-400 leading-relaxed font-normal">
-                Live statistics and interactive distributions highlighting high-demand skills across industries.
+                Continuous data feeds and dynamic distribution models uncovering high-velocity hiring requisitions across global tech hubs.
               </p>
             </div>
 
@@ -257,9 +257,9 @@ const Home = () => {
               <div className="w-12 h-12 rounded-2xl bg-emerald-400/10 flex items-center justify-center text-emerald-400">
                 <BookOpen className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-medium text-white">Curated Course Catalog</h3>
+              <h3 className="text-lg font-medium text-white">Accredited Learning Roadmaps</h3>
               <p className="text-xs text-gray-400 leading-relaxed font-normal">
-                Direct mapping of missing skills to verified masterclasses, certifications, and portfolio projects.
+                Precision algorithmic mapping linking identified capability deficits to accredited masterclasses, verified credentials, and industry projects.
               </p>
             </div>
           </div>

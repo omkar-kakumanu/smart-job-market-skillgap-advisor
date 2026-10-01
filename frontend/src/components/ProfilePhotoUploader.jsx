@@ -78,10 +78,10 @@ const ProfilePhotoUploader = ({ value, onChange, fullName = 'User', label = 'Pro
         </label>
       )}
 
-      <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-white/70 dark:bg-[#0d1714]/80 border border-sky-300/40 dark:border-emerald-500/30 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-white/80 dark:bg-[#0d1714]/80 border border-slate-200 dark:border-emerald-500/30 shadow-sm">
         {/* Avatar Display */}
         <div className="relative flex-shrink-0 group">
-          <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-sky-400 dark:border-emerald-400 shadow-sky-glow dark:shadow-emerald-glow bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-all duration-300 group-hover:scale-105">
+          <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-indigo-400 dark:border-emerald-400 shadow-brand-glow dark:shadow-emerald-glow bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-all duration-300 group-hover:scale-105">
             {value && !imgError ? (
               <img
                 src={value}
@@ -90,7 +90,7 @@ const ProfilePhotoUploader = ({ value, onChange, fullName = 'User', label = 'Pro
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-500 to-indigo-600 dark:from-emerald-500 dark:to-teal-700 text-white font-extrabold text-2xl font-cinzel tracking-wider">
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-violet-600 dark:from-emerald-500 dark:to-teal-700 text-white font-extrabold text-2xl font-heading tracking-wider">
                 {getInitials(fullName)}
               </div>
             )}
@@ -99,7 +99,7 @@ const ProfilePhotoUploader = ({ value, onChange, fullName = 'User', label = 'Pro
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="absolute -bottom-1 -right-1 p-2 rounded-xl bg-sky-500 dark:bg-emerald-500 text-white shadow-lg hover:scale-110 transition-transform border border-white/30"
+            className="absolute -bottom-1 -right-1 p-2 rounded-xl bg-indigo-600 dark:bg-emerald-500 text-white shadow-lg hover:scale-110 transition-transform border border-white/30"
             title="Upload new photo"
           >
             <Camera className="w-3.5 h-3.5" />
@@ -120,9 +120,9 @@ const ProfilePhotoUploader = ({ value, onChange, fullName = 'User', label = 'Pro
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 rounded-xl border border-sky-400 dark:border-emerald-500/50 bg-sky-50 dark:bg-emerald-950/40 text-sky-700 dark:text-emerald-300 hover:bg-sky-100 dark:hover:bg-emerald-900/50 text-xs font-bold font-tech flex items-center gap-2 transition shadow-sm"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-emerald-500/50 bg-slate-50 dark:bg-emerald-950/40 text-slate-800 dark:text-emerald-300 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 text-xs font-bold font-tech flex items-center gap-2 transition shadow-sm"
             >
-              <Upload className="w-4 h-4 text-sky-500 dark:text-emerald-400" />
+              <Upload className="w-4 h-4 text-indigo-600 dark:text-emerald-400" />
               <span>Choose Photo File</span>
             </button>
 
@@ -148,12 +148,12 @@ const ProfilePhotoUploader = ({ value, onChange, fullName = 'User', label = 'Pro
                 onChange(e.target.value);
               }}
               placeholder="Or paste image URL (e.g. https://...)"
-              className="w-full px-3 py-1.5 rounded-xl border border-sky-300/40 dark:border-emerald-500/30 bg-white/80 dark:bg-[#060c0a] text-slate-800 dark:text-gray-200 text-xs focus:ring-1 focus:ring-sky-500 dark:focus:ring-emerald-400 focus:outline-none font-sans"
+              className="w-full px-3 py-1.5 rounded-xl border border-slate-300 dark:border-emerald-500/30 bg-white/80 dark:bg-[#060c0a] text-slate-800 dark:text-gray-200 text-xs focus:ring-1 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none font-sans"
             />
           </div>
 
           <p className="text-[11px] text-slate-500 dark:text-gray-400 flex items-center gap-1 font-sans">
-            <ImageIcon className="w-3 h-3 text-sky-500 dark:text-emerald-400" />
+            <ImageIcon className="w-3 h-3 text-indigo-600 dark:text-emerald-400" />
             <span>Upload any image file (PNG, JPG, WebP) or paste a direct image URL</span>
           </p>
         </div>

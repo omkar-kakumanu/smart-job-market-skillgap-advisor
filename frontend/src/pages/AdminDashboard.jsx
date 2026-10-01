@@ -77,15 +77,15 @@ const AdminDashboard = () => {
     <div className="flex min-h-[calc(100vh-4rem)]">
       <Sidebar />
       <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
-        <Breadcrumb items={[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Admin Portal' }]} />
+        <Breadcrumb items={[{ label: 'Executive Dashboard', to: '/dashboard' }, { label: 'Administrative Console' }]} />
 
         <div className="mb-8">
           <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2">
             <Shield className="w-7 h-7 text-purple-600 dark:text-purple-400" />
-            <span>Administrator Portal</span>
+            <span>Administrative Management Console</span>
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-            Manage global job postings, technical skill catalog, and learning resources.
+            Administer enterprise requisitions, competency taxonomies, and system-wide curriculum assets.
           </p>
         </div>
 
@@ -94,12 +94,12 @@ const AdminDashboard = () => {
           <div className="glass p-8 rounded-3xl border border-gray-200/50 dark:border-gray-800/50 shadow-md space-y-4">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center space-x-2">
               <Briefcase className="w-5 h-5 text-brand-500" />
-              <span>Post New Industry Job</span>
+              <span>Publish Enterprise Requisition</span>
             </h3>
 
             <form onSubmit={handleCreateJob} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Position Title</label>
                 <input
                   type="text"
                   required
@@ -112,7 +112,7 @@ const AdminDashboard = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Company</label>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Company / Organization</label>
                   <input
                     type="text"
                     required
@@ -123,7 +123,7 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Location</label>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Work Location</label>
                   <input
                     type="text"
                     value={newJob.location}
@@ -135,7 +135,7 @@ const AdminDashboard = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Experience Level</label>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Seniority Level</label>
                   <select
                     value={newJob.experienceLevel}
                     onChange={(e) => setNewJob({ ...newJob, experienceLevel: e.target.value })}
@@ -147,7 +147,7 @@ const AdminDashboard = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Salary Range</label>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Compensation Range</label>
                   <input
                     type="text"
                     value={newJob.salaryRange}
@@ -158,13 +158,13 @@ const AdminDashboard = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Job Description & Requirements</label>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Requisition Description & Core Competencies</label>
                 <textarea
                   rows="3"
                   required
                   value={newJob.description}
                   onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
-                  placeholder="Detailed position responsibilities..."
+                  placeholder="Detailed position responsibilities, architectural duties, and core skills..."
                   className="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm"
                 />
               </div>
@@ -174,14 +174,14 @@ const AdminDashboard = () => {
                 className="w-full py-3 text-sm font-bold text-white gradient-btn rounded-xl shadow-md flex items-center justify-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
-                <span>Publish Job Posting</span>
+                <span>Authorize & Publish Requisition</span>
               </button>
             </form>
           </div>
 
           {/* Active Job Postings List */}
           <div className="glass p-8 rounded-3xl border border-gray-200/50 dark:border-gray-800/50 shadow-md space-y-4">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Published Job Postings ({jobs.length})</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Active Enterprise Requisitions ({jobs.length})</h3>
 
             {loading ? (
               <SkeletonLoader count={3} />

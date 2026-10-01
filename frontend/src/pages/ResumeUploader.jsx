@@ -145,20 +145,20 @@ Education: Bachelor of Technology in Computer Science, 2021
     <div className="flex min-h-[calc(100vh-4rem)]">
       <Sidebar />
       <main className="flex-1 p-6 sm:p-8 overflow-y-auto font-sans">
-        <Breadcrumb items={[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Resume Parser & Profiler' }]} />
+        <Breadcrumb items={[{ label: 'Candidate Dashboard', to: '/dashboard' }, { label: 'Resume & ATS Analyzer' }]} />
 
         {/* Top Header Banner */}
         <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
           <div className="space-y-1 z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 dark:bg-emerald-500/10 text-sky-700 dark:text-emerald-400 rounded-full font-bold text-xs border border-sky-400/20 dark:border-emerald-500/20">
               <span className="w-2 h-2 rounded-full bg-sky-500 dark:bg-emerald-400 animate-pulse" />
-              <span>Automated Resume Parser • NLP Skill Extraction • Java Engine</span>
+              <span>ATS Parsing Engine • Semantic Competency Extraction</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              Resume Parser & Skill Profiler
+              Resume Intelligence & ATS Analyzer
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 font-medium max-w-2xl">
-              Upload your resume (PDF/DOCX/TXT) to automatically extract contact information, years of experience, educational history, and cataloged technical skills.
+              Process candidate resumes to automatically catalog technical proficiencies, professional tenure, academic credentials, and ATS compliance scores.
             </p>
           </div>
 
@@ -167,7 +167,7 @@ Education: Bachelor of Technology in Computer Science, 2021
             className="px-4 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 font-bold text-xs rounded-xl border border-amber-400/40 transition flex items-center gap-2"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Load Sample Resume</span>
+            <span>Load Sample Profile</span>
           </button>
         </div>
 
@@ -179,7 +179,7 @@ Education: Bachelor of Technology in Computer Science, 2021
             <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md space-y-6">
               <div className="flex items-center justify-between border-b border-sky-400/20 dark:border-emerald-500/20 pb-3">
                 <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
-                  Upload Resume Document
+                  Document Ingestion Console
                 </h3>
                 <span className="text-[11px] font-bold text-slate-400">PDF, DOCX, TXT (Max 5MB)</span>
               </div>
@@ -196,7 +196,7 @@ Education: Bachelor of Technology in Computer Science, 2021
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-extrabold text-slate-800 dark:text-white">
-                    {file ? file.name : 'Click to Browse or Drag & Drop Resume'}
+                    {file ? file.name : 'Select Document or Drag & Drop File'}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-gray-400">
                     Supports text parsing and high-accuracy NLP skill mapping
