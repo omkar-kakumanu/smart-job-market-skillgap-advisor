@@ -1,7 +1,9 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { userService } from '../services/userService';
 
 export const AuthContext = createContext(null);
+
+export const useAuth = () => useContext(AuthContext);
 
 export const getStoredProfileByEmail = (email) => {
   if (!email) return null;
