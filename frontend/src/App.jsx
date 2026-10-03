@@ -15,7 +15,6 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import SkillGapAdvisor from './pages/SkillGapAdvisor';
 import JobMarketTrends from './pages/JobMarketTrends';
-import Courses from './pages/Courses';
 import Profile from './pages/Profile';
 import Certificates from './pages/Certificates';
 import InterviewSimulation from './pages/InterviewSimulation';
@@ -41,7 +40,6 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/trends" element={<JobMarketTrends />} />
-                    <Route path="/courses" element={<Courses />} />
 
                     {/* Authenticated Candidate & Engineering Routes */}
                     <Route element={<ProtectedRoute />}>
@@ -55,8 +53,8 @@ function App() {
                       <Route path="/profile" element={<Profile />} />
                     </Route>
 
-                    {/* Admin Only Routes */}
-                    <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_MANAGER']} />}>
+                    {/* Admin & Recruiter Only Routes */}
+                    <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_RECRUITER']} />}>
                       <Route path="/admin" element={<AdminDashboard />} />
                     </Route>
 

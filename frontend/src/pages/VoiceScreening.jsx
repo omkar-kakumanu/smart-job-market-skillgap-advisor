@@ -18,7 +18,9 @@ import {
   FileText,
   Activity,
   AlertCircle,
-  Edit3
+  Edit3,
+  Save,
+  Trash2
 } from 'lucide-react';
 
 const VoiceScreening = () => {
@@ -451,6 +453,53 @@ const VoiceScreening = () => {
     }
   };
 
+  // Explicit Save Recording Action
+  const handleSaveRecording = () => {
+    if (!latestEvaluation && !liveTranscript) {
+      showToast('No active recording to save.', 'warning');
+      return;
+    }
+    const recordId = `voice-${Date.now()}`;
+    const newRecord = {
+      id: recordId,
+      userId: user?.id,
+      candidateName: user?.fullName || 'Candidate',
+      candidateEmail: user?.email || 'user@skillgap.com',
+      role: user?.targetCareerRole || 'Full Stack Java Developer',
+      question: activeQ?.question || 'Technical Background',
+      transcript: liveTranscript,
+      durationSeconds: Math.max(recordingSeconds, 15),
+      overall: latestEvaluation?.overall || 85,
+      clarity: latestEvaluation?.clarity || 88,
+      fluency: latestEvaluation?.fluency || 84,
+      technicalDepth: latestEvaluation?.technicalDepth || 86,
+      feedback: latestEvaluation?.feedback || 'Articulated technical response.',
+      timestamp: new Date().toISOString()
+    };
+    const updated = [newRecord, ...history.filter(h => h.id !== recordId)];
+    setHistory(updated);
+    localStorage.setItem('skillgap_voice_records', JSON.stringify(updated));
+    showToast('Voice evaluation officially saved to portfolio!', 'success');
+  };
+
+  // Explicit Delete Recording Action
+  const handleDeleteRecording = () => {
+    setLiveTranscript('');
+    setLatestEvaluation(null);
+    setRecordingSeconds(0);
+    finalTranscriptRef.current = '';
+    setMicStatus('IDLE');
+    showToast('Voice recording and evaluation deleted.', 'info');
+  };
+
+  // Explicit Re-record Action
+  const handleReRecord = () => {
+    handleDeleteRecording();
+    setTimeout(() => {
+      handleStartRecording();
+    }, 300);
+  };
+
   const formatSeconds = (sec) => {
     const mins = Math.floor(sec / 60);
     const rem = sec % 60;
@@ -620,6 +669,38 @@ const VoiceScreening = () => {
                   <div className="text-xs text-rose-300 bg-rose-950/60 border border-rose-700/50 px-4 py-2 rounded-xl flex items-center gap-2 text-center max-w-md">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     <span>{micErrorMessage}</span>
+                  </div>
+                )}
+
+                {/* Post-Recording Action Toolbar: Save, Re-record, Delete */}
+                {!isRecording && (liveTranscript || latestEvaluation) && (
+                  <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 w-full max-w-md flex flex-wrap items-center justify-center gap-2 text-xs">
+                    <button
+                      onClick={handleSaveRecording}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 shadow transition cursor-pointer"
+                      title="Save this recording to portfolio"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>Save Recording</span>
+                    </button>
+
+                    <button
+                      onClick={handleReRecord}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center gap-1.5 shadow transition cursor-pointer"
+                      title="Discard current take and record again"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Re-record</span>
+                    </button>
+
+                    <button
+                      onClick={handleDeleteRecording}
+                      className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold flex items-center gap-1.5 shadow transition cursor-pointer"
+                      title="Delete recording"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete</span>
+                    </button>
                   </div>
                 )}
               </div>

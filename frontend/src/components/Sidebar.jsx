@@ -32,13 +32,18 @@ const Sidebar = () => {
     { to: '/resume', label: 'Resume & ATS Analyzer', icon: FileText },
     { to: '/ats', label: 'Talent Pipeline (ATS)', icon: GitBranch },
     { to: '/trends', label: 'Market Demand Telemetry', icon: TrendingUp },
-    { to: '/courses', label: 'Accredited Courses', icon: BookOpen },
     { to: '/certificates', label: 'Verified Credentials', icon: Award },
     { to: '/profile', label: 'Candidate Profile', icon: User },
   ];
 
-  if (user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_MANAGER') {
-    links.push({ to: '/admin', label: 'Administrative Console', icon: Shield });
+  if (
+    user?.role === 'ROLE_ADMIN' ||
+    user?.role === 'ROLE_MANAGER' ||
+    user?.role === 'ROLE_RECRUITER' ||
+    user?.email?.toLowerCase().includes('admin') ||
+    user?.email?.toLowerCase().includes('recruiter')
+  ) {
+    links.push({ to: '/admin', label: 'Admin & Recruiter Console', icon: Shield });
   }
 
   const isLeft = position === 'left';

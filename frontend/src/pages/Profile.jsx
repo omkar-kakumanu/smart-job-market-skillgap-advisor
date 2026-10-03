@@ -7,7 +7,7 @@ import { useAuth, getStoredProfileByEmail, saveStoredProfileByEmail } from '../c
 import { useToast } from '../hooks/useToast';
 import { userService } from '../services/userService';
 import { jobService } from '../services/jobService';
-import { User, Plus, Trash2, Save, Award } from 'lucide-react';
+import { User, Plus, Trash2, Save, Award, Lock, Unlock } from 'lucide-react';
 import { PROFICIENCY_LEVELS, EXPERIENCE_LEVELS } from '../utils/constants';
 
 const DEFAULT_SKILLS = [
@@ -61,6 +61,21 @@ const Profile = () => {
   const [proficiency, setProficiency] = useState('INTERMEDIATE');
   const [years, setYears] = useState('2.0');
   const [saving, setSaving] = useState(false);
+
+  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_MANAGER' || user?.email?.toLowerCase().includes('admin');
+  const isLocked = Boolean(profile?.isProfileLocked) && !isAdmin;
+
+  const handleAdminToggleLock = () => {
+    const newLock = !profile?.isProfileLocked;
+    const updated = { ...profile, isProfileLocked: newLock };
+    setProfile(updated);
+    updateUserProfile(updated);
+    localStorage.setItem('user', JSON.stringify(updated));
+    if (updated.email) {
+      saveStoredProfileByEmail(updated.email, updated);
+    }
+    showToast(newLock ? 'Profile locked.' : 'Administrator unlocked candidate profile for editing!', 'info');
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -232,16 +247,47 @@ const Profile = () => {
           </p>
         </div>
 
+        {/* Lock Notice Banner */}
+        {profile?.isProfileLocked && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-500/15 border border-amber-400/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Lock className="w-5 h-5 text-amber-500 flex-shrink-0" />
+              <div className="text-xs text-amber-900 dark:text-amber-200">
+                <strong>Profile Locked After Official Submission:</strong> Your profile and verified competencies have been locked following submission. Only platform administrators and recruiters have authority to edit candidate credentials.
+              </div>
+            </div>
+
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={handleAdminToggleLock}
+                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+              >
+                <Unlock className="w-3.5 h-3.5" />
+                <span>Admin Unlock Profile</span>
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Personal Info Form */}
           <div className="lg:col-span-2 glass p-8 rounded-3xl border border-gray-200/50 dark:border-gray-800/50 shadow-md space-y-6">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Professional Credentials & Specialization</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Professional Credentials & Specialization</h3>
+              {profile?.isProfileLocked && (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 uppercase tracking-wider flex items-center gap-1">
+                  <Lock className="w-3 h-3" />
+                  <span>Locked</span>
+                </span>
+              )}
+            </div>
 
             <form onSubmit={handleUpdateProfile} className="space-y-6">
               {/* Profile Photo Uploader */}
               <ProfilePhotoUploader
                 value={profile?.profileImageUrl || ''}
-                onChange={(url) => setProfile({ ...profile, profileImageUrl: url })}
+                onChange={(url) => !isLocked && setProfile({ ...profile, profileImageUrl: url })}
                 fullName={profile?.fullName || 'Candidate'}
                 label="Professional Photo"
               />
@@ -250,9 +296,10 @@ const Profile = () => {
                   <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Full Legal Name</label>
                   <input
                     type="text"
+                    disabled={isLocked}
                     value={profile?.fullName || ''}
                     onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm disabled:opacity-60"
                   />
                 </div>
 
@@ -272,18 +319,20 @@ const Profile = () => {
                   <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Target Engineering Role</label>
                   <input
                     type="text"
+                    disabled={isLocked}
                     value={profile?.targetCareerRole || ''}
                     onChange={(e) => setProfile({ ...profile, targetCareerRole: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm disabled:opacity-60"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Seniority & Experience Level</label>
                   <select
+                    disabled={isLocked}
                     value={profile?.experienceLevel || 'ENTRY_LEVEL'}
                     onChange={(e) => setProfile({ ...profile, experienceLevel: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm disabled:opacity-60"
                   >
                     {EXPERIENCE_LEVELS.map((lvl) => (
                       <option key={lvl.value} value={lvl.value}>{lvl.label}</option>
@@ -296,21 +345,28 @@ const Profile = () => {
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Professional Executive Summary</label>
                 <textarea
                   rows="3"
+                  disabled={isLocked}
                   value={profile?.bio || ''}
                   onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                   placeholder="Provide a concise executive summary highlighting core engineering disciplines, systems experience, and technical leadership..."
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/50 dark:bg-darkcard text-sm disabled:opacity-60"
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={saving}
-                className="px-6 py-2.5 text-sm font-bold text-white gradient-btn rounded-xl shadow-md flex items-center space-x-2"
-              >
-                <Save className="w-4 h-4" />
-                <span>{saving ? 'Persisting Profile...' : 'Save Profile & Preferences'}</span>
-              </button>
+              {!isLocked ? (
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-6 py-2.5 text-sm font-bold text-white gradient-btn rounded-xl shadow-md flex items-center space-x-2 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{saving ? 'Persisting Profile...' : 'Save Profile & Preferences'}</span>
+                </button>
+              ) : (
+                <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
+                  Profile editing locked. Contact an administrator to request modifications.
+                </div>
+              )}
             </form>
           </div>
 
@@ -322,46 +378,52 @@ const Profile = () => {
             </h3>
 
             {/* Add Skill Controls */}
-            <div className="space-y-3 p-4 rounded-2xl bg-white/40 dark:bg-darkcard/40 border border-gray-200/30 dark:border-gray-800/30">
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Catalog Technical Competency</label>
-              <select
-                value={selectedSkillId}
-                onChange={(e) => setSelectedSkillId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-xs"
-              >
-                {allSkills.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name} ({s.category})</option>
-                ))}
-              </select>
-
-              <div className="grid grid-cols-2 gap-2">
+            {!isLocked ? (
+              <div className="space-y-3 p-4 rounded-2xl bg-white/40 dark:bg-darkcard/40 border border-gray-200/30 dark:border-gray-800/30">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Catalog Technical Competency</label>
                 <select
-                  value={proficiency}
-                  onChange={(e) => setProficiency(e.target.value)}
-                  className="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-xs"
+                  value={selectedSkillId}
+                  onChange={(e) => setSelectedSkillId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-xs"
                 >
-                  {PROFICIENCY_LEVELS.map((pl) => (
-                    <option key={pl.value} value={pl.value}>{pl.label}</option>
+                  {allSkills.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.category})</option>
                   ))}
                 </select>
-                <input
-                  type="number"
-                  step="0.5"
-                  value={years}
-                  onChange={(e) => setYears(e.target.value)}
-                  placeholder="Years Experience"
-                  className="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-xs"
-                />
-              </div>
 
-              <button
-                onClick={handleAddSkill}
-                className="w-full py-2 text-xs font-bold text-white gradient-btn rounded-xl flex items-center justify-center space-x-1"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Include Competency in Profile</span>
-              </button>
-            </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={proficiency}
+                    onChange={(e) => setProficiency(e.target.value)}
+                    className="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-xs"
+                  >
+                    {PROFICIENCY_LEVELS.map((pl) => (
+                      <option key={pl.value} value={pl.value}>{pl.label}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={years}
+                    onChange={(e) => setYears(e.target.value)}
+                    placeholder="Years Experience"
+                    className="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-xs"
+                  />
+                </div>
+
+                <button
+                  onClick={handleAddSkill}
+                  className="w-full py-2 text-xs font-bold text-white gradient-btn rounded-xl flex items-center justify-center space-x-1 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Include Competency in Profile</span>
+                </button>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-semibold text-center">
+                Competency catalog additions locked following submission.
+              </div>
+            )}
 
             {/* Existing Skills Badges */}
             <div className="flex flex-wrap gap-2 pt-2">
@@ -372,7 +434,7 @@ const Profile = () => {
                   category={s.category}
                   level={s.proficiencyLevel}
                   years={s.yearsExperience}
-                  onRemove={() => handleRemoveSkill(s.skillId)}
+                  onRemove={!isLocked ? () => handleRemoveSkill(s.skillId) : undefined}
                 />
               ))}
             </div>

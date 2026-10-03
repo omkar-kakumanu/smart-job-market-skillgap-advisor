@@ -48,9 +48,9 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/courses" className="hover:text-indigo-600 dark:hover:text-emerald-300 flex items-center space-x-1.5 transition">
-                  <BookOpen className="w-3.5 h-3.5 text-indigo-500 dark:text-teal-400" />
-                  <span>Accredited Course Catalog</span>
+                <Link to="/resume" className="hover:text-indigo-600 dark:hover:text-emerald-300 flex items-center space-x-1.5 transition">
+                  <FileText className="w-3.5 h-3.5 text-indigo-500 dark:text-teal-400" />
+                  <span>Resume & ATS Intelligence</span>
                 </Link>
               </li>
               <li>
