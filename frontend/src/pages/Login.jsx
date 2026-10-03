@@ -73,8 +73,8 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
   // Credentials State
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('recruiter@skillgap.com');
-  const [password, setPassword] = useState('recruiter123');
+  const [email, setEmail] = useState('manager@skillgap.com');
+  const [password, setPassword] = useState('Password123!');
   const [targetRole, setTargetRole] = useState('Full Stack Java Developer');
   const [experienceLevel, setExperienceLevel] = useState('ENTRY_LEVEL');
   const [profileImageUrl, setProfileImageUrl] = useState('');
@@ -97,14 +97,14 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
     setMode(newMode);
     setStatusNotice(null);
     if (newMode === 'RECRUITER') {
-      setEmail('recruiter@skillgap.com');
-      setPassword('recruiter123');
+      setEmail('manager@skillgap.com');
+      setPassword('Password123!');
     } else if (newMode === 'CANDIDATE') {
-      setEmail('candidate@skillgap.com');
-      setPassword('candidate123');
+      setEmail('user@skillgap.com');
+      setPassword('Password123!');
     } else if (newMode === 'ADMIN') {
       setEmail('admin@skillgap.com');
-      setPassword('admin123');
+      setPassword('AdminPass123!');
     } else if (newMode === 'SIGN_UP') {
       setEmail('');
       setPassword('');
@@ -115,17 +115,17 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
   const handleQuickDemoFill = (roleMode) => {
     setStatusNotice(null);
     if (roleMode === 'RECRUITER') {
-      setEmail('recruiter@skillgap.com');
-      setPassword('recruiter123');
-      showToast('Loaded Demo Recruiter Credentials (recruiter@skillgap.com)', 'info');
+      setEmail('manager@skillgap.com');
+      setPassword('Password123!');
+      showToast('Loaded Recruiter / Manager Credentials (manager@skillgap.com)', 'info');
     } else if (roleMode === 'CANDIDATE') {
-      setEmail('candidate@skillgap.com');
-      setPassword('candidate123');
-      showToast('Loaded Demo Candidate Credentials (candidate@skillgap.com)', 'info');
+      setEmail('user@skillgap.com');
+      setPassword('Password123!');
+      showToast('Loaded Candidate Credentials (user@skillgap.com)', 'info');
     } else if (roleMode === 'ADMIN') {
       setEmail('admin@skillgap.com');
-      setPassword('admin123');
-      showToast('Loaded Demo Admin Credentials (admin@skillgap.com)', 'info');
+      setPassword('AdminPass123!');
+      showToast('Loaded Administrator Credentials (admin@skillgap.com)', 'info');
     }
   };
 
@@ -247,11 +247,15 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
         try {
           const response = await authService.login({
             email: cleanEmail,
-            password: password || (mode === 'ADMIN' ? 'admin123' : mode === 'RECRUITER' ? 'recruiter123' : 'candidate123')
+            password: password || (mode === 'ADMIN' ? 'AdminPass123!' : 'Password123!')
           });
           loginUser(response);
           showToast(`Signed in successfully as ${response.user.fullName}!`, 'success');
-          navigate('/dashboard');
+          if (response.user.role === 'ROLE_ADMIN' || cleanEmail.includes('admin')) {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
           return;
         } catch (loginErr) {
           console.warn('Backend login fallback:', loginErr);
@@ -273,7 +277,11 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
           };
           loginUser({ accessToken: fallbackToken, user: fallbackUser });
           showToast(`Signed in successfully as ${fallbackUser.fullName}!`, 'success');
-          navigate('/dashboard');
+          if (isAdm) {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
           return;
         }
       }
