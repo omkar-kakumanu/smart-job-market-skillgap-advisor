@@ -166,6 +166,9 @@ const Profile = () => {
     setProfile(updated);
     updateUserProfile(updated);
     localStorage.setItem('user', JSON.stringify(updated));
+    if (updated.email) {
+      saveStoredProfileByEmail(updated.email, updated);
+    }
     showToast(`Added ${skillName} to verified inventory!`, 'success');
 
     try {
@@ -174,6 +177,9 @@ const Profile = () => {
       if (remoteP) {
         setProfile(remoteP);
         updateUserProfile(remoteP);
+        if (remoteP.email) {
+          saveStoredProfileByEmail(remoteP.email, remoteP);
+        }
       }
     } catch (err) {
       console.warn('Backend skill persistence offline, saved in local profile state');
@@ -190,6 +196,9 @@ const Profile = () => {
     setProfile(updated);
     updateUserProfile(updated);
     localStorage.setItem('user', JSON.stringify(updated));
+    if (updated.email) {
+      saveStoredProfileByEmail(updated.email, updated);
+    }
     showToast('Competency removed from inventory', 'info');
 
     try {
@@ -198,6 +207,9 @@ const Profile = () => {
       if (remoteP) {
         setProfile(remoteP);
         updateUserProfile(remoteP);
+        if (remoteP.email) {
+          saveStoredProfileByEmail(remoteP.email, remoteP);
+        }
       }
     } catch (err) {
       console.warn('Backend removeSkill offline, saved in local profile state');

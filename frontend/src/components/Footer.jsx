@@ -70,7 +70,7 @@ const Footer = () => {
             <ul className="space-y-2 text-xs text-slate-600 dark:text-gray-300 font-medium">
               <li>
                 <a
-                  href="http://localhost:8080/swagger-ui.html"
+                  href="https://petstore.swagger.io/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-indigo-600 dark:hover:text-emerald-300 flex items-center space-x-1.5 transition"
@@ -82,7 +82,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="http://localhost:8080/v3/api-docs"
+                  href="https://spec.openapis.org/oas/latest.html"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-indigo-600 dark:hover:text-emerald-300 flex items-center space-x-1.5 transition"
@@ -93,10 +93,16 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <Link to="/admin" className="hover:text-indigo-600 dark:hover:text-emerald-300 flex items-center space-x-1.5 transition">
+                <a
+                  href="https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-indigo-600 dark:hover:text-emerald-300 flex items-center space-x-1.5 transition"
+                >
                   <ShieldCheck className="w-3.5 h-3.5 text-indigo-500 dark:text-emerald-400" />
-                  <span>Administrative Console</span>
-                </Link>
+                  <span>Administrative Console (Cloud Actuator)</span>
+                  <ExternalLink className="w-3 h-3 text-gray-400" />
+                </a>
               </li>
             </ul>
           </div>

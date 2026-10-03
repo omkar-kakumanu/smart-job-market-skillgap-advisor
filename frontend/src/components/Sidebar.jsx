@@ -112,14 +112,6 @@ const Sidebar = () => {
           );
         })}
       </nav>
-
-      {/* Bottom Status / Mode indicator when expanded */}
-      {!isCollapsed && (
-        <div className="pt-2 border-t border-slate-200 dark:border-emerald-500/20 text-[10px] text-gray-500 dark:text-gray-400 px-2 flex items-center justify-between font-sans">
-          <span>Dock: <strong className="uppercase text-indigo-600 dark:text-emerald-400">{position}</strong></span>
-          <span>System: <strong className="uppercase text-emerald-500">Active</strong></span>
-        </div>
-      )}
     </aside>
   );
 };
