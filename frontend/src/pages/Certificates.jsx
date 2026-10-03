@@ -37,6 +37,45 @@ const Certificates = () => {
   const [customProficiency, setCustomProficiency] = useState('ADVANCED');
   const [customYears, setCustomYears] = useState('3.0');
 
+  // Certificate Approval State: 'PENDING_APPROVAL', 'APPROVED', 'REJECTED'
+  const [certStatus, setCertStatus] = useState('PENDING_APPROVAL');
+  const [approvalDetails, setApprovalDetails] = useState({
+    approvedBy: 'Pending Administrator Review',
+    approvedDate: null,
+    verificationCode: 'SKG-2026-PENDING-REVIEW',
+    remarks: 'Awaiting administrator verification and credential audit.'
+  });
+
+  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.email?.toLowerCase().includes('admin');
+
+  // Load existing certificate request for current user
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('skillgap_cert_requests');
+      if (stored) {
+        const requests = JSON.parse(stored);
+        const userEmail = (user?.email || 'user@skillgap.com').toLowerCase();
+        const existing = requests.find(r => r.candidateEmail?.toLowerCase() === userEmail);
+        if (existing) {
+          setCertStatus(existing.status);
+          if (existing.candidateName) setCandidateName(existing.candidateName);
+          if (existing.careerRole) setCareerRole(existing.careerRole);
+          if (existing.certTitle) setCertTitle(existing.certTitle);
+          if (existing.themeStyle) setThemeStyle(existing.themeStyle);
+          if (existing.skills && existing.skills.length > 0) setCertSkills(existing.skills);
+          setApprovalDetails({
+            approvedBy: existing.approvedBy || (existing.status === 'APPROVED' ? 'System Administrator (Admin Board)' : 'Pending Administrator Review'),
+            approvedDate: existing.approvedDate || null,
+            verificationCode: existing.verificationCode || (existing.status === 'APPROVED' ? `SKG-2026-AUTH-${existing.id?.slice(-4) || '8849'}` : 'SKG-2026-PENDING-REVIEW'),
+            remarks: existing.remarks || ''
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('Error reading certificate requests', err);
+    }
+  }, [user]);
+
   useEffect(() => {
     const fetchSkills = async () => {
       try {
@@ -44,22 +83,24 @@ const Certificates = () => {
         setAllMasterSkills(skillsData);
         if (skillsData.length > 0) setSelectedMasterSkillId(skillsData[0].id);
 
-        // Pre-populate cert skills from user's current profile if available
-        if (user?.skills && user.skills.length > 0) {
-          const userSkillList = user.skills.map((s) => ({
-            name: s.skillName,
-            category: s.category,
-            proficiency: s.proficiencyLevel || 'ADVANCED',
-            years: s.yearsExperience || 2.0,
-          }));
-          setCertSkills(userSkillList);
-        } else {
-          // Default initial skills
-          setCertSkills([
-            { name: 'Java 21', category: 'TECHNICAL', proficiency: 'ADVANCED', years: 3.5 },
-            { name: 'Spring Boot 3', category: 'TECHNICAL', proficiency: 'INTERMEDIATE', years: 2.0 },
-            { name: 'ReactJS', category: 'TECHNICAL', proficiency: 'ADVANCED', years: 3.0 },
-          ]);
+        // Pre-populate cert skills from user's current profile if available and not set
+        if (certSkills.length === 0) {
+          if (user?.skills && user.skills.length > 0) {
+            const userSkillList = user.skills.map((s) => ({
+              name: s.skillName,
+              category: s.category,
+              proficiency: s.proficiencyLevel || 'ADVANCED',
+              years: s.yearsExperience || 2.0,
+            }));
+            setCertSkills(userSkillList);
+          } else {
+            // Default initial skills
+            setCertSkills([
+              { name: 'Java 21', category: 'TECHNICAL', proficiency: 'ADVANCED', years: 3.5 },
+              { name: 'Spring Boot 3', category: 'TECHNICAL', proficiency: 'INTERMEDIATE', years: 2.0 },
+              { name: 'ReactJS', category: 'TECHNICAL', proficiency: 'ADVANCED', years: 3.0 },
+            ]);
+          }
         }
       } catch (err) {
         console.error(err);
@@ -95,7 +136,6 @@ const Certificates = () => {
 
   const handleSaveSkillsToUserProfile = async () => {
     try {
-      // Find skill IDs for certSkills that match master skills
       for (const cs of certSkills) {
         const match = allMasterSkills.find((ms) => ms.name.toLowerCase() === cs.name.toLowerCase());
         if (match) {
@@ -114,7 +154,84 @@ const Certificates = () => {
     }
   };
 
+  // Submit Certificate for Admin Approval
+  const handleSubmitForAdminApproval = () => {
+    const userEmail = (user?.email || 'user@skillgap.com').toLowerCase();
+    const stored = localStorage.getItem('skillgap_cert_requests');
+    let requests = stored ? JSON.parse(stored) : [];
+
+    const requestObj = {
+      id: `cert-req-${Date.now()}`,
+      candidateName,
+      candidateEmail: userEmail,
+      careerRole,
+      certTitle,
+      skills: certSkills,
+      themeStyle,
+      status: 'PENDING_APPROVAL',
+      requestDate: new Date().toISOString(),
+      approvedDate: null,
+      approvedBy: 'Pending Administrator Review',
+      verificationCode: 'SKG-2026-PENDING-REVIEW',
+      remarks: 'Application submitted for official administrator credential verification.'
+    };
+
+    // Replace existing or prepend
+    requests = requests.filter(r => r.candidateEmail?.toLowerCase() !== userEmail);
+    requests.unshift(requestObj);
+    localStorage.setItem('skillgap_cert_requests', JSON.stringify(requests));
+
+    setCertStatus('PENDING_APPROVAL');
+    setApprovalDetails({
+      approvedBy: 'Pending Administrator Review',
+      approvedDate: null,
+      verificationCode: 'SKG-2026-PENDING-REVIEW',
+      remarks: 'Application submitted for official administrator credential verification.'
+    });
+
+    showToast('Certificate request submitted to Administrator for review!', 'info');
+  };
+
+  // Admin Quick-Approve / Reject Action
+  const handleAdminApproveCertificate = (newStatus = 'APPROVED') => {
+    const userEmail = (user?.email || 'user@skillgap.com').toLowerCase();
+    const stored = localStorage.getItem('skillgap_cert_requests');
+    let requests = stored ? JSON.parse(stored) : [];
+
+    const code = newStatus === 'APPROVED' ? `SKG-2026-AUTH-${Math.floor(1000 + Math.random() * 9000)}` : 'REVOKED';
+    const approvedBy = newStatus === 'APPROVED' ? (user?.fullName ? `${user.fullName} (System Administrator)` : 'Lead System Administrator') : 'System Administrator (Rejected)';
+
+    requests = requests.map(r => {
+      if (r.candidateEmail?.toLowerCase() === userEmail) {
+        return {
+          ...r,
+          status: newStatus,
+          approvedDate: newStatus === 'APPROVED' ? new Date().toISOString() : null,
+          approvedBy,
+          verificationCode: code,
+          remarks: newStatus === 'APPROVED' ? 'Officially validated & approved by administrator.' : 'Rejected by administrator.'
+        };
+      }
+      return r;
+    });
+
+    localStorage.setItem('skillgap_cert_requests', JSON.stringify(requests));
+    setCertStatus(newStatus);
+    setApprovalDetails({
+      approvedBy,
+      approvedDate: newStatus === 'APPROVED' ? new Date().toISOString() : null,
+      verificationCode: code,
+      remarks: newStatus === 'APPROVED' ? 'Officially validated & approved by administrator.' : 'Rejected by administrator.'
+    });
+
+    showToast(newStatus === 'APPROVED' ? 'Certificate officially APPROVED by Administrator!' : 'Certificate marked REJECTED', newStatus === 'APPROVED' ? 'success' : 'warning');
+  };
+
   const handlePrint = () => {
+    if (certStatus !== 'APPROVED') {
+      showToast('Export locked! Certificate can only be exported after Administrator approval.', 'error');
+      return;
+    }
     window.print();
   };
 
@@ -150,7 +267,22 @@ const Certificates = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {certStatus !== 'APPROVED' ? (
+              <button
+                onClick={handleSubmitForAdminApproval}
+                className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black font-tech flex items-center gap-2 transition shadow-md"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Submit for Admin Approval</span>
+              </button>
+            ) : (
+              <span className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-400 text-emerald-700 dark:text-emerald-300 text-xs font-bold font-tech flex items-center gap-1.5">
+                <BadgeCheck className="w-4 h-4 text-emerald-500" />
+                <span>Admin Approved</span>
+              </span>
+            )}
+
             <button
               onClick={handleSaveSkillsToUserProfile}
               className="px-4 py-2.5 rounded-xl border border-sky-400/40 dark:border-emerald-500/40 bg-sky-50 dark:bg-emerald-950/40 text-sky-700 dark:text-emerald-300 hover:bg-sky-100 text-xs font-bold font-tech flex items-center gap-2 transition"
@@ -161,12 +293,82 @@ const Certificates = () => {
 
             <button
               onClick={handlePrint}
-              className="px-5 py-2.5 rounded-xl gradient-btn font-tech text-xs font-bold text-white shadow-md flex items-center gap-2 border border-sky-300/40 dark:border-emerald-400/40 uppercase tracking-wider"
+              disabled={certStatus !== 'APPROVED'}
+              className={`px-5 py-2.5 rounded-xl font-tech text-xs font-bold flex items-center gap-2 border uppercase tracking-wider transition ${
+                certStatus === 'APPROVED'
+                  ? 'gradient-btn text-white shadow-md border-sky-300/40 dark:border-emerald-400/40 cursor-pointer'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-300 dark:border-slate-700 cursor-not-allowed opacity-75'
+              }`}
+              title={certStatus !== 'APPROVED' ? 'Locked: Requires Admin Approval first' : 'Export PDF'}
             >
               <Printer className="w-4 h-4" />
-              <span>Export Verified PDF</span>
+              <span>{certStatus === 'APPROVED' ? 'Export Verified PDF' : 'PDF Locked (Needs Admin Approval)'}</span>
             </button>
           </div>
+        </div>
+
+        {/* Admin Quick-Action Bar if user has Admin privileges */}
+        {isAdmin && (
+          <div className="mb-6 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-indigo-600 text-white font-bold text-xs uppercase tracking-wider">
+                Admin Console Mode
+              </div>
+              <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
+                You are viewing this as an Administrator. You have authority to review and approve candidate certificates.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleAdminApproveCertificate('APPROVED')}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+              >
+                <BadgeCheck className="w-4 h-4" />
+                <span>Authorize & Approve Certificate</span>
+              </button>
+              <button
+                onClick={() => handleAdminApproveCertificate('REJECTED')}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow transition"
+              >
+                <span>Reject</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Certificate Approval Status Banner */}
+        <div className="mb-6">
+          {certStatus === 'APPROVED' ? (
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 flex items-center gap-3 text-emerald-800 dark:text-emerald-300">
+              <BadgeCheck className="w-6 h-6 text-emerald-500 flex-shrink-0" />
+              <div className="text-xs">
+                <span className="font-extrabold uppercase tracking-wide">Official Credential Approved & Authenticated</span>
+                <p className="mt-0.5 text-emerald-700 dark:text-emerald-400">
+                  Approved by: <strong>{approvalDetails.approvedBy}</strong> &bull; Verification Code: <strong className="font-mono">{approvalDetails.verificationCode}</strong>. PDF export and cryptographic verification seal are unlocked.
+                </p>
+              </div>
+            </div>
+          ) : certStatus === 'REJECTED' ? (
+            <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/40 flex items-center gap-3 text-rose-800 dark:text-rose-300">
+              <ShieldCheck className="w-6 h-6 text-rose-500 flex-shrink-0" />
+              <div className="text-xs">
+                <span className="font-extrabold uppercase tracking-wide">Certificate Request Rejected by Administrator</span>
+                <p className="mt-0.5 text-rose-700 dark:text-rose-400">
+                  This credential was declined during administrative audit. Please revise your verified skills inventory and click "Submit for Admin Approval".
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/40 flex items-center gap-3 text-amber-800 dark:text-amber-300">
+              <ShieldCheck className="w-6 h-6 text-amber-500 flex-shrink-0 animate-pulse" />
+              <div className="text-xs">
+                <span className="font-extrabold uppercase tracking-wide">Pending Administrator Approval</span>
+                <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+                  Official certificates can only be approved through Administrator review. Once verified by an administrator, official PDF export and digital authentication seals will unlock.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -174,10 +376,17 @@ const Certificates = () => {
           <div className="lg:col-span-5 space-y-6">
             {/* Certificate Meta Details Form */}
             <div className="glass p-6 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md space-y-4 font-tech">
-              <h3 className="text-sm font-extrabold uppercase tracking-widest text-sky-700 dark:text-emerald-400 flex items-center gap-2">
-                <BadgeCheck className="w-4 h-4 text-amber-500" />
-                <span>Certificate Metadata</span>
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold uppercase tracking-widest text-sky-700 dark:text-emerald-400 flex items-center gap-2">
+                  <BadgeCheck className="w-4 h-4 text-amber-500" />
+                  <span>Certificate Metadata</span>
+                </h3>
+                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                  certStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                }`}>
+                  {certStatus}
+                </span>
+              </div>
 
               <div className="space-y-3">
                 <div>
@@ -250,6 +459,17 @@ const Certificates = () => {
                       Dark
                     </button>
                   </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleSubmitForAdminApproval}
+                    className="w-full py-2.5 text-xs font-extrabold text-slate-900 bg-amber-400 hover:bg-amber-500 rounded-xl shadow transition flex items-center justify-center gap-2"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Submit Request to Admin for Official Approval</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -344,19 +564,40 @@ const Certificates = () => {
 
           {/* Right Column: Live High-Aesthetic Certificate Preview */}
           <div className="lg:col-span-7 flex flex-col justify-start">
-            <div className="text-xs font-extrabold uppercase tracking-widest text-sky-700 dark:text-emerald-400 mb-2 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>Official Live Certificate Document Preview</span>
+            <div className="text-xs font-extrabold uppercase tracking-widest text-sky-700 dark:text-emerald-400 mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>Official Live Certificate Document Preview</span>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider ${
+                certStatus === 'APPROVED' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-slate-950'
+              }`}>
+                {certStatus === 'APPROVED' ? 'ADMIN APPROVED & SIGNED' : 'REQUIRES ADMIN APPROVAL'}
+              </span>
             </div>
 
             {/* Print Container */}
             <div
               ref={certRef}
               id="certificate-print-area"
-              className={`relative p-8 sm:p-12 rounded-3xl border-4 bg-gradient-to-br transition-all duration-300 font-cinzel ${getThemeClasses()}`}
+              className={`relative p-8 sm:p-12 rounded-3xl border-4 bg-gradient-to-br transition-all duration-300 font-cinzel overflow-hidden ${getThemeClasses()}`}
             >
               {/* Outer Decorative Gold Foil Border Frame */}
               <div className="absolute inset-3 rounded-2xl border-2 border-amber-500/30 pointer-events-none" />
+
+              {/* Watermark for Non-Approved state */}
+              {certStatus !== 'APPROVED' && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-20">
+                  <div className="transform -rotate-25 border-4 border-amber-500/40 bg-black/60 px-8 py-4 rounded-3xl text-center backdrop-blur-xs">
+                    <span className="text-xl sm:text-2xl font-black font-sans uppercase tracking-[0.25em] text-amber-400">
+                      PENDING ADMIN APPROVAL
+                    </span>
+                    <p className="text-[10px] font-tech text-amber-200/80 mt-1">
+                      NOT VALID FOR OFFICIAL VERIFICATION UNTIL APPROVED BY PLATFORM ADMINISTRATOR
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Watermark Seal Background */}
               <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
@@ -439,22 +680,26 @@ const Certificates = () => {
                   </div>
                   <div className="text-left text-[10px] space-y-0.5">
                     <div className="font-bold text-amber-300 uppercase tracking-wider">Verification Code</div>
-                    <div className="font-mono text-amber-100/70">ID: SKG-2026-8849-VERIFIED</div>
-                    <div className="text-emerald-400 font-bold">Status: Officially Authenticated</div>
+                    <div className="font-mono text-amber-100/70">ID: {approvalDetails.verificationCode}</div>
+                    <div className={`font-bold ${certStatus === 'APPROVED' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      Status: {certStatus === 'APPROVED' ? 'Officially Authenticated & Admin Approved' : 'Pending Admin Approval'}
+                    </div>
                   </div>
                 </div>
 
                 {/* Official Signature */}
                 <div className="text-center sm:text-right space-y-1">
                   <div className="font-cinzel italic text-lg text-amber-300 font-bold tracking-widest">
-                    Dr. Omkar Technical Board
+                    {certStatus === 'APPROVED' ? approvalDetails.approvedBy : 'Pending Administrator Review'}
                   </div>
                   <div className="h-0.5 w-40 bg-gradient-to-r from-transparent via-amber-400 to-transparent sm:ml-auto" />
                   <div className="text-[10px] uppercase tracking-widest text-amber-400/80 font-bold">
-                    Lead Skill Gap Evaluator & Verification Board
+                    Official Verification & Certification Authority
                   </div>
                   <div className="text-[10px] text-amber-100/60">
-                    Issued Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    {certStatus === 'APPROVED' && approvalDetails.approvedDate
+                      ? `Approved Date: ${new Date(approvalDetails.approvedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
+                      : 'Audit Review: In Progress'}
                   </div>
                 </div>
               </div>
