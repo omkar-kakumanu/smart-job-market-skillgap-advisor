@@ -89,7 +89,7 @@ const BENCHMARK_ROLE_REQUIREMENTS = {
 };
 
 const SkillGapAdvisor = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const { showToast } = useToast();
 
   const [jobs, setJobs] = useState([]);
@@ -214,6 +214,7 @@ const SkillGapAdvisor = () => {
       const res = await skillGapService.analyzeGap(payload);
       if (res && res.matchPercentage !== undefined) {
         setResult(res);
+        syncScoreToProfile(res.matchPercentage);
         showToast('Skill gap analysis completed successfully via enterprise engine!', 'success');
         return;
       }
@@ -225,15 +226,36 @@ const SkillGapAdvisor = () => {
     setTimeout(() => {
       const localResult = runCompetencyAnalysis(chosenRole);
       setResult(localResult);
+      syncScoreToProfile(localResult.matchPercentage);
       setAnalyzing(false);
       showToast(`Competency Gap Analysis generated for "${chosenRole}"!`, 'success');
     }, 400);
+  };
+
+  const syncScoreToProfile = (scoreVal) => {
+    if (user?.email && scoreVal) {
+      try {
+        const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+        const key = user.email.toLowerCase().trim();
+        db[key] = {
+          ...(db[key] || {}),
+          skillMatchScore: scoreVal
+        };
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+        updateUserProfile({ ...user, skillMatchScore: scoreVal });
+      } catch (e) {
+        console.warn('Failed syncing skillMatchScore to profile', e);
+      }
+    }
   };
 
   // Auto-run initial analysis on mount if candidate has role or skills
   useEffect(() => {
     const initialResult = runCompetencyAnalysis(user?.targetCareerRole || 'Full Stack Java Developer');
     setResult(initialResult);
+    if (initialResult?.matchPercentage && !user?.skillMatchScore) {
+      syncScoreToProfile(initialResult.matchPercentage);
+    }
   }, [user]);
 
   return (

@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 const VoiceScreening = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const { showToast } = useToast();
 
   const [questions, setQuestions] = useState([]);
@@ -479,7 +479,25 @@ const VoiceScreening = () => {
     const updated = [newRecord, ...history.filter(h => h.id !== recordId)];
     setHistory(updated);
     localStorage.setItem('skillgap_voice_records', JSON.stringify(updated));
-    showToast('Voice evaluation officially saved to portfolio!', 'success');
+
+    // Synchronize to candidate profile and talent database
+    if (user?.email) {
+      try {
+        const vScore = latestEvaluation?.overall || 85;
+        const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+        const key = user.email.toLowerCase().trim();
+        db[key] = {
+          ...(db[key] || {}),
+          voiceScore: vScore
+        };
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+        updateUserProfile({ ...user, voiceScore: vScore });
+      } catch (e) {
+        console.warn('Failed syncing voice score to profile', e);
+      }
+    }
+
+    showToast('Voice evaluation officially saved to portfolio and candidate ranking!', 'success');
   };
 
   // Explicit Delete Recording Action

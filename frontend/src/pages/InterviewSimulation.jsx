@@ -513,7 +513,7 @@ const ROLE_QUESTION_BANKS = {
 };
 
 const InterviewSimulation = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const { showToast } = useToast();
 
   const [role, setRole] = useState(user?.targetCareerRole || 'Full Stack Java Developer');
@@ -676,7 +676,24 @@ const InterviewSimulation = () => {
         const updatedAttempts = [attemptSession, ...attempts];
         setAttempts(updatedAttempts);
         localStorage.setItem('skillgap_interview_attempts', JSON.stringify(updatedAttempts));
-        showToast(`Simulation completed! Session Overall Score: ${overallScore}%`, 'success');
+
+        // Synchronize to candidate profile and talent database
+        if (user?.email) {
+          try {
+            const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+            const key = user.email.toLowerCase().trim();
+            db[key] = {
+              ...(db[key] || {}),
+              interviewScore: overallScore
+            };
+            localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+            updateUserProfile({ ...user, interviewScore: overallScore });
+          } catch (e) {
+            console.warn('Failed syncing interview score to profile', e);
+          }
+        }
+
+        showToast(`Simulation completed! Score of ${overallScore}% synced to your candidate profile!`, 'success');
       } else {
         showToast(activeQuestion.type === 'objective' ? (isCorrect ? 'Correct! +100 Points' : 'Incorrect choice') : 'Response evaluated!', isCorrect ? 'success' : 'info');
       }
