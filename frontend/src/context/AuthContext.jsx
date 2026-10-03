@@ -3,10 +3,46 @@ import { userService } from '../services/userService';
 
 export const AuthContext = createContext(null);
 
+export const getStoredProfileByEmail = (email) => {
+  if (!email) return null;
+  try {
+    const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+    return db[email.toLowerCase().trim()] || null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveStoredProfileByEmail = (email, profileData) => {
+  if (!email || !profileData) return;
+  try {
+    const key = email.toLowerCase().trim();
+    const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+    db[key] = {
+      ...(db[key] || {}),
+      ...profileData,
+      email: key
+    };
+    localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+  } catch (err) {
+    console.warn('Failed to save profile to persistent store:', err);
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed?.email) {
+        const stored = getStoredProfileByEmail(parsed.email);
+        return stored ? { ...parsed, ...stored } : parsed;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
   });
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +52,9 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       if (saved) {
         try {
-          setUser(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          const stored = parsed?.email ? getStoredProfileByEmail(parsed.email) : null;
+          setUser(stored ? { ...parsed, ...stored } : parsed);
         } catch (e) {
           // ignore corrupted localstorage
         }
@@ -24,8 +62,10 @@ export const AuthProvider = ({ children }) => {
       userService.getProfile()
         .then((data) => {
           if (data) {
-            setUser(data);
-            localStorage.setItem('user', JSON.stringify(data));
+            const stored = data.email ? getStoredProfileByEmail(data.email) : null;
+            const merged = stored ? { ...data, ...stored } : data;
+            setUser(merged);
+            localStorage.setItem('user', JSON.stringify(merged));
           }
         })
         .catch((err) => {
@@ -41,12 +81,19 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const loginUser = (authData) => {
+    const email = authData.user?.email;
+    const stored = email ? getStoredProfileByEmail(email) : null;
+    const mergedUser = stored ? { ...authData.user, ...stored } : authData.user;
+    
     localStorage.setItem('token', authData.accessToken);
-    localStorage.setItem('user', JSON.stringify(authData.user));
-    setUser(authData.user);
+    localStorage.setItem('user', JSON.stringify(mergedUser));
+    setUser(mergedUser);
   };
 
   const logout = () => {
+    if (user?.email) {
+      saveStoredProfileByEmail(user.email, user);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
@@ -55,6 +102,9 @@ export const AuthProvider = ({ children }) => {
   const updateUserProfile = (newProfile) => {
     setUser(newProfile);
     localStorage.setItem('user', JSON.stringify(newProfile));
+    if (newProfile?.email) {
+      saveStoredProfileByEmail(newProfile.email, newProfile);
+    }
   };
 
   return (

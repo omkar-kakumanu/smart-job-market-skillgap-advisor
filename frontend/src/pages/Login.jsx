@@ -17,7 +17,7 @@ import {
   Zap, 
   UserPlus 
 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth, getStoredProfileByEmail } from '../context/AuthContext';
 import { useToast } from '../hooks/useToast';
 import { useTheme } from '../hooks/useTheme';
 import { authService } from '../services/authService';
