@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import Breadcrumb from '../components/Breadcrumb';
 import SkillBadge from '../components/SkillBadge';
 import ProfilePhotoUploader from '../components/ProfilePhotoUploader';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth, getStoredProfileByEmail, saveStoredProfileByEmail } from '../context/AuthContext';
 import { useToast } from '../hooks/useToast';
 import { userService } from '../services/userService';
 import { jobService } from '../services/jobService';
@@ -38,7 +38,12 @@ const Profile = () => {
   const { showToast } = useToast();
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem('user');
-    return user || (saved ? JSON.parse(saved) : null) || {
+    const parsed = user || (saved ? JSON.parse(saved) : null);
+    if (parsed?.email) {
+      const stored = getStoredProfileByEmail(parsed.email);
+      if (stored) return { ...parsed, ...stored };
+    }
+    return parsed || {
       fullName: 'Alex Vance',
       email: 'candidate@skillgap.com',
       targetCareerRole: 'Full Stack Java Developer',
@@ -102,6 +107,9 @@ const Profile = () => {
     setProfile(updatedProfile);
     updateUserProfile(updatedProfile);
     localStorage.setItem('user', JSON.stringify(updatedProfile));
+    if (updatedProfile.email) {
+      saveStoredProfileByEmail(updatedProfile.email, updatedProfile);
+    }
 
     try {
       const payload = {
@@ -117,6 +125,9 @@ const Profile = () => {
         setProfile(merged);
         updateUserProfile(merged);
         localStorage.setItem('user', JSON.stringify(merged));
+        if (merged.email) {
+          saveStoredProfileByEmail(merged.email, merged);
+        }
       }
     } catch (err) {
       console.warn('Backend updateProfile offline/sync skipped, profile saved locally:', err);

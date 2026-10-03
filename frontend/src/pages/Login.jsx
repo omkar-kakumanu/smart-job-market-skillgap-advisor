@@ -147,15 +147,18 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
       console.warn('Backend SSO unreachable, using resilient verified authentication:', err);
       const isAdm = selectedEmail.includes('admin');
       const isRec = selectedEmail.includes('recruiter') || userRole?.includes('Recruiter') || userRole?.includes('Manager');
+      const savedProfile = getStoredProfileByEmail(selectedEmail);
       const fallbackToken = 'sso_session_' + Date.now();
       const fallbackUser = {
         id: isAdm ? 1 : isRec ? 2 : 3,
-        fullName: selectedName || (isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Candidate Applicant'),
+        fullName: savedProfile?.fullName || selectedName || (isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Candidate Applicant'),
         email: selectedEmail,
         role: isAdm ? 'ROLE_ADMIN' : isRec ? 'ROLE_MANAGER' : 'ROLE_USER',
-        targetCareerRole: isRec ? 'Talent Acquisition Lead' : 'Full Stack Java Developer',
-        experienceLevel: isAdm || isRec ? 'LEAD' : 'MID_LEVEL',
-        skills: []
+        targetCareerRole: savedProfile?.targetCareerRole || (isRec ? 'Talent Acquisition Lead' : 'Full Stack Java Developer'),
+        experienceLevel: savedProfile?.experienceLevel || (isAdm || isRec ? 'LEAD' : 'MID_LEVEL'),
+        bio: savedProfile?.bio || '',
+        profileImageUrl: savedProfile?.profileImageUrl || '',
+        skills: savedProfile?.skills || []
       };
       loginUser({ accessToken: fallbackToken, user: fallbackUser });
       showToast(`Authenticated successfully as ${fallbackUser.fullName}!`, 'success');
@@ -214,15 +217,18 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
           return;
         } catch (regErr) {
           console.warn('Backend register fallback:', regErr);
+          const savedProfile = getStoredProfileByEmail(cleanEmail);
           const fallbackToken = 'reg_session_' + Date.now();
           const fallbackUser = {
             id: Date.now() % 10000,
             fullName,
             email: cleanEmail,
             role: 'ROLE_USER',
-            targetCareerRole: targetRole || 'Full Stack Java Developer',
-            experienceLevel: experienceLevel || 'ENTRY_LEVEL',
-            skills: []
+            targetCareerRole: targetRole || savedProfile?.targetCareerRole || 'Full Stack Java Developer',
+            experienceLevel: experienceLevel || savedProfile?.experienceLevel || 'ENTRY_LEVEL',
+            bio: savedProfile?.bio || '',
+            profileImageUrl: profileImageUrl || savedProfile?.profileImageUrl || '',
+            skills: savedProfile?.skills || []
           };
           loginUser({ accessToken: fallbackToken, user: fallbackUser });
           showToast('Account registered successfully!', 'success');
@@ -251,15 +257,18 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
           // Graceful fallback for seamless demonstration
           const isAdm = mode === 'ADMIN' || cleanEmail.includes('admin');
           const isRec = mode === 'RECRUITER' || cleanEmail.includes('recruiter') || cleanEmail.includes('manager');
+          const savedProfile = getStoredProfileByEmail(cleanEmail);
           const fallbackToken = 'auth_session_' + Date.now();
           const fallbackUser = {
             id: isAdm ? 1 : isRec ? 2 : 3,
-            fullName: isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Candidate Applicant',
+            fullName: savedProfile?.fullName || (isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Candidate Applicant'),
             email: cleanEmail,
             role: isAdm ? 'ROLE_ADMIN' : isRec ? 'ROLE_MANAGER' : 'ROLE_USER',
-            targetCareerRole: isRec ? 'Talent Acquisition Lead' : 'Full Stack Java Developer',
-            experienceLevel: isAdm || isRec ? 'LEAD' : 'MID_LEVEL',
-            skills: []
+            targetCareerRole: savedProfile?.targetCareerRole || (isRec ? 'Talent Acquisition Lead' : 'Full Stack Java Developer'),
+            experienceLevel: savedProfile?.experienceLevel || (isAdm || isRec ? 'LEAD' : 'MID_LEVEL'),
+            bio: savedProfile?.bio || '',
+            profileImageUrl: savedProfile?.profileImageUrl || '',
+            skills: savedProfile?.skills || []
           };
           loginUser({ accessToken: fallbackToken, user: fallbackUser });
           showToast(`Signed in successfully as ${fallbackUser.fullName}!`, 'success');
