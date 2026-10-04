@@ -14,19 +14,19 @@ import { useAuth } from '../hooks/useAuth';
 const VIDEOS = [
   {
     url: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260702_081127_0992a171-d3c6-4978-8213-0ec5df8b6d63.mp4',
-    label: '',
+    label: 'Platform Overview',
   },
   {
     url: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260702_092026_dd05b805-ea0f-40b2-8c52-332b88502592.mp4',
-    label: '',
+    label: 'Market Telemetry',
   },
   {
     url: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260702_081042_df7202bf-bd80-4b2b-bbc6-1f09ba2870e9.mp4',
-    label: '',
+    label: 'Skill Diagnostic',
   },
   {
     url: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260702_080959_4cac5234-3573-464e-a5b7-76b94b8a7d61.mp4',
-    label: '',
+    label: 'AI Interview Studio',
   },
 ];
 
@@ -170,7 +170,7 @@ const Home = () => {
                 const isActive = activeVideo === idx;
                 return (
                   <button
-                    key={vid.label}
+                    key={vid.url || idx}
                     onClick={() => handleVideoSwitch(idx)}
                     disabled={isTransitioning}
                     className={`px-3.5 py-1 rounded-full text-xs font-normal transition-all duration-300 ${isActive

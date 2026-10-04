@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Cpu, ExternalLink, ShieldCheck, Sparkles, BookOpen, TrendingUp, Layers, CheckCircle, User, LayoutDashboard } from 'lucide-react';
+import { Cpu, ExternalLink, ShieldCheck, Sparkles, BookOpen, TrendingUp, Layers, CheckCircle, User, LayoutDashboard, FileText } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const Footer = () => {
