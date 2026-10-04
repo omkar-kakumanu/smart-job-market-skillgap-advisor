@@ -25,7 +25,7 @@ const ProfilePhotoUploader = ({ value, onChange, fullName = 'User', label = 'Pro
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const maxDim = 400;
