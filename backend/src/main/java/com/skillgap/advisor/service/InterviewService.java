@@ -97,6 +97,12 @@ public class InterviewService {
         return userAttempts.getOrDefault(userId, Collections.emptyList());
     }
 
+    public List<InterviewAttemptDto> getAllAttempts() {
+        List<InterviewAttemptDto> all = new ArrayList<>();
+        userAttempts.values().forEach(all::addAll);
+        return all;
+    }
+
     private List<InterviewQuestionDto> getJavaBackendQuestions() {
         return List.of(
             // 5 Descriptive

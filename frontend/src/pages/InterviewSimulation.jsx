@@ -529,10 +529,17 @@ const InterviewSimulation = () => {
   const [evaluationFeedback, setEvaluationFeedback] = useState(null);
   
   // Multi-Attempt History Management
-  const [attempts, setAttempts] = useState(() => {
+  const [allAttempts, setAllAttempts] = useState(() => {
     const saved = localStorage.getItem('skillgap_interview_attempts');
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Privacy: A candidate can ONLY see their own response while admin/recruiter can see all
+  const isCandidateRole = user?.role === 'ROLE_USER';
+  const attempts = isCandidateRole && user?.email
+    ? allAttempts.filter(a => a.candidateEmail?.toLowerCase() === user.email.toLowerCase() || (a.userId && a.userId === user.id))
+    : allAttempts;
+
   const [currentAttemptNumber, setCurrentAttemptNumber] = useState(1);
   const [currentAttemptResponses, setCurrentAttemptResponses] = useState([]);
   const [expandedAttempts, setExpandedAttempts] = useState({ 1: true });
@@ -661,6 +668,7 @@ const InterviewSimulation = () => {
           id: `att-${Date.now()}`,
           userId: user?.id,
           candidateName: user?.fullName || 'Candidate',
+          candidateEmail: user?.email?.toLowerCase().trim() || '',
           role: role,
           attemptNumber: currentAttemptNumber,
           completedQuestions: updatedCurrentResponses.length,
@@ -673,8 +681,8 @@ const InterviewSimulation = () => {
           timestamp: new Date().toISOString()
         };
 
-        const updatedAttempts = [attemptSession, ...attempts];
-        setAttempts(updatedAttempts);
+        const updatedAttempts = [attemptSession, ...allAttempts];
+        setAllAttempts(updatedAttempts);
         localStorage.setItem('skillgap_interview_attempts', JSON.stringify(updatedAttempts));
 
         // Synchronize to candidate profile and talent database
@@ -682,9 +690,11 @@ const InterviewSimulation = () => {
           try {
             const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
             const key = user.email.toLowerCase().trim();
+            const existingCandidateAttempts = (db[key] && Array.isArray(db[key].interviewAttempts)) ? db[key].interviewAttempts : [];
             db[key] = {
               ...(db[key] || {}),
-              interviewScore: overallScore
+              interviewScore: overallScore,
+              interviewAttempts: [attemptSession, ...existingCandidateAttempts]
             };
             localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
             updateUserProfile({ ...user, interviewScore: overallScore });

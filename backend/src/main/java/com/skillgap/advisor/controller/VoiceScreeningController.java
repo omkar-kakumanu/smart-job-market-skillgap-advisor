@@ -55,4 +55,19 @@ public class VoiceScreeningController {
         List<VoiceScreeningRecordDto> records = voiceScreeningService.getUserRecords(userId);
         return ResponseEntity.ok(ApiResponse.success(records, "Voice screening records retrieved"));
     }
+
+    @GetMapping("/candidate/{targetUserId}")
+    @Operation(summary = "Get specific candidate voice screening records (Admin/Recruiter)")
+    public ResponseEntity<ApiResponse<List<VoiceScreeningRecordDto>>> getCandidateRecords(
+            @PathVariable Long targetUserId) {
+        List<VoiceScreeningRecordDto> records = voiceScreeningService.getUserRecords(targetUserId);
+        return ResponseEntity.ok(ApiResponse.success(records, "Candidate voice screening records retrieved"));
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "Get all candidate voice screening records (Admin/Recruiter)")
+    public ResponseEntity<ApiResponse<List<VoiceScreeningRecordDto>>> getAllCandidateRecords() {
+        List<VoiceScreeningRecordDto> records = voiceScreeningService.getAllRecords();
+        return ResponseEntity.ok(ApiResponse.success(records, "All candidate voice screening records retrieved"));
+    }
 }

@@ -48,6 +48,11 @@ const VoiceScreening = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const isAdminOrRecruiter = user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_RECRUITER';
+  const visibleHistory = isAdminOrRecruiter
+    ? history
+    : history.filter(h => h.candidateEmail?.toLowerCase() === user?.email?.toLowerCase() || (h.userId && h.userId === user?.id));
+
   const timerRef = useRef(null);
   const recognitionRef = useRef(null);
   const isRecordingRef = useRef(false);
@@ -400,7 +405,7 @@ const VoiceScreening = () => {
         id: `voice-${Date.now()}`,
         userId: user?.id,
         candidateName: user?.fullName || 'Candidate',
-        candidateEmail: user?.email || 'user@skillgap.com',
+        candidateEmail: user?.email?.toLowerCase().trim() || 'user@skillgap.com',
         role: user?.targetCareerRole || 'Full Stack Java Developer',
         question: activeQuestion.question,
         transcript: transcriptText,
@@ -426,6 +431,25 @@ const VoiceScreening = () => {
       const updatedHistory = [record, ...history];
       setHistory(updatedHistory);
       localStorage.setItem('skillgap_voice_records', JSON.stringify(updatedHistory));
+
+      // Synchronize to candidate profile in talent database
+      if (user?.email) {
+        try {
+          const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+          const key = user.email.toLowerCase().trim();
+          const existingVoiceRecords = (db[key] && Array.isArray(db[key].voiceRecords)) ? db[key].voiceRecords : [];
+          db[key] = {
+            ...(db[key] || {}),
+            voiceScore: evalResult.overall,
+            voiceRecords: [record, ...existingVoiceRecords]
+          };
+          localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+          updateUserProfile({ ...user, voiceScore: evalResult.overall });
+        } catch (syncErr) {
+          console.warn('Failed syncing voice score to profile', syncErr);
+        }
+      }
+
       showToast(`Voice screening evaluated! Score: ${evalResult.overall}%`, 'success');
     } catch (err) {
       console.error(err);
@@ -464,7 +488,7 @@ const VoiceScreening = () => {
       id: recordId,
       userId: user?.id,
       candidateName: user?.fullName || 'Candidate',
-      candidateEmail: user?.email || 'user@skillgap.com',
+      candidateEmail: user?.email?.toLowerCase().trim() || 'user@skillgap.com',
       role: user?.targetCareerRole || 'Full Stack Java Developer',
       question: activeQ?.question || 'Technical Background',
       transcript: liveTranscript,
@@ -486,9 +510,11 @@ const VoiceScreening = () => {
         const vScore = latestEvaluation?.overall || 85;
         const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
         const key = user.email.toLowerCase().trim();
+        const existingVoice = (db[key] && Array.isArray(db[key].voiceRecords)) ? db[key].voiceRecords : [];
         db[key] = {
           ...(db[key] || {}),
-          voiceScore: vScore
+          voiceScore: vScore,
+          voiceRecords: [newRecord, ...existingVoice.filter(v => v.id !== recordId)]
         };
         localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
         updateUserProfile({ ...user, voiceScore: vScore });

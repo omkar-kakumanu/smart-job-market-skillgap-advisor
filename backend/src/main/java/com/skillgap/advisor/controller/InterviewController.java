@@ -56,4 +56,19 @@ public class InterviewController {
         List<InterviewAttemptDto> history = interviewService.getUserAttempts(userId);
         return ResponseEntity.ok(ApiResponse.success(history, "Interview attempt history retrieved"));
     }
+
+    @GetMapping("/candidate/{targetUserId}")
+    @Operation(summary = "Get specific candidate interview simulation attempts (Admin/Recruiter)")
+    public ResponseEntity<ApiResponse<List<InterviewAttemptDto>>> getCandidateAttempts(
+            @PathVariable Long targetUserId) {
+        List<InterviewAttemptDto> history = interviewService.getUserAttempts(targetUserId);
+        return ResponseEntity.ok(ApiResponse.success(history, "Candidate interview attempts retrieved"));
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "Get all candidate interview simulation attempts (Admin/Recruiter)")
+    public ResponseEntity<ApiResponse<List<InterviewAttemptDto>>> getAllAttempts() {
+        List<InterviewAttemptDto> history = interviewService.getAllAttempts();
+        return ResponseEntity.ok(ApiResponse.success(history, "All candidate interview attempts retrieved"));
+    }
 }

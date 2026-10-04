@@ -15,10 +15,12 @@ import {
   Briefcase, 
   Shield, 
   Zap, 
-  UserPlus 
+  UserPlus,
+  Clock,
+  ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { getStoredProfileByEmail } from '../context/AuthContext';
+import { getStoredProfileByEmail, saveStoredProfileByEmail } from '../context/AuthContext';
 import { useToast } from '../hooks/useToast';
 import { useTheme } from '../hooks/useTheme';
 import { authService } from '../services/authService';
@@ -83,6 +85,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
 
   // Status Banner
   const [statusNotice, setStatusNotice] = useState(null);
+  const [registrationSubmitted, setRegistrationSubmitted] = useState(null);
 
   // Google SSO Modal State
   const [showGoogleModal, setShowGoogleModal] = useState(false);
@@ -92,10 +95,22 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
   // Left Column Active Step
   const [activeStep, setActiveStep] = useState(1);
 
+  // Check URL query parameters for redirected pending candidates
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('pendingApproval') === 'true') {
+      setStatusNotice({
+        type: 'PENDING',
+        message: 'Your candidate account registration is currently pending administrator review. You will be able to log in once an administrator approves your profile.'
+      });
+    }
+  }, [location.search]);
+
   // Sync mode changes with clean professional default credentials
   const handleSelectMode = (newMode) => {
     setMode(newMode);
     setStatusNotice(null);
+    setRegistrationSubmitted(null);
     if (newMode === 'RECRUITER') {
       setEmail('manager@skillgap.com');
       setPassword('Password123!');
@@ -114,6 +129,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
   // Quick Demo Autofill handler
   const handleQuickDemoFill = (roleMode) => {
     setStatusNotice(null);
+    setRegistrationSubmitted(null);
     if (roleMode === 'RECRUITER') {
       setEmail('manager@skillgap.com');
       setPassword('Password123!');
@@ -133,38 +149,64 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
   const handleGoogleSelect = async (selectedEmail, selectedName, userRole) => {
     setGoogleSubmitting(true);
     setStatusNotice(null);
+    const cleanEmail = selectedEmail.trim().toLowerCase();
+    const isAdm = cleanEmail.includes('admin');
+    const isRec = cleanEmail.includes('recruiter') || userRole?.includes('Recruiter') || userRole?.includes('Manager');
+    const savedProfile = getStoredProfileByEmail(cleanEmail);
+
+    // Block candidates pending approval
+    if (!isAdm && !isRec && savedProfile?.approvalStatus === 'PENDING_APPROVAL') {
+      setStatusNotice({
+        type: 'PENDING',
+        message: 'Your Google-linked candidate account is currently awaiting administrative approval. An administrator must approve your account before you can log in.'
+      });
+      showToast('Candidate account pending administrator review.', 'warning');
+      setShowGoogleModal(false);
+      setGoogleSubmitting(false);
+      return;
+    }
+
     try {
       const response = await authService.googleSso({
-        email: selectedEmail,
+        email: cleanEmail,
         name: selectedName,
         role: userRole,
         profileImageUrl: ''
       });
+
+      if (!isAdm && !isRec && (response.user?.approvalStatus === 'PENDING_APPROVAL' || response.user?.isApproved === false)) {
+        setStatusNotice({
+          type: 'PENDING',
+          message: 'Your registration is awaiting administrative review. An administrator must activate your profile before you can log in.'
+        });
+        showToast('Registration pending admin approval.', 'warning');
+        setShowGoogleModal(false);
+        return;
+      }
+
       loginUser(response);
       showToast(`Welcome, ${selectedName}!`, 'success');
       setShowGoogleModal(false);
-      navigate('/dashboard');
+      navigate(isAdm ? '/admin' : '/dashboard');
     } catch (err) {
       console.warn('Backend SSO unreachable, using resilient verified authentication:', err);
-      const isAdm = selectedEmail.includes('admin');
-      const isRec = selectedEmail.includes('recruiter') || userRole?.includes('Recruiter') || userRole?.includes('Manager');
-      const savedProfile = getStoredProfileByEmail(selectedEmail);
       const fallbackToken = 'sso_session_' + Date.now();
       const fallbackUser = {
         id: isAdm ? 1 : isRec ? 2 : 3,
         fullName: savedProfile?.fullName || selectedName || (isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Candidate Applicant'),
-        email: selectedEmail,
+        email: cleanEmail,
         role: isAdm ? 'ROLE_ADMIN' : isRec ? 'ROLE_MANAGER' : 'ROLE_USER',
         targetCareerRole: savedProfile?.targetCareerRole || (isRec ? 'Talent Acquisition Lead' : 'Full Stack Java Developer'),
         experienceLevel: savedProfile?.experienceLevel || (isAdm || isRec ? 'LEAD' : 'MID_LEVEL'),
         bio: savedProfile?.bio || '',
         profileImageUrl: savedProfile?.profileImageUrl || '',
+        approvalStatus: savedProfile?.approvalStatus || 'APPROVED',
         skills: savedProfile?.skills || []
       };
       loginUser({ accessToken: fallbackToken, user: fallbackUser });
       showToast(`Authenticated successfully as ${fallbackUser.fullName}!`, 'success');
       setShowGoogleModal(false);
-      navigate('/dashboard');
+      navigate(isAdm ? '/admin' : '/dashboard');
     } finally {
       setGoogleSubmitting(false);
     }
@@ -203,8 +245,33 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
           return;
         }
 
+        const candidateProfile = {
+          fullName,
+          email: cleanEmail,
+          targetCareerRole: targetRole || 'Full Stack Java Developer',
+          experienceLevel: experienceLevel || 'ENTRY_LEVEL',
+          bio: 'Candidate registration submitted. Under administrative review.',
+          role: 'ROLE_USER',
+          approvalStatus: 'PENDING_APPROVAL',
+          isApproved: false,
+          isProfileLocked: false,
+          registrationDate: new Date().toISOString(),
+          atsScore: 88,
+          skillMatchScore: 84,
+          interviewScore: 82,
+          voiceScore: 85,
+          skills: [
+            { skillName: targetRole?.includes('Cloud') ? 'AWS Cloud' : 'Java 21', category: 'Backend', proficiencyLevel: 'INTERMEDIATE', yearsExperience: 2 }
+          ],
+          voiceRecords: [],
+          interviewAttempts: []
+        };
+
+        // Persist to local candidates registry
+        saveStoredProfileByEmail(cleanEmail, candidateProfile);
+
         try {
-          const response = await authService.register({
+          await authService.register({
             fullName,
             email: cleanEmail,
             password: password || 'candidate123',
@@ -212,30 +279,20 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
             experienceLevel: experienceLevel || 'ENTRY_LEVEL',
             profileImageUrl: profileImageUrl || null
           });
-          loginUser(response);
-          showToast('Account registered successfully! Welcome to the platform.', 'success');
-          navigate('/dashboard');
-          return;
         } catch (regErr) {
-          console.warn('Backend register fallback:', regErr);
-          const savedProfile = getStoredProfileByEmail(cleanEmail);
-          const fallbackToken = 'reg_session_' + Date.now();
-          const fallbackUser = {
-            id: Date.now() % 10000,
-            fullName,
-            email: cleanEmail,
-            role: 'ROLE_USER',
-            targetCareerRole: targetRole || savedProfile?.targetCareerRole || 'Full Stack Java Developer',
-            experienceLevel: experienceLevel || savedProfile?.experienceLevel || 'ENTRY_LEVEL',
-            bio: savedProfile?.bio || '',
-            profileImageUrl: profileImageUrl || savedProfile?.profileImageUrl || '',
-            skills: savedProfile?.skills || []
-          };
-          loginUser({ accessToken: fallbackToken, user: fallbackUser });
-          showToast('Account registered successfully!', 'success');
-          navigate('/dashboard');
-          return;
+          console.warn('Backend register sync fallback:', regErr);
         }
+
+        setSubmitting(false);
+        setRegistrationSubmitted({
+          fullName,
+          email: cleanEmail,
+          targetRole: targetRole || 'Full Stack Java Developer',
+          experienceLevel: experienceLevel || 'ENTRY_LEVEL',
+          registeredAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        showToast('Registration submitted! Candidate access is pending administrator approval.', 'info');
+        return;
       } else {
         // Mode is RECRUITER | CANDIDATE | ADMIN
         if (!cleanEmail) {
@@ -244,11 +301,48 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
           return;
         }
 
+        const isAdm = mode === 'ADMIN' || cleanEmail.includes('admin');
+        const isRec = mode === 'RECRUITER' || cleanEmail.includes('recruiter') || cleanEmail.includes('manager');
+        const savedProfile = getStoredProfileByEmail(cleanEmail);
+
+        // Check approval status for candidates
+        if (!isAdm && !isRec && savedProfile) {
+          if (savedProfile.approvalStatus === 'PENDING_APPROVAL') {
+            setStatusNotice({
+              type: 'PENDING',
+              message: 'Your candidate registration is currently awaiting administrator approval. An administrator must approve your account before you can log in.'
+            });
+            showToast('Registration pending admin approval. You cannot log in yet.', 'warning');
+            setSubmitting(false);
+            return;
+          }
+          if (savedProfile.approvalStatus === 'REJECTED') {
+            setStatusNotice({
+              type: 'ERROR',
+              message: 'Your candidate registration was reviewed and rejected by an administrator.'
+            });
+            showToast('Candidate account rejected.', 'error');
+            setSubmitting(false);
+            return;
+          }
+        }
+
         try {
           const response = await authService.login({
             email: cleanEmail,
             password: password || (mode === 'ADMIN' ? 'AdminPass123!' : 'Password123!')
           });
+
+          // Check if response indicated pending approval
+          if (!isAdm && !isRec && (response.user?.approvalStatus === 'PENDING_APPROVAL' || response.user?.isApproved === false)) {
+            setStatusNotice({
+              type: 'PENDING',
+              message: 'Your candidate account is awaiting administrator review. Please wait for an administrator to activate your profile.'
+            });
+            showToast('Candidate account pending administrator review.', 'warning');
+            return;
+          }
+
           loginUser(response);
           showToast(`Signed in successfully as ${response.user.fullName}!`, 'success');
           if (response.user.role === 'ROLE_ADMIN' || cleanEmail.includes('admin')) {
@@ -259,10 +353,16 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
           return;
         } catch (loginErr) {
           console.warn('Backend login fallback:', loginErr);
-          // Graceful fallback for seamless demonstration
-          const isAdm = mode === 'ADMIN' || cleanEmail.includes('admin');
-          const isRec = mode === 'RECRUITER' || cleanEmail.includes('recruiter') || cleanEmail.includes('manager');
-          const savedProfile = getStoredProfileByEmail(cleanEmail);
+          const errorMsg = loginErr.response?.data?.message || '';
+          if (errorMsg.includes('pending administrator approval') || errorMsg.includes('approval')) {
+            setStatusNotice({
+              type: 'PENDING',
+              message: errorMsg
+            });
+            showToast(errorMsg, 'warning');
+            return;
+          }
+
           const fallbackToken = 'auth_session_' + Date.now();
           const fallbackUser = {
             id: isAdm ? 1 : isRec ? 2 : 3,
@@ -273,6 +373,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
             experienceLevel: savedProfile?.experienceLevel || (isAdm || isRec ? 'LEAD' : 'MID_LEVEL'),
             bio: savedProfile?.bio || '',
             profileImageUrl: savedProfile?.profileImageUrl || '',
+            approvalStatus: savedProfile?.approvalStatus || 'APPROVED',
             skills: savedProfile?.skills || []
           };
           loginUser({ accessToken: fallbackToken, user: fallbackUser });
@@ -537,8 +638,57 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
               </div>
             )}
 
-            {/* Google / Gmail Primary SSO Button */}
-            <button
+            {registrationSubmitted ? (
+              <div className="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-center space-y-4 font-tech animate-in fade-in zoom-in-95">
+                <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-700 mx-auto flex items-center justify-center shadow-inner">
+                  <Clock className="w-8 h-8 animate-pulse" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                    Registration Submitted
+                  </h3>
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                    STATUS: PENDING ADMINISTRATOR APPROVAL
+                  </div>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed font-sans max-w-md mx-auto">
+                  Thank you for registering, <strong>{registrationSubmitted.fullName}</strong>. Under enterprise platform governance, candidate accounts must be verified and approved by an Administrator or Recruiter before portal access is activated.
+                </p>
+                <div className="p-3 bg-white/70 dark:bg-darkcard/70 rounded-xl border border-slate-200 dark:border-gray-800 text-left text-xs font-sans space-y-1.5 shadow-sm">
+                  <p className="text-slate-500 dark:text-gray-400">Registered Email: <strong className="text-slate-900 dark:text-white font-mono">{registrationSubmitted.email}</strong></p>
+                  <p className="text-slate-500 dark:text-gray-400">Target Role: <strong className="text-slate-900 dark:text-white">{registrationSubmitted.targetRole}</strong></p>
+                  <p className="text-slate-500 dark:text-gray-400">Experience Level: <strong className="text-slate-900 dark:text-white">{registrationSubmitted.experienceLevel}</strong></p>
+                  <p className="text-slate-500 dark:text-gray-400">Submission Timestamp: <span className="text-slate-700 dark:text-gray-300 font-mono">{registrationSubmitted.registeredAt}</span></p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegistrationSubmitted(null);
+                      handleSelectMode('CANDIDATE');
+                    }}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-darkbg text-slate-800 dark:text-gray-200 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-sm cursor-pointer"
+                  >
+                    Return to Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegistrationSubmitted(null);
+                      handleSelectMode('ADMIN');
+                      handleQuickDemoFill('ADMIN');
+                    }}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl gradient-btn text-white text-xs font-black shadow transition cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>Log In as Admin (To Approve)</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Google / Gmail Primary SSO Button */}
+                <button
               type="button"
               onClick={() => setShowGoogleModal(true)}
               className="flex items-center justify-center gap-3 w-full h-11 bg-white dark:bg-darkbg border border-slate-300 dark:border-gray-700 hover:border-slate-400 dark:hover:border-gray-500 active:scale-[0.98] rounded-2xl text-xs font-bold text-slate-800 dark:text-gray-100 shadow-sm transition-all cursor-pointer group"
@@ -732,6 +882,8 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                 )}
               </button>
             </form>
+          </>
+        )}
 
             {/* Bottom Toggle Link */}
             <div className="text-center pt-2 border-t border-slate-100 dark:border-gray-800 font-tech">

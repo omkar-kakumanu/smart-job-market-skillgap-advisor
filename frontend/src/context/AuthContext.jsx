@@ -31,6 +31,21 @@ export const saveStoredProfileByEmail = (email, profileData) => {
   }
 };
 
+export const updateCandidateApprovalStatus = (email, status) => {
+  if (!email) return;
+  try {
+    const key = email.toLowerCase().trim();
+    const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+    if (db[key]) {
+      db[key].approvalStatus = status;
+      db[key].isApproved = (status === 'APPROVED');
+      localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+    }
+  } catch (err) {
+    console.warn('Failed to update candidate approval status:', err);
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
