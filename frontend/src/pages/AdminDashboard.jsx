@@ -1138,7 +1138,34 @@ const AdminDashboard = () => {
       return b.compositeScore - a.compositeScore;
     });
 
+  const getCandidateVoiceRecords = (cand) => {
+    if (!cand) return [];
+    if (cand.voiceRecords && Array.isArray(cand.voiceRecords) && cand.voiceRecords.length > 0) {
+      return cand.voiceRecords;
+    }
+    try {
+      const allVoice = JSON.parse(localStorage.getItem('skillgap_voice_records') || '[]');
+      return allVoice.filter(v => v.candidateEmail?.toLowerCase() === cand.email?.toLowerCase() || (v.userId && v.userId === cand.id));
+    } catch {
+      return [];
+    }
+  };
+
+  const getCandidateInterviewAttempts = (cand) => {
+    if (!cand) return [];
+    if (cand.interviewAttempts && Array.isArray(cand.interviewAttempts) && cand.interviewAttempts.length > 0) {
+      return cand.interviewAttempts;
+    }
+    try {
+      const allAttempts = JSON.parse(localStorage.getItem('skillgap_interview_attempts') || '[]');
+      return allAttempts.filter(a => a.candidateEmail?.toLowerCase() === cand.email?.toLowerCase() || (a.userId && a.userId === cand.id));
+    } catch {
+      return [];
+    }
+  };
+
   const pendingApprovalsCount = certRequests.filter(r => r.status === 'PENDING_APPROVAL').length;
+  const pendingRegistrationsCount = candidates.filter(c => c.approvalStatus === 'PENDING_APPROVAL').length;
   const lockedCount = candidates.filter(c => c.isProfileLocked).length;
   const avgReadiness = candidates.length 
     ? Math.round(candidates.reduce((acc, c) => acc + calculateCompositeScore(c), 0) / candidates.length)
@@ -1161,7 +1188,7 @@ const AdminDashboard = () => {
               <span>Candidate Leaderboard & Administrative Console</span>
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              Multi-dimensional candidate ranking leaderboard, candidate profile lock overrides, credential authentication, and requisition publishing.
+              Multi-dimensional candidate ranking leaderboard, candidate registration access approval, voice & technical interview telemetry audits, and requisition publishing.
             </p>
           </div>
 
@@ -1179,7 +1206,25 @@ const AdminDashboard = () => {
               <span>Candidate Rankings ({candidates.length})</span>
             </button>
 
-            {/* Tab 2: Certificate Approvals */}
+            {/* Tab 2: Candidate Registrations & Approvals */}
+            <button
+              onClick={() => setActiveTab('approvals')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                activeTab === 'approvals'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <UserCheck className="w-4 h-4 text-emerald-400" />
+              <span>Registration Approvals</span>
+              {pendingRegistrationsCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-rose-500 text-white font-mono text-[10px] flex items-center justify-center font-black animate-pulse">
+                  {pendingRegistrationsCount}
+                </span>
+              )}
+            </button>
+
+            {/* Tab 3: Certificate Approvals */}
             <button
               onClick={() => setActiveTab('certificates')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
@@ -1197,7 +1242,7 @@ const AdminDashboard = () => {
               )}
             </button>
 
-            {/* Tab 3: Requisitions */}
+            {/* Tab 4: Requisitions */}
             <button
               onClick={() => setActiveTab('jobs')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
@@ -1210,7 +1255,7 @@ const AdminDashboard = () => {
               <span>Requisitions ({jobs.length})</span>
             </button>
 
-            {/* Tab 4: Skills Registry */}
+            {/* Tab 5: Skills Registry */}
             <button
               onClick={() => setActiveTab('skills')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
@@ -1224,6 +1269,188 @@ const AdminDashboard = () => {
             </button>
           </div>
         </div>
+
+        {/* Particular Candidate Inspection Studio Selector Banner */}
+        <div className="glass p-5 rounded-3xl border border-indigo-200/80 dark:border-indigo-800/40 shadow-sm mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-emerald-500/5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md">
+              <Eye className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-black text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                <span>Particular Candidate Inspection Studio</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                  Privileged Recruiter Telemetry
+                </span>
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Select any candidate to inspect their voice screening transcripts, 10-question technical interview breakdown, and access status.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <select
+              id="candidate-inspector-select"
+              className="w-full md:w-80 px-4 py-2.5 rounded-xl text-xs font-bold border border-indigo-200 dark:border-gray-700 bg-white dark:bg-darkcard text-gray-800 dark:text-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-500"
+              onChange={(e) => {
+                const found = candidates.find(c => c.email.toLowerCase() === e.target.value.toLowerCase());
+                if (found) {
+                  setSelectedCandidate(found);
+                  setDossierSubTab('voice');
+                }
+              }}
+              value={selectedCandidate?.email || ''}
+            >
+              <option value="">-- Choose Candidate to Inspect --</option>
+              {candidates.map(c => (
+                <option key={c.email} value={c.email}>
+                  {c.fullName} ({c.targetCareerRole || 'Candidate'}) - {c.approvalStatus === 'PENDING_APPROVAL' ? '⚠️ PENDING' : (c.approvalStatus === 'REJECTED' ? '❌ REJECTED' : '✅ APPROVED')}
+                </option>
+              ))}
+            </select>
+
+            {selectedCandidate && (
+              <button
+                onClick={() => setSelectedCandidate(null)}
+                className="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* TAB: CANDIDATE REGISTRATIONS & APPROVALS */}
+        {activeTab === 'approvals' && (
+          <div className="space-y-6 mb-8">
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-400/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200 font-medium">
+                <UserCheck className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span>
+                  <strong>Gated Registration Enforcement Active:</strong> Newly registered candidates are prevented from entering the website until you approve their account. Only authorized candidates can sign in.
+                </span>
+              </div>
+              <div className="shrink-0 font-black text-amber-700 dark:text-amber-300">
+                {pendingRegistrationsCount} Pending Review
+              </div>
+            </div>
+
+            {/* Filter buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { id: 'ALL', label: `All Candidates (${candidates.length})` },
+                { id: 'PENDING_APPROVAL', label: `Pending Approval (${pendingRegistrationsCount})` },
+                { id: 'APPROVED', label: `Approved (${candidates.filter(c => c.approvalStatus === 'APPROVED').length})` },
+                { id: 'REJECTED', label: `Rejected (${candidates.filter(c => c.approvalStatus === 'REJECTED').length})` },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setApprovalFilter(f.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
+                    approvalFilter === f.id
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Approvals Table */}
+            <div className="glass rounded-3xl border border-gray-200/60 dark:border-gray-800/60 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-slate-900/60 font-black text-gray-500 uppercase tracking-wider">
+                      <th className="p-4">Candidate</th>
+                      <th className="p-4">Target Career Role</th>
+                      <th className="p-4">Registered Date</th>
+                      <th className="p-4">Website Access Status</th>
+                      <th className="p-4 text-center">Inspect Telemetry</th>
+                      <th className="p-4 text-right">Approval Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200/60 dark:divide-gray-800/60">
+                    {candidates
+                      .filter(c => approvalFilter === 'ALL' || (c.approvalStatus || 'APPROVED') === approvalFilter)
+                      .map((c) => {
+                        const st = c.approvalStatus || 'APPROVED';
+                        return (
+                          <tr key={c.email} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                            <td className="p-4">
+                              <div className="font-extrabold text-sm text-gray-900 dark:text-white">{c.fullName}</div>
+                              <div className="text-gray-500 font-mono text-[11px]">{c.email}</div>
+                            </td>
+                            <td className="p-4">
+                              <span className="font-bold text-gray-700 dark:text-gray-300">{c.targetCareerRole || 'Full Stack Java Developer'}</span>
+                            </td>
+                            <td className="p-4 text-gray-500">
+                              {new Date(c.submissionDate || Date.now()).toLocaleDateString()}
+                            </td>
+                            <td className="p-4">
+                              {st === 'APPROVED' && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[11px] font-black border border-emerald-300">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  Approved (Can Enter Website)
+                                </span>
+                              )}
+                              {st === 'PENDING_APPROVAL' && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[11px] font-black border border-amber-300 animate-pulse">
+                                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                  Pending Admin Approval
+                                </span>
+                              )}
+                              {st === 'REJECTED' && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 text-[11px] font-black border border-rose-300">
+                                  <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                                  Access Blocked
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4 text-center">
+                              <button
+                                onClick={() => {
+                                  setSelectedCandidate(c);
+                                  setDossierSubTab('voice');
+                                }}
+                                className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs border border-indigo-200 transition inline-flex items-center gap-1.5"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Inspect Answers</span>
+                              </button>
+                            </td>
+                            <td className="p-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {st !== 'APPROVED' ? (
+                                  <button
+                                    onClick={() => handleUpdateApprovalStatus(c.email, 'APPROVED')}
+                                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs shadow-sm transition inline-flex items-center gap-1"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                    <span>Approve Access</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleUpdateApprovalStatus(c.email, 'REJECTED')}
+                                    className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40 rounded-xl font-bold text-xs transition inline-flex items-center gap-1"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                    <span>Revoke</span>
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* TAB 1: CANDIDATE RANKINGS & LEADERBOARD */}
         {activeTab === 'rankings' && (
@@ -1887,117 +2114,404 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* MODAL 1: CANDIDATE DOSSIER MODAL */}
-        {selectedCandidate && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="glass max-w-2xl w-full p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95">
-              <div className="flex items-center justify-between pb-4 border-b border-gray-200/60 dark:border-gray-800/60">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-black text-base flex items-center justify-center shadow">
-                    {selectedCandidate.fullName.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                      <span>{selectedCandidate.fullName}</span>
-                      {selectedCandidate.isProfileLocked ? (
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300">
-                          Profile Locked
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300">
-                          Pre-Submission
-                        </span>
-                      )}
-                    </h3>
-                    <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold">
-                      {selectedCandidate.targetCareerRole} &bull; <span className="text-gray-500 font-normal">{selectedCandidate.email}</span>
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedCandidate(null)}
-                  className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+        {/* MODAL 1: COMPREHENSIVE CANDIDATE TELEMETRY & APPROVAL DOSSIER */}
+        {selectedCandidate && (() => {
+          const candidateVoiceRecords = getCandidateVoiceRecords(selectedCandidate);
+          const candidateInterviewAttempts = getCandidateInterviewAttempts(selectedCandidate);
+          const compScore = calculateCompositeScore(selectedCandidate);
 
-              {/* Composite Score Banner */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-emerald-500/10 border border-indigo-200/50 dark:border-indigo-800/50 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-gray-500">Talent Acquisition Composite Readiness</span>
-                  <div className="text-2xl font-black text-indigo-600 dark:text-emerald-400">
-                    {calculateCompositeScore(selectedCandidate)}% Overall Alignment
+          return (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+              <div className="glass max-w-4xl w-full p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95">
+                
+                {/* Header: Candidate Identity & Approval Status Controls */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200/60 dark:border-gray-800/60">
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-md">
+                      {selectedCandidate.fullName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
+                        <span>{selectedCandidate.fullName}</span>
+                        {/* Approval status badge */}
+                        {(selectedCandidate.approvalStatus === 'PENDING_APPROVAL') ? (
+                          <span className="text-[11px] font-black px-3 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 animate-pulse">
+                            Pending Admin Approval
+                          </span>
+                        ) : (selectedCandidate.approvalStatus === 'REJECTED') ? (
+                          <span className="text-[11px] font-black px-3 py-0.5 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300">
+                            Access Rejected
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-black px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300">
+                            Approved Access
+                          </span>
+                        )}
+                        {selectedCandidate.isProfileLocked && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300">
+                            Profile Locked
+                          </span>
+                        )}
+                      </h3>
+                      <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold">
+                        {selectedCandidate.targetCareerRole} &bull; <span className="text-gray-500 font-normal font-mono">{selectedCandidate.email}</span>
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="text-right text-xs text-gray-500 space-y-0.5">
-                  <p>ATS Match: <strong className="text-gray-900 dark:text-white">{selectedCandidate.atsScore || 90}%</strong></p>
-                  <p>Tech Interview: <strong className="text-gray-900 dark:text-white">{selectedCandidate.interviewScore || 85}%</strong></p>
-                  <p>Voice Articulation: <strong className="text-gray-900 dark:text-white">{selectedCandidate.voiceScore || 88}%</strong></p>
-                </div>
-              </div>
 
-              {/* Bio & Document metadata */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Professional Dossier Overview</h4>
-                <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed bg-white/40 dark:bg-darkcard/40 p-3.5 rounded-xl border border-gray-200/40 dark:border-gray-800/40">
-                  {selectedCandidate.bio || 'Enterprise candidate undergoing skill gap and competency evaluation.'}
-                </p>
-                <p className="text-[11px] text-gray-500 flex items-center gap-1.5 pt-1">
-                  <FileText className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Resume Ingestion File: <strong>{selectedCandidate.resumeName || 'Candidate_Resume.pdf'}</strong></span>
-                </p>
-              </div>
+                  <div className="flex items-center gap-2">
+                    {/* Action buttons for approval right in the modal */}
+                    {selectedCandidate.approvalStatus !== 'APPROVED' ? (
+                      <button
+                        onClick={() => handleUpdateApprovalStatus(selectedCandidate.email, 'APPROVED')}
+                        className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs shadow-sm transition inline-flex items-center gap-1.5"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Approve Access</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleUpdateApprovalStatus(selectedCandidate.email, 'REJECTED')}
+                        className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40 rounded-xl font-bold text-xs transition inline-flex items-center gap-1.5"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Revoke Access</span>
+                      </button>
+                    )}
 
-              {/* Technical Skills Inventory */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Technical Skills & Competency Metrics</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {selectedCandidate.skills?.map((s, idx) => (
-                    <div
-                      key={idx}
-                      className="p-2.5 rounded-xl bg-white/60 dark:bg-darkcard/60 border border-gray-200/50 dark:border-gray-800/50 flex items-center justify-between text-xs"
+                    <button
+                      onClick={() => setSelectedCandidate(null)}
+                      className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition"
                     >
-                      <span className="font-extrabold text-gray-900 dark:text-white">{s.skillName || s.name}</span>
-                      <span className="text-[10px] font-bold text-indigo-600 dark:text-emerald-400 bg-indigo-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-indigo-200 dark:border-emerald-500/30">
-                        {s.proficiencyLevel || 'ADVANCED'} ({s.yearsExperience || 2} yrs)
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sub-Tabs Navigation */}
+                <div className="flex flex-wrap gap-2 border-b border-gray-200/60 dark:border-gray-800/60 pb-3">
+                  <button
+                    onClick={() => setDossierSubTab('voice')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                      dossierSubTab === 'voice'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Mic className="w-4 h-4 text-emerald-400" />
+                    <span>AI Voice Screening Telemetry ({candidateVoiceRecords.length})</span>
+                  </button>
+
+                  <button
+                    onClick={() => setDossierSubTab('interview')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                      dossierSubTab === 'interview'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Bot className="w-4 h-4 text-indigo-400" />
+                    <span>Technical Interview (10 Questions) ({candidateInterviewAttempts.length})</span>
+                  </button>
+
+                  <button
+                    onClick={() => setDossierSubTab('profile')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                      dossierSubTab === 'profile'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    <User className="w-4 h-4 text-amber-400" />
+                    <span>Skills & Portfolio Overview</span>
+                  </button>
+                </div>
+
+                {/* SUB-TAB 1: VOICE SCREENING TELEMETRY */}
+                {dossierSubTab === 'voice' && (
+                  <div className="space-y-4">
+                    <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
+                      <span className="font-semibold">
+                        Verbal screening recordings captured via acoustic speech-to-text. Visible strictly to reviewing admins and recruiters.
+                      </span>
+                      <span className="font-black text-emerald-700 dark:text-emerald-300 text-xs font-mono">
+                        Voice Score: {selectedCandidate.voiceScore || 90}%
                       </span>
                     </div>
-                  ))}
+
+                    {candidateVoiceRecords.length === 0 ? (
+                      <div className="p-8 text-center text-gray-400 text-xs">
+                        <Mic className="w-8 h-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                        <p className="font-bold">No voice screening recordings on file for {selectedCandidate.fullName}.</p>
+                        <p>Once the candidate records responses in the AI Voice Screening Studio, their spoken transcripts will appear here.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {candidateVoiceRecords.map((vr, idx) => (
+                          <div key={vr.id || idx} className="p-5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <div>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                  Voice Prompt #{idx + 1}
+                                </span>
+                                <h4 className="font-black text-sm text-gray-900 dark:text-white">
+                                  {vr.question}
+                                </h4>
+                                <p className="text-[11px] text-gray-500">
+                                  Recorded on {new Date(vr.timestamp || Date.now()).toLocaleDateString()} &bull; Duration: {vr.durationSeconds || 45}s
+                                </p>
+                              </div>
+
+                              <div className="text-right">
+                                <span className="text-[10px] font-bold text-gray-500 block uppercase">Overall Voice Score</span>
+                                <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                                  {vr.overall || 85}%
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Word-for-word Transcript */}
+                            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-1">
+                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 block">
+                                Spoken Word-for-Word Transcript:
+                              </span>
+                              <p className="text-xs text-slate-800 dark:text-gray-200 leading-relaxed italic">
+                                "{vr.transcript}"
+                              </p>
+                            </div>
+
+                            {/* Metrics Row */}
+                            <div className="grid grid-cols-3 gap-2 text-xs">
+                              <div className="p-2 rounded-xl bg-slate-100/70 dark:bg-slate-800/50">
+                                <span className="text-gray-500 text-[10px] block font-bold">Clarity</span>
+                                <span className="font-extrabold text-gray-900 dark:text-white">{vr.clarity || 88}%</span>
+                              </div>
+                              <div className="p-2 rounded-xl bg-slate-100/70 dark:bg-slate-800/50">
+                                <span className="text-gray-500 text-[10px] block font-bold">Fluency</span>
+                                <span className="font-extrabold text-gray-900 dark:text-white">{vr.fluency || 85}%</span>
+                              </div>
+                              <div className="p-2 rounded-xl bg-slate-100/70 dark:bg-slate-800/50">
+                                <span className="text-gray-500 text-[10px] block font-bold">Technical Depth</span>
+                                <span className="font-extrabold text-gray-900 dark:text-white">{vr.technicalDepth || 90}%</span>
+                              </div>
+                            </div>
+
+                            {/* Keywords */}
+                            {vr.detectedKeywords && vr.detectedKeywords.length > 0 && (
+                              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Keywords Detected:</span>
+                                {vr.detectedKeywords.map(kw => (
+                                  <span key={kw} className="px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-300 font-bold text-[10px] border border-sky-300/50">
+                                    {kw}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Evaluator Feedback */}
+                            {vr.feedback && (
+                              <p className="text-[11px] text-gray-700 dark:text-gray-300 bg-emerald-500/5 p-2.5 rounded-xl border border-emerald-500/20">
+                                <strong>AI Evaluator Assessment:</strong> {vr.feedback}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* SUB-TAB 2: TECHNICAL INTERVIEW BREAKDOWN (10 QUESTIONS) */}
+                {dossierSubTab === 'interview' && (
+                  <div className="space-y-4">
+                    <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-900 dark:text-indigo-200 flex items-center justify-between">
+                      <span className="font-semibold">
+                        Full question-by-question candidate responses across 10 evaluation questions (5 Objective MCQs + 5 Descriptive Scenarios).
+                      </span>
+                      <span className="font-black text-indigo-700 dark:text-indigo-300 text-xs font-mono">
+                        Interview Score: {selectedCandidate.interviewScore || 85}%
+                      </span>
+                    </div>
+
+                    {candidateInterviewAttempts.length === 0 ? (
+                      <div className="p-8 text-center text-gray-400 text-xs">
+                        <Bot className="w-8 h-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                        <p className="font-bold">No technical interview simulations on file for {selectedCandidate.fullName}.</p>
+                        <p>When the candidate takes the 10-question Technical Interview Simulation, their question-by-question responses will be recorded here.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {candidateInterviewAttempts.map((att, attIdx) => (
+                          <div key={att.id || attIdx} className="space-y-4">
+                            {/* Attempt Summary Banner */}
+                            <div className="p-4 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div>
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-black text-[10px] mb-1">
+                                  Attempt #{att.attemptNumber || attIdx + 1} &bull; {att.role || selectedCandidate.targetCareerRole}
+                                </div>
+                                <h4 className="font-black text-sm text-gray-900 dark:text-white">
+                                  Simulation Completed on {new Date(att.timestamp || Date.now()).toLocaleDateString()}
+                                </h4>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="text-right">
+                                  <span className="text-[10px] font-bold text-gray-500 block uppercase">Overall Attempt Score</span>
+                                  <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">
+                                    {att.overallScore || 88}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 10 Questions Breakdown */}
+                            <div className="space-y-3">
+                              {(att.responses || []).map((resp, qIdx) => (
+                                <div
+                                  key={qIdx}
+                                  className={`p-4 rounded-2xl border transition-all text-xs space-y-2.5 ${
+                                    resp.questionType === 'objective'
+                                      ? (resp.isCorrect
+                                        ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-700/50'
+                                        : 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-300 dark:border-rose-700/50')
+                                      : 'bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="space-y-0.5">
+                                      <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">
+                                        Question {qIdx + 1} &bull; {resp.questionType === 'objective' ? 'Objective MCQ' : 'Descriptive Architectural Scenario'}
+                                      </span>
+                                      <h5 className="font-extrabold text-xs text-gray-900 dark:text-white">
+                                        {resp.question}
+                                      </h5>
+                                    </div>
+
+                                    {resp.questionType === 'objective' ? (
+                                      resp.isCorrect ? (
+                                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-black text-[10px] shrink-0 border border-emerald-400 inline-flex items-center gap-1">
+                                          <CheckCircle2 className="w-3 h-3" /> Correct Choice (+100 Pts)
+                                        </span>
+                                      ) : (
+                                        <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-black text-[10px] shrink-0 border border-rose-400 inline-flex items-center gap-1">
+                                          <XCircle className="w-3 h-3" /> Incorrect Choice
+                                        </span>
+                                      )
+                                    ) : (
+                                      <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 font-black text-[10px] shrink-0 border border-indigo-400">
+                                        Score: {resp.overall || Math.round((resp.clarity + resp.relevance) / 2)}%
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Candidate's submitted answer */}
+                                  <div className="p-3 rounded-xl bg-white/80 dark:bg-slate-950/60 border border-gray-200/80 dark:border-slate-800">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">
+                                      Candidate's Answer:
+                                    </span>
+                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-xs">
+                                      {resp.answer}
+                                    </p>
+                                  </div>
+
+                                  {/* Feedback / Explanation */}
+                                  {resp.feedback && (
+                                    <p className="text-[11px] text-gray-600 dark:text-gray-300 italic pt-0.5">
+                                      <strong>AI Evaluator Note:</strong> {resp.feedback}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* SUB-TAB 3: SKILLS & PORTFOLIO OVERVIEW */}
+                {dossierSubTab === 'profile' && (
+                  <div className="space-y-5">
+                    {/* Composite Score Banner */}
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-emerald-500/10 border border-indigo-200/50 dark:border-indigo-800/50 flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-bold text-gray-500">Talent Acquisition Composite Readiness</span>
+                        <div className="text-2xl font-black text-indigo-600 dark:text-emerald-400">
+                          {compScore}% Overall Alignment
+                        </div>
+                      </div>
+                      <div className="text-right text-xs text-gray-500 space-y-0.5">
+                        <p>ATS Match: <strong className="text-gray-900 dark:text-white">{selectedCandidate.atsScore || 90}%</strong></p>
+                        <p>Tech Interview: <strong className="text-gray-900 dark:text-white">{selectedCandidate.interviewScore || 85}%</strong></p>
+                        <p>Voice Articulation: <strong className="text-gray-900 dark:text-white">{selectedCandidate.voiceScore || 88}%</strong></p>
+                      </div>
+                    </div>
+
+                    {/* Bio & Document metadata */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Professional Dossier Overview</h4>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed bg-white/40 dark:bg-darkcard/40 p-3.5 rounded-xl border border-gray-200/40 dark:border-gray-800/40">
+                        {selectedCandidate.bio || 'Enterprise candidate undergoing skill gap and competency evaluation.'}
+                      </p>
+                      <p className="text-[11px] text-gray-500 flex items-center gap-1.5 pt-1">
+                        <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Resume Ingestion File: <strong>{selectedCandidate.resumeName || 'Candidate_Resume.pdf'}</strong></span>
+                      </p>
+                    </div>
+
+                    {/* Technical Skills Inventory */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Technical Skills & Competency Metrics</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {selectedCandidate.skills?.map((s, idx) => (
+                          <div
+                            key={idx}
+                            className="p-2.5 rounded-xl bg-white/60 dark:bg-darkcard/60 border border-gray-200/50 dark:border-gray-800/50 flex items-center justify-between text-xs"
+                          >
+                            <span className="font-extrabold text-gray-900 dark:text-white">{s.skillName || s.name}</span>
+                            <span className="text-[10px] font-bold text-indigo-600 dark:text-emerald-400 bg-indigo-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-indigo-200 dark:border-emerald-500/30">
+                              {s.proficiencyLevel || 'ADVANCED'} ({s.yearsExperience || 2} yrs)
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer controls */}
+                <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-200/60 dark:border-gray-800/60">
+                  <button
+                    onClick={() => {
+                      handleToggleLock(selectedCandidate);
+                      setSelectedCandidate(prev => ({ ...prev, isProfileLocked: !prev.isProfileLocked }));
+                    }}
+                    className="px-4 py-2 text-xs font-bold rounded-xl border transition flex items-center gap-1.5"
+                  >
+                    {selectedCandidate.isProfileLocked ? (
+                      <>
+                        <Unlock className="w-4 h-4 text-amber-500" />
+                        <span>Unlock Candidate Profile</span>
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-4 h-4 text-emerald-500" />
+                        <span>Lock Candidate Profile</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedCandidate(null)}
+                    className="px-5 py-2 text-xs font-black text-white gradient-btn rounded-xl shadow"
+                  >
+                    Close Dossier
+                  </button>
                 </div>
               </div>
-
-              {/* Footer controls */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200/60 dark:border-gray-800/60">
-                <button
-                  onClick={() => {
-                    handleToggleLock(selectedCandidate);
-                    setSelectedCandidate(prev => ({ ...prev, isProfileLocked: !prev.isProfileLocked }));
-                  }}
-                  className="px-4 py-2 text-xs font-bold rounded-xl border transition flex items-center gap-1.5"
-                >
-                  {selectedCandidate.isProfileLocked ? (
-                    <>
-                      <Unlock className="w-4 h-4 text-amber-500" />
-                      <span>Unlock Candidate Profile</span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="w-4 h-4 text-emerald-500" />
-                      <span>Lock Candidate Profile</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => setSelectedCandidate(null)}
-                  className="px-5 py-2 text-xs font-black text-white gradient-btn rounded-xl shadow"
-                >
-                  Close Dossier
-                </button>
-              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* MODAL 2: ADMIN EDIT CANDIDATE PROFILE MODAL */}
         {editingCandidate && (
