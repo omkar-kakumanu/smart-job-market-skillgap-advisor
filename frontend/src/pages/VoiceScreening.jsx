@@ -891,7 +891,111 @@ const VoiceScreening = () => {
                 </div>
               )}
             </div>
+        </div>
+
+        {/* Candidate / Admin Voice Screening History Telemetry */}
+        <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md space-y-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-sky-400/20 dark:border-emerald-500/20 pb-4">
+            <div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Mic className="w-5 h-5 text-emerald-500" />
+                <span>
+                  {isAdminOrRecruiter 
+                    ? `Cross-Candidate Voice Screening Submissions (${visibleHistory.length})` 
+                    : `My Verified Voice Screening Responses (${visibleHistory.length})`}
+                </span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-gray-400">
+                {isAdminOrRecruiter
+                  ? 'Privileged Recruiter Telemetry: Inspect individual candidate spoken transcripts and evaluation metrics.'
+                  : 'Private to you and authenticated evaluators. Other candidates cannot view your spoken responses.'}
+              </p>
+            </div>
+            {!isAdminOrRecruiter && (
+              <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-400 w-fit">
+                Candidate Confidentiality Active
+              </span>
+            )}
           </div>
+
+          {visibleHistory.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 text-xs">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+              <p className="font-bold">No recorded voice responses on file.</p>
+              <p>Complete a question screening above and save your recording to review it here.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {visibleHistory.map((item, idx) => (
+                <div 
+                  key={item.id || idx} 
+                  className="p-5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="space-y-0.5">
+                      {isAdminOrRecruiter && (
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-black px-2.5 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-300">
+                            {item.candidateName || 'Candidate'}
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-mono">
+                            {item.candidateEmail}
+                          </span>
+                        </div>
+                      )}
+                      <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">
+                        {item.question}
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Recorded on {new Date(item.timestamp || Date.now()).toLocaleDateString()} &bull; Duration: {item.durationSeconds || 45}s
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <span className="text-xs font-bold text-slate-500 block">Overall Score</span>
+                        <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
+                          {item.overall || 85}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Spoken Transcript */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                      Candidate Spoken Transcript:
+                    </span>
+                    <p className="text-xs text-slate-800 dark:text-gray-200 leading-relaxed italic">
+                      "{item.transcript}"
+                    </p>
+                  </div>
+
+                  {/* Scores & Feedback */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div className="p-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/40">
+                      <span className="text-slate-500 text-[10px] block font-bold">Clarity</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">{item.clarity || 85}%</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/40">
+                      <span className="text-slate-500 text-[10px] block font-bold">Fluency</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">{item.fluency || 85}%</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/40">
+                      <span className="text-slate-500 text-[10px] block font-bold">Technical Depth</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">{item.technicalDepth || 85}%</span>
+                    </div>
+                  </div>
+
+                  {item.feedback && (
+                    <p className="text-[11px] text-slate-600 dark:text-gray-400 bg-sky-500/5 dark:bg-emerald-500/5 p-2.5 rounded-xl border border-sky-400/20 dark:border-emerald-500/20">
+                      <strong>AI Evaluator Note:</strong> {item.feedback}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>
