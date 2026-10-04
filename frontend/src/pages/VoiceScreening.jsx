@@ -891,6 +891,7 @@ const VoiceScreening = () => {
                 </div>
               )}
             </div>
+          </div>
         </div>
 
         {/* Candidate / Admin Voice Screening History Telemetry */}
