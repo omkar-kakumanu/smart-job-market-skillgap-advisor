@@ -20,4 +20,19 @@ export const userService = {
     const res = await api.delete(`/users/skills/${skillId}`);
     return res.data;
   },
+
+  setUserApproval: async (userId, approved) => {
+    const res = await api.put(`/users/${userId}/approval?approved=${approved}`);
+    return res.data;
+  },
+
+  getCandidateVoiceRecords: async (userId) => {
+    const res = await api.get(`/voice-screening/candidate/${userId}`);
+    return res.data.data;
+  },
+
+  getCandidateInterviews: async (userId) => {
+    const res = await api.get(`/interviews/candidate/${userId}`);
+    return res.data.data;
+  }
 };
