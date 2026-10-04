@@ -6,6 +6,8 @@ import SkeletonLoader from '../components/SkeletonLoader';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { jobService } from '../services/jobService';
+import { userService } from '../services/userService';
+import { updateCandidateApprovalStatus } from '../context/AuthContext';
 import { 
   Shield, 
   Plus, 
@@ -44,7 +46,9 @@ const AdminDashboard = () => {
   const { user, updateUserProfile } = useAuth();
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState('rankings'); // 'rankings', 'certificates', 'jobs', 'skills'
+  const [activeTab, setActiveTab] = useState('rankings'); // 'rankings', 'approvals', 'certificates', 'jobs', 'skills'
+  const [dossierSubTab, setDossierSubTab] = useState('voice'); // 'voice', 'interview', 'profile'
+  const [approvalFilter, setApprovalFilter] = useState('ALL'); // 'ALL', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED'
   const [candidates, setCandidates] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [skills, setSkills] = useState([]);
@@ -122,6 +126,8 @@ const AdminDashboard = () => {
           bio: 'Senior Full Stack Engineer with 7+ years architecting reactive microservices with Java 21, Spring Boot 3, and React 19.',
           resumeName: 'Devansh_Verma_Enterprise_Architect.pdf',
           isProfileLocked: true,
+          approvalStatus: 'APPROVED',
+          isApproved: true,
           atsScore: 96,
           skillMatchScore: 94,
           interviewScore: 95,
@@ -135,7 +141,165 @@ const AdminDashboard = () => {
             { skillName: 'PostgreSQL', category: 'Database', proficiencyLevel: 'ADVANCED', yearsExperience: 5 }
           ],
           submissionDate: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
-          certStatus: 'APPROVED'
+          certStatus: 'APPROVED',
+          voiceRecords: [
+            {
+              id: 'v-dev-1',
+              question: 'Explain how you design high-throughput microservices using Spring Boot and how you handle distributed caching.',
+              transcript: 'In our architecture, we decomposed monoliths into event-driven Spring Boot 3 microservices communicating via Kafka. For caching, we configured multi-tier Redis with TTL-based eviction and Redis Sentinel high availability. We applied resilient circuit breaking using Resilience4j and optimized connection pools with HikariCP, achieving sub-25ms p99 latency.',
+              durationSeconds: 62,
+              overall: 94,
+              clarity: 96,
+              fluency: 92,
+              technicalDepth: 95,
+              detectedKeywords: ['spring boot', 'microservices', 'redis', 'caching', 'concurrency', 'kafka'],
+              recommendation: 'EXCEPTIONAL FIT - SENIOR ARCHITECT',
+              feedback: 'Superior articulation of distributed microservice architecture, caching eviction policies, and connection pool sizing.',
+              timestamp: new Date(Date.now() - 3600000 * 48).toISOString()
+            },
+            {
+              id: 'v-dev-2',
+              question: 'Describe an instance where you identified and resolved a severe database performance bottleneck in production.',
+              transcript: 'We had sudden CPU spikes on PostgreSQL during morning traffic surges. Using pg_stat_statements and EXPLAIN ANALYZE, I identified missing composite indexes on customer order queries resulting in full sequential table scans across 15 million rows. We created partial indexes concurrently and tuned work_mem, reducing query response times by 85%.',
+              durationSeconds: 58,
+              overall: 92,
+              clarity: 93,
+              fluency: 91,
+              technicalDepth: 94,
+              detectedKeywords: ['indexing', 'query optimization', 'latency', 'postgres', 'explain analyze'],
+              recommendation: 'STRONGLY RECOMMENDED',
+              feedback: 'Methodical diagnostic workflow referencing execution plans and zero-downtime concurrent index creation.',
+              timestamp: new Date(Date.now() - 3600000 * 72).toISOString()
+            }
+          ],
+          interviewAttempts: [
+            {
+              id: 'att-dev-1',
+              candidateName: 'Devansh Verma',
+              candidateEmail: 'devansh.verma@example.com',
+              role: 'Full Stack Java Developer',
+              attemptNumber: 1,
+              completedQuestions: 10,
+              totalQuestions: 10,
+              avgClarity: 96,
+              avgRelevance: 95,
+              overallScore: 95,
+              status: 'COMPLETED',
+              timestamp: new Date(Date.now() - 3600000 * 36).toISOString(),
+              responses: [
+                {
+                  questionId: 1,
+                  question: 'In Java memory architecture, where are static variables stored in Java 8 and later versions?',
+                  questionType: 'objective',
+                  answer: 'B) Metaspace (Native Memory)',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! In Java 8+, PermGen was replaced by Metaspace residing in native OS memory.'
+                },
+                {
+                  questionId: 2,
+                  question: "According to Brewer's CAP Theorem, in the presence of a network partition (P), what trade-off must a distributed database system make?",
+                  questionType: 'objective',
+                  answer: 'B) Choose between Consistency (CP) and Availability (AP)',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! When network partitions happen, systems choose between strict consistency or availability.'
+                },
+                {
+                  questionId: 3,
+                  question: 'Which HTTP status code is designated by RFC 6585 when a client has exceeded its allowed rate limit quota?',
+                  questionType: 'objective',
+                  answer: 'C) 429 Too Many Requests',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! HTTP 429 indicates client rate-limiting quota exceeded.'
+                },
+                {
+                  questionId: 4,
+                  question: 'Which ANSI SQL transaction isolation level guarantees complete prevention of dirty reads, non-repeatable reads, and phantom reads?',
+                  questionType: 'objective',
+                  answer: 'C) Serializable',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! Serializable eliminates all anomalies through serial equivalent execution.'
+                },
+                {
+                  questionId: 5,
+                  question: 'In Apache Kafka distributed event streaming, what mechanism guarantees strict message ordering?',
+                  questionType: 'objective',
+                  answer: 'B) Publishing messages with the same partition key within a single partition',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! Kafka partition key hashing ensures sequential ordering per partition.'
+                },
+                {
+                  questionId: 6,
+                  question: 'Explain how Java 21 Virtual Threads differ from traditional OS platform threads, and describe how they impact high-throughput web server performance.',
+                  questionType: 'descriptive',
+                  answer: 'Java 21 Virtual Threads are lightweight user-mode threads managed by the JVM runtime rather than 1:1 OS kernel threads. While platform threads require 1MB stack memory and costly kernel context switching, Virtual Threads occupy only a few hundred bytes and unmount from carrier threads when blocking on I/O. This allows millions of concurrent requests without thread starvation.',
+                  isCorrect: true,
+                  clarity: 98,
+                  relevance: 97,
+                  overall: 98,
+                  feedback: 'Outstanding explanation covering JVM carrier threads, continuation unmounting, and memory scaling.'
+                },
+                {
+                  questionId: 7,
+                  question: 'Describe how the Spring Boot @Transactional annotation operates internally under default proxy mode. Detail two common pitfalls.',
+                  questionType: 'descriptive',
+                  answer: 'Spring creates a dynamic CGLIB or JDK dynamic proxy that intercepts method calls, opens a transaction via PlatformTransactionManager, and commits or rolls back based on exceptions. Pitfall 1: Calling a @Transactional method from within the same class bypasses the proxy (self-invocation). Pitfall 2: Checked exceptions do not trigger rollback by default unless rollbackFor = Exception.class is declared.',
+                  isCorrect: true,
+                  clarity: 96,
+                  relevance: 95,
+                  overall: 96,
+                  feedback: 'Precise analysis of proxy interception, self-invocation bypass, and rollback exception rules.'
+                },
+                {
+                  questionId: 8,
+                  question: 'Design an end-to-end distributed transaction architecture for an e-commerce order checkout using the Saga Pattern.',
+                  questionType: 'descriptive',
+                  answer: 'We utilize an Orchestrated Saga with Temporal or Kafka. The Order Service emits OrderCreated, which triggers Payment Service. If payment succeeds, Inventory Service reserves stock. If inventory reservation fails, compensating transactions are published to refund payment and mark order failed, ensuring eventual consistency.',
+                  isCorrect: true,
+                  clarity: 94,
+                  relevance: 95,
+                  overall: 94,
+                  feedback: 'Solid orchestrated saga blueprint with explicit compensating actions and eventual consistency guarantees.'
+                },
+                {
+                  questionId: 9,
+                  question: 'Explain the internal architecture of Redis caching, explaining eviction policies (LRU vs LFU) and preventing cache stampede.',
+                  questionType: 'descriptive',
+                  answer: 'Redis operates as an in-memory single-threaded event loop utilizing epoll/kqueue. Eviction policies: allkeys-lru removes least recently accessed keys, while allkeys-lfu tracks access frequency. To mitigate cache stampede, we combine probabilistic early expiration (XFetch algorithm) with distributed locks (Redisson) ensuring only one worker queries the primary database.',
+                  isCorrect: true,
+                  clarity: 95,
+                  relevance: 94,
+                  overall: 95,
+                  feedback: 'Comprehensive coverage of event-loop concurrency, LRU/LFU comparison, and stampede mitigation.'
+                },
+                {
+                  questionId: 10,
+                  question: 'Architect a secure JWT stateless authentication system for React frontend and Spring Security 6 backend.',
+                  questionType: 'descriptive',
+                  answer: 'We issue short-lived JWT access tokens (15m) and long-lived refresh tokens (7d) stored in HttpOnly, Secure, SameSite=Strict cookies to prevent XSS. Spring Security 6 configures a SecurityFilterChain with OncePerRequestFilter for Bearer token validation and automatic token refresh interceptors.',
+                  isCorrect: true,
+                  clarity: 94,
+                  relevance: 96,
+                  overall: 95,
+                  feedback: 'Industry-standard security pattern properly addressing XSS and CSRF prevention.'
+                }
+              ]
+            }
+          ]
         },
         'sarah.jenkins@talentcorp.io': {
           fullName: 'Sarah Jenkins',
@@ -145,6 +309,8 @@ const AdminDashboard = () => {
           bio: 'DevOps and Infrastructure Specialist with deep focus on Kubernetes orchestration, Terraform automation, and AWS architectures.',
           resumeName: 'Sarah_Jenkins_DevOps_Specialist.pdf',
           isProfileLocked: true,
+          approvalStatus: 'APPROVED',
+          isApproved: true,
           atsScore: 92,
           skillMatchScore: 91,
           interviewScore: 89,
@@ -157,7 +323,151 @@ const AdminDashboard = () => {
             { skillName: 'Docker', category: 'DevOps', proficiencyLevel: 'EXPERT', yearsExperience: 4 }
           ],
           submissionDate: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
-          certStatus: 'PENDING_APPROVAL'
+          certStatus: 'PENDING_APPROVAL',
+          voiceRecords: [
+            {
+              id: 'v-sarah-1',
+              question: 'How do you structure CI/CD deployment pipelines using Docker, Kubernetes, and automated test suites?',
+              transcript: 'I implement multi-stage Docker builds to keep images below 80MB. In GitHub Actions, code triggers SonarQube static analysis, integration tests, and Trivy vulnerability scanning. Approved images are pushed to AWS ECR and deployed via ArgoCD using automated canary rollouts with Prometheus metric analysis.',
+              durationSeconds: 52,
+              overall: 94,
+              clarity: 95,
+              fluency: 93,
+              technicalDepth: 94,
+              detectedKeywords: ['docker', 'kubernetes', 'ci/cd', 'helm', 'zero-downtime', 'argocd'],
+              recommendation: 'STRONGLY RECOMMENDED FOR CLOUD ARCHITECT',
+              feedback: 'Concise GitOps pipeline strategy detailing automated vulnerability scanning and progressive canary delivery.',
+              timestamp: new Date(Date.now() - 3600000 * 50).toISOString()
+            }
+          ],
+          interviewAttempts: [
+            {
+              id: 'att-sarah-1',
+              candidateName: 'Sarah Jenkins',
+              candidateEmail: 'sarah.jenkins@talentcorp.io',
+              role: 'Cloud Native DevOps Engineer',
+              attemptNumber: 1,
+              completedQuestions: 10,
+              totalQuestions: 10,
+              avgClarity: 89,
+              avgRelevance: 89,
+              overallScore: 89,
+              status: 'COMPLETED',
+              timestamp: new Date(Date.now() - 3600000 * 40).toISOString(),
+              responses: [
+                {
+                  questionId: 1,
+                  question: 'Which Kubernetes workload controller is specifically designed to run exactly one copy of a Pod on every node?',
+                  questionType: 'objective',
+                  answer: 'B) DaemonSet',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! DaemonSets guarantee a single Pod replica per cluster node.'
+                },
+                {
+                  questionId: 2,
+                  question: 'In Docker bridge networking, what underlying Linux kernel feature enforces container network namespace isolation?',
+                  questionType: 'objective',
+                  answer: 'B) Network namespaces (netns) and iptables / nftables routing',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! Linux netns combined with iptables NAT provide bridge isolation.'
+                },
+                {
+                  questionId: 3,
+                  question: 'In Terraform configuration, what happens when a resource attribute changes and requires recreation?',
+                  questionType: 'objective',
+                  answer: 'C) Terraform destroys the existing resource and creates a new one (Replace)',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! Attributes marked as "Forces replacement" destroy and recreate the asset.'
+                },
+                {
+                  questionId: 4,
+                  question: 'How does Prometheus collect metric samples from instrumented target applications by default?',
+                  questionType: 'objective',
+                  answer: 'B) Prometheus scrapes HTTP /metrics endpoints discovered via service discovery (Pull model)',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! Prometheus utilizes a pull-based HTTP scrape architecture.'
+                },
+                {
+                  questionId: 5,
+                  question: 'In a Kubernetes cluster with default settings and no NetworkPolicies applied, how does pod traffic behave?',
+                  questionType: 'objective',
+                  answer: 'C) All pods can communicate freely with any other pod across all namespaces (non-isolated)',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! Kubernetes default networking is flat and non-isolated.'
+                },
+                {
+                  questionId: 6,
+                  question: 'Design a GitOps continuous delivery pipeline using ArgoCD and Kubernetes. Detail how you configure automated Canary deployments.',
+                  questionType: 'descriptive',
+                  answer: 'We configure Argo Rollouts with an AnalysisTemplate querying Prometheus for error rates and latency p95. When a new image is committed, ArgoCD syncs the manifest and routes 10% traffic to the canary. If analysis passes for 15 minutes, traffic steps to 50% and 100%. If error rate exceeds 1%, automatic rollback initiates instantly.',
+                  isCorrect: true,
+                  clarity: 92,
+                  relevance: 91,
+                  overall: 92,
+                  feedback: 'Great operational details on Argo Rollouts traffic stepping and SLI-driven abort criteria.'
+                },
+                {
+                  questionId: 7,
+                  question: 'A critical microservice enters CrashLoopBackOff with OOMKilled in production. Detail your diagnostic and remediation workflow.',
+                  questionType: 'descriptive',
+                  answer: 'First, kubectl describe pod reveals exit code 137 (SIGKILL by Linux OOM killer). I inspect container memory consumption vs defined cgroup limits. Next, I trigger a JVM heap dump analysis via JFR or Prometheus memory metrics. Remediation: tune JVM MaxRAMPercentage to 75% so off-heap memory has room, and adjust Kubernetes resource requests/limits.',
+                  isCorrect: true,
+                  clarity: 90,
+                  relevance: 89,
+                  overall: 90,
+                  feedback: 'Structured incident response addressing exit codes, heap vs off-heap memory, and JVM tuning.'
+                },
+                {
+                  questionId: 8,
+                  question: 'Architect a multi-region active-active disaster recovery strategy on AWS using Terraform.',
+                  questionType: 'descriptive',
+                  answer: 'We deploy across us-east-1 and eu-west-1 using modular Terraform scripts. Route 53 latency-based routing steers users with health check failover. For persistent data, we deploy Amazon Aurora Global Database with cross-region replica latency under 1 second and bidirectional DynamoDB Global Tables.',
+                  isCorrect: true,
+                  clarity: 88,
+                  relevance: 89,
+                  overall: 89,
+                  feedback: 'Solid multi-region topology with global databases and latency routing.'
+                },
+                {
+                  questionId: 9,
+                  question: 'How do you implement Zero-Trust Network Architecture across an enterprise EKS cluster?',
+                  questionType: 'descriptive',
+                  answer: 'We deploy Istio in STRICT mTLS mode so all pod-to-pod communication is encrypted with SPIFFE cryptographic certificates. Istio AuthorizationPolicies enforce least-privilege service-to-service access. In addition, Open Policy Agent (OPA) Gatekeeper enforces admission security standards like disallowing root containers.',
+                  isCorrect: true,
+                  clarity: 89,
+                  relevance: 88,
+                  overall: 88,
+                  feedback: 'Clear Zero-Trust architecture combining mesh mTLS, auth policies, and OPA admission controls.'
+                },
+                {
+                  questionId: 10,
+                  question: 'Explain how you instrument a distributed polyglot microservice system with OpenTelemetry.',
+                  questionType: 'descriptive',
+                  answer: 'We configure OpenTelemetry auto-instrumentation agents and SDKs to propagate W3C traceparent headers across HTTP and Kafka calls. Spans are batched and exported via OTLP gRPC to OpenTelemetry Collectors running as DaemonSets on Kubernetes nodes, which route traces to Jaeger and Tempo for visual latency flame graphs.',
+                  isCorrect: true,
+                  clarity: 87,
+                  relevance: 88,
+                  overall: 88,
+                  feedback: 'Excellent explanation of W3C trace propagation, collector daemons, and Jaeger visualization.'
+                }
+              ]
+            }
+          ]
         },
         'priya.sharma@aimodels.io': {
           fullName: 'Priya Sharma',
@@ -167,6 +477,8 @@ const AdminDashboard = () => {
           bio: 'Machine Learning systems engineer specializing in LLM inference pipelines, PyTorch modeling, and scalable vector store infrastructure.',
           resumeName: 'Priya_Sharma_MLOps_Architect.pdf',
           isProfileLocked: true,
+          approvalStatus: 'APPROVED',
+          isApproved: true,
           atsScore: 95,
           skillMatchScore: 93,
           interviewScore: 92,
@@ -179,7 +491,175 @@ const AdminDashboard = () => {
             { skillName: 'PostgreSQL', category: 'Database', proficiencyLevel: 'ADVANCED', yearsExperience: 4 }
           ],
           submissionDate: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-          certStatus: 'APPROVED'
+          certStatus: 'APPROVED',
+          voiceRecords: [
+            {
+              id: 'v-priya-1',
+              question: 'Explain how you design high-throughput microservices and handle distributed caching and inference pipelines.',
+              transcript: 'For real-time ML inference, I deploy Triton Inference Server or FastAPI microservices with ONNX runtime acceleration and GPU batching. We cache embeddings in Redis and Milvus vector databases, keeping semantic similarity lookup latency under 12ms under heavy concurrency.',
+              durationSeconds: 48,
+              overall: 88,
+              clarity: 90,
+              fluency: 87,
+              technicalDepth: 91,
+              detectedKeywords: ['fastapi', 'onnx', 'vector database', 'redis', 'caching', 'concurrency'],
+              recommendation: 'RECOMMENDED - STRONG ML SYSTEMS COMPETENCY',
+              feedback: 'Clear technical architecture detailing ONNX GPU runtime acceleration and vector cache strategies.',
+              timestamp: new Date(Date.now() - 3600000 * 60).toISOString()
+            }
+          ],
+          interviewAttempts: [
+            {
+              id: 'att-priya-1',
+              candidateName: 'Priya Sharma',
+              candidateEmail: 'priya.sharma@aimodels.io',
+              role: 'Senior Machine Learning Engineer',
+              attemptNumber: 1,
+              completedQuestions: 10,
+              totalQuestions: 10,
+              avgClarity: 92,
+              avgRelevance: 92,
+              overallScore: 92,
+              status: 'COMPLETED',
+              timestamp: new Date(Date.now() - 3600000 * 30).toISOString(),
+              responses: [
+                {
+                  questionId: 1,
+                  question: 'When training Deep Neural Networks, which problem does Batch Normalization primarily mitigate?',
+                  questionType: 'objective',
+                  answer: 'B) Internal Covariate Shift',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! Batch Normalization stabilizes layer input distribution throughout training.'
+                },
+                {
+                  questionId: 2,
+                  question: 'What is the computational complexity of the standard Multi-Head Self-Attention mechanism in Transformer architectures?',
+                  questionType: 'objective',
+                  answer: 'B) O(N^2 * D) where N is sequence length and D is representation dimension',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! Standard attention exhibits quadratic complexity with sequence length.'
+                },
+                {
+                  questionId: 3,
+                  question: 'In LLM Fine-Tuning, how does Low-Rank Adaptation (LoRA) minimize memory consumption during training?',
+                  questionType: 'objective',
+                  answer: 'B) Freezing original pretrained weights and training low-rank decomposed matrices (B x A) with rank r << d',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! LoRA decomposes weight updates into two low-rank matrices.'
+                },
+                {
+                  questionId: 4,
+                  question: 'Which distance metric is standard for normalized dense embedding similarity comparisons?',
+                  questionType: 'objective',
+                  answer: 'B) Cosine Similarity (or Inner Product on normalized vectors)',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! Cosine similarity measures directional alignment between normalized embeddings.'
+                },
+                {
+                  questionId: 5,
+                  question: 'In High-Dimensional Approximate Nearest Neighbor (ANN) vector indexing, what does HNSW stand for?',
+                  questionType: 'objective',
+                  answer: 'B) Hierarchical Navigable Small World graphs',
+                  isCorrect: true,
+                  clarity: 100,
+                  relevance: 100,
+                  overall: 100,
+                  feedback: 'Correct! HNSW builds multi-layer graphs for logarithmic search time.'
+                },
+                {
+                  questionId: 6,
+                  question: 'Design an end-to-end Retrieval-Augmented Generation (RAG) system handling 1 million technical documentation pages with sub-second latency.',
+                  questionType: 'descriptive',
+                  answer: 'We ingest PDFs using PyMuPDF and perform semantic chunking with overlapping windows of 512 tokens. Embeddings are generated using BAAI/bge-large and indexed in Milvus using HNSW. At query time, we perform hybrid search (BM25 + Dense embeddings) followed by a FlashRank cross-encoder reranker, sending top-5 documents into the LLM context window with sub-400ms latency.',
+                  isCorrect: true,
+                  clarity: 94,
+                  relevance: 93,
+                  overall: 94,
+                  feedback: 'Excellent RAG architecture featuring hybrid search, semantic chunking, and cross-encoder reranking.'
+                },
+                {
+                  questionId: 7,
+                  question: 'Detail strategies for optimizing throughput and reducing time-to-first-token (TTFT) for LLM inference in production.',
+                  questionType: 'descriptive',
+                  answer: 'We deploy vLLM with PagedAttention to eliminate memory fragmentation in the KV cache. Continuous batching dynamically schedules incoming requests without waiting for previous completions. Furthermore, FP8 quantization and FlashAttention-2 speed up matrix operations by 2.5x without perceptible quality degradation.',
+                  isCorrect: true,
+                  clarity: 93,
+                  relevance: 92,
+                  overall: 93,
+                  feedback: 'Strong understanding of vLLM PagedAttention, KV cache management, and continuous batching.'
+                },
+                {
+                  questionId: 8,
+                  question: 'Explain how you detect and remediate Data Drift and Concept Drift in a production credit-risk scoring ML pipeline.',
+                  questionType: 'descriptive',
+                  answer: 'We run Evidently AI pipelines on daily inference logs. For Data Drift, we compute Kolmogorov-Smirnov statistical tests for numerical features and PSI (Population Stability Index) for categorical features. When drift breaches our threshold (PSI > 0.2), an automated Airflow DAG retrains the model on recent labeled data.',
+                  isCorrect: true,
+                  clarity: 91,
+                  relevance: 92,
+                  overall: 92,
+                  feedback: 'Thorough statistical drift detection methodology and automated retraining triggers.'
+                },
+                {
+                  questionId: 9,
+                  question: 'Compare and contrast Distributed Data Parallel (DDP) vs Fully Sharded Data Parallel (FSDP) in PyTorch.',
+                  questionType: 'descriptive',
+                  answer: 'In DDP, each GPU maintains a complete replica of the model weights, gradients, and optimizer states, limiting model size to single-GPU VRAM. FSDP implements Zero Redundancy Optimizer (ZeRO-3) by sharding model parameters, gradients, and optimizer states across GPUs, enabling training of models with billions of parameters across commodity GPU clusters.',
+                  isCorrect: true,
+                  clarity: 92,
+                  relevance: 91,
+                  overall: 92,
+                  feedback: 'Accurate distinction between full replica synchronization in DDP and memory sharding in FSDP ZeRO-3.'
+                },
+                {
+                  questionId: 10,
+                  question: 'Design an MLOps model deployment pipeline that guarantees Zero-Downtime model updates with automated Canary evaluations.',
+                  questionType: 'descriptive',
+                  answer: 'We containerize model artifacts with Seldon Core or KServe on Kubernetes. New candidate models are deployed with a shadow traffic split (100% inference mirrored without impacting client responses). If error rate and latency SLOs match baseline, canary traffic shifts from 10% to 50% to 100% with automated Prometheus rollback checks.',
+                  isCorrect: true,
+                  clarity: 90,
+                  relevance: 91,
+                  overall: 91,
+                  feedback: 'Superb canary architecture incorporating shadow mirroring and automated SLO evaluations.'
+                }
+              ]
+            }
+          ]
+        },
+        'rohan.mehta@cloudhire.io': {
+          fullName: 'Rohan Mehta',
+          email: 'rohan.mehta@cloudhire.io',
+          targetCareerRole: 'Cloud Native DevOps Engineer',
+          experienceLevel: 'ENTRY_LEVEL',
+          bio: 'Junior DevOps engineer with experience in Docker containerization, Linux administration, and GitHub Actions CI pipelines, seeking admission to platform programs.',
+          resumeName: 'Rohan_Mehta_DevOps_Resume.pdf',
+          isProfileLocked: false,
+          approvalStatus: 'PENDING_APPROVAL',
+          isApproved: false,
+          atsScore: 84,
+          skillMatchScore: 82,
+          interviewScore: 80,
+          voiceScore: 82,
+          skills: [
+            { skillName: 'Docker', category: 'DevOps', proficiencyLevel: 'INTERMEDIATE', yearsExperience: 2 },
+            { skillName: 'Linux', category: 'DevOps', proficiencyLevel: 'ADVANCED', yearsExperience: 2 },
+            { skillName: 'CI/CD Pipelines', category: 'DevOps', proficiencyLevel: 'INTERMEDIATE', yearsExperience: 1 }
+          ],
+          submissionDate: new Date(Date.now() - 3600000 * 2).toISOString(),
+          certStatus: 'NOT_REQUESTED',
+          voiceRecords: [],
+          interviewAttempts: []
         },
         'alex.vance@candidate.io': {
           fullName: 'Alex Vance',
@@ -189,6 +669,8 @@ const AdminDashboard = () => {
           bio: 'Specialist in modern frontend engineering, Next.js, reactive state modeling, and enterprise design systems.',
           resumeName: 'Alex_Vance_Frontend_Resume.pdf',
           isProfileLocked: false,
+          approvalStatus: 'APPROVED',
+          isApproved: true,
           atsScore: 86,
           skillMatchScore: 88,
           interviewScore: 84,
@@ -200,14 +682,25 @@ const AdminDashboard = () => {
             { skillName: 'Tailwind CSS', category: 'Frontend', proficiencyLevel: 'EXPERT', yearsExperience: 4 }
           ],
           submissionDate: new Date(Date.now() - 3600000 * 12).toISOString(),
-          certStatus: 'NOT_REQUESTED'
+          certStatus: 'NOT_REQUESTED',
+          voiceRecords: [],
+          interviewAttempts: []
         }
       };
 
       // Merge seed data with stored database
       let updatedDb = { ...seedCandidates };
       Object.keys(db).forEach(k => {
-        updatedDb[k] = { ...(seedCandidates[k] || {}), ...db[k] };
+        const seed = seedCandidates[k] || {};
+        const stored = db[k] || {};
+        updatedDb[k] = {
+          ...seed,
+          ...stored,
+          approvalStatus: stored.approvalStatus || seed.approvalStatus || 'APPROVED',
+          isApproved: stored.isApproved !== undefined ? stored.isApproved : (seed.isApproved !== undefined ? seed.isApproved : true),
+          voiceRecords: (stored.voiceRecords && stored.voiceRecords.length > 0) ? stored.voiceRecords : (seed.voiceRecords || []),
+          interviewAttempts: (stored.interviewAttempts && stored.interviewAttempts.length > 0) ? stored.interviewAttempts : (seed.interviewAttempts || [])
+        };
       });
 
       // Synchronize active logged in user profile if exists
@@ -222,10 +715,14 @@ const AdminDashboard = () => {
           bio: user.bio || existing.bio || 'Enterprise candidate undergoing skill gap and competency evaluation.',
           resumeName: user.resumeName || existing.resumeName || 'Candidate_Resume_Submission.pdf',
           isProfileLocked: user.isProfileLocked !== undefined ? user.isProfileLocked : Boolean(existing.isProfileLocked),
+          approvalStatus: user.approvalStatus || existing.approvalStatus || (user.role === 'ROLE_USER' ? 'PENDING_APPROVAL' : 'APPROVED'),
+          isApproved: user.isApproved !== undefined ? user.isApproved : (existing.isApproved !== undefined ? existing.isApproved : true),
           atsScore: existing.atsScore || 91,
           skillMatchScore: existing.skillMatchScore || 89,
           interviewScore: existing.interviewScore || 88,
           voiceScore: existing.voiceScore || 90,
+          voiceRecords: (existing.voiceRecords && existing.voiceRecords.length > 0) ? existing.voiceRecords : [],
+          interviewAttempts: (existing.interviewAttempts && existing.interviewAttempts.length > 0) ? existing.interviewAttempts : [],
           skills: user.skills && user.skills.length > 0 ? user.skills : (existing.skills || [
             { skillName: 'Java 21', category: 'Backend', proficiencyLevel: 'ADVANCED', yearsExperience: 3 }
           ]),
@@ -239,6 +736,60 @@ const AdminDashboard = () => {
       setCandidates(candList);
     } catch (e) {
       console.warn('Failed loading candidates', e);
+    }
+  };
+
+  const handleUpdateApprovalStatus = async (candidateEmail, newStatus) => {
+    try {
+      const emailKey = candidateEmail.toLowerCase().trim();
+      const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+      if (db[emailKey]) {
+        db[emailKey].approvalStatus = newStatus;
+        db[emailKey].isApproved = (newStatus === 'APPROVED');
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+      }
+
+      updateCandidateApprovalStatus(emailKey, newStatus);
+
+      setCandidates(prev => prev.map(c => {
+        if (c.email.toLowerCase().trim() === emailKey) {
+          return {
+            ...c,
+            approvalStatus: newStatus,
+            isApproved: (newStatus === 'APPROVED')
+          };
+        }
+        return c;
+      }));
+
+      if (selectedCandidate && selectedCandidate.email.toLowerCase().trim() === emailKey) {
+        setSelectedCandidate(prev => ({
+          ...prev,
+          approvalStatus: newStatus,
+          isApproved: (newStatus === 'APPROVED')
+        }));
+      }
+
+      // Backend API sync if candidate has an ID
+      const targetUser = candidates.find(c => c.email.toLowerCase().trim() === emailKey);
+      if (targetUser?.id) {
+        try {
+          await userService.setUserApproval(targetUser.id, newStatus === 'APPROVED');
+        } catch (apiErr) {
+          console.warn('Backend approval sync fallback:', apiErr);
+        }
+      }
+
+      if (newStatus === 'APPROVED') {
+        showToast(`Candidate ${targetUser?.fullName || candidateEmail} approved! Candidate can now sign in to the website.`, 'success');
+      } else if (newStatus === 'REJECTED') {
+        showToast(`Candidate ${targetUser?.fullName || candidateEmail} access rejected.`, 'info');
+      } else {
+        showToast(`Candidate status updated to ${newStatus}.`, 'info');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to update candidate approval status', 'error');
     }
   };
 
