@@ -19,6 +19,7 @@ import {
   Bot,
   Mic,
   FileText,
+  GitBranch,
   Video,
   Layers,
   Shield,
