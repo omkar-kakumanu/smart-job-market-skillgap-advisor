@@ -21,5 +21,7 @@ public class UserProfileDto {
     private String experienceLevel;
     private String bio;
     private Role role;
+    private Boolean isApproved;
+    private String approvalStatus;
     private List<UserSkillDto> skills;
 }

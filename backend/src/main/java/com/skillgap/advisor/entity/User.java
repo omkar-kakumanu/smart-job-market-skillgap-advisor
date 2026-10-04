@@ -48,10 +48,16 @@ public class User {
     private Role role;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isVerified = true;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isApproved = true;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

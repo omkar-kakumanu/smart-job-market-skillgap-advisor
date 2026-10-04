@@ -80,6 +80,15 @@ public class UserService {
         userSkillRepository.deleteByUserIdAndSkillId(userId, skillId);
     }
 
+    @Transactional
+    public UserProfileDto setUserApproval(Long userId, boolean approved) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        user.setIsApproved(approved);
+        User saved = userRepository.save(user);
+        return mapToProfileDto(saved);
+    }
+
     public UserProfileDto mapToProfileDto(User user) {
         List<UserSkillDto> skillDtos = user.getUserSkills().stream()
                 .map(this::mapToUserSkillDto)
@@ -94,6 +103,8 @@ public class UserService {
                 .experienceLevel(user.getExperienceLevel())
                 .bio(user.getBio())
                 .role(user.getRole())
+                .isApproved(user.getIsApproved() != null ? user.getIsApproved() : true)
+                .approvalStatus(Boolean.FALSE.equals(user.getIsApproved()) ? "PENDING_APPROVAL" : "APPROVED")
                 .skills(skillDtos)
                 .build();
     }

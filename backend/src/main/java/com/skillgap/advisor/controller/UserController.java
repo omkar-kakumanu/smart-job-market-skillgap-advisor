@@ -54,4 +54,13 @@ public class UserController {
         userService.deleteUserSkill(principal.getId(), skillId);
         return ResponseEntity.ok(ApiResponse.success(null, "Skill removed from user profile"));
     }
+
+    @PutMapping("/{userId}/approval")
+    @Operation(summary = "Approve or revoke candidate platform access (Admin & Recruiter)")
+    public ResponseEntity<ApiResponse<UserProfileDto>> updateApproval(
+            @PathVariable Long userId,
+            @RequestParam(required = false, defaultValue = "true") boolean approved) {
+        UserProfileDto updated = userService.setUserApproval(userId, approved);
+        return ResponseEntity.ok(ApiResponse.success(updated, "Candidate approval status updated"));
+    }
 }

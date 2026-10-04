@@ -38,18 +38,27 @@ public class AuthService {
         String email = request.getEmail().trim().toLowerCase();
         if (userRepository.existsByEmail(email)) {
             User existing = userRepository.findByEmail(email).get();
+            UserProfileDto profile = userService.mapToProfileDto(existing);
+            if (existing.getRole() == Role.ROLE_USER && Boolean.FALSE.equals(existing.getIsApproved())) {
+                return AuthResponse.builder()
+                        .accessToken(null)
+                        .user(profile)
+                        .build();
+            }
             UserPrincipal userPrincipal = UserPrincipal.create(existing);
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     userPrincipal, null, userPrincipal.getAuthorities()
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = tokenProvider.generateToken(authentication);
-            UserProfileDto profile = userService.mapToProfileDto(existing);
             return AuthResponse.builder()
                     .accessToken(jwt)
                     .user(profile)
                     .build();
         }
+
+        boolean isCandidate = (request.getRole() == null || request.getRole() == Role.ROLE_USER);
+        boolean initialApproved = !isCandidate; // Candidates require explicit administrator review and approval
 
         User user = User.builder()
                 .fullName(request.getFullName())
@@ -61,9 +70,19 @@ public class AuthService {
                 .role(request.getRole() != null ? request.getRole() : Role.ROLE_USER)
                 .isActive(true)
                 .isVerified(true)
+                .isApproved(initialApproved)
                 .build();
 
         User savedUser = userRepository.saveAndFlush(user);
+        UserProfileDto profile = userService.mapToProfileDto(savedUser);
+
+        if (!initialApproved) {
+            // Under platform governance, candidates cannot access until approved
+            return AuthResponse.builder()
+                    .accessToken(null)
+                    .user(profile)
+                    .build();
+        }
 
         UserPrincipal userPrincipal = UserPrincipal.create(savedUser);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -72,7 +91,6 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken(authentication);
 
-        UserProfileDto profile = userService.mapToProfileDto(savedUser);
         return AuthResponse.builder()
                 .accessToken(jwt)
                 .user(profile)
@@ -129,6 +147,10 @@ public class AuthService {
             user = userRepository.saveAndFlush(newUser);
         }
 
+        if (user.getRole() == Role.ROLE_USER && Boolean.FALSE.equals(user.getIsApproved())) {
+            throw new BadRequestException("Account registration is pending administrator approval. Please wait for an administrator to activate your profile.");
+        }
+
         UserPrincipal userPrincipal = UserPrincipal.create(user);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userPrincipal, null, userPrincipal.getAuthorities()
@@ -180,6 +202,10 @@ public class AuthService {
         if (request.getProfileImageUrl() != null && !request.getProfileImageUrl().isBlank() && user.getProfileImageUrl() == null) {
             user.setProfileImageUrl(request.getProfileImageUrl());
             userRepository.save(user);
+        }
+
+        if (user.getRole() == Role.ROLE_USER && Boolean.FALSE.equals(user.getIsApproved())) {
+            throw new BadRequestException("Account registration is pending administrator approval. Please wait for an administrator to activate your profile.");
         }
 
         UserPrincipal userPrincipal = UserPrincipal.create(user);

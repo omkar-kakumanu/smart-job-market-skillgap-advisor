@@ -93,4 +93,10 @@ public class VoiceScreeningService {
     public List<VoiceScreeningRecordDto> getUserRecords(Long userId) {
         return userRecords.getOrDefault(userId, Collections.emptyList());
     }
+
+    public List<VoiceScreeningRecordDto> getAllRecords() {
+        List<VoiceScreeningRecordDto> all = new ArrayList<>();
+        userRecords.values().forEach(all::addAll);
+        return all;
+    }
 }
