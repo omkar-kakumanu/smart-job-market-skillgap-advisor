@@ -184,20 +184,7 @@ public class AuthService {
 
         final Role assignedRole = role;
         User user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    User newUser = User.builder()
-                            .fullName(name)
-                            .email(email)
-                            .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                            .targetCareerRole(request.getRole() != null ? request.getRole() : "Full Stack Java Developer")
-                            .experienceLevel("MID_LEVEL")
-                            .profileImageUrl(request.getProfileImageUrl())
-                            .role(assignedRole)
-                            .isActive(true)
-                            .isVerified(true)
-                            .build();
-                    return userRepository.saveAndFlush(newUser);
-                });
+                .orElseThrow(() -> new BadRequestException("No registered account found with Google email: " + email + ". Please register as a candidate first so your profile can be reviewed and approved by an administrator."));
 
         if (request.getProfileImageUrl() != null && !request.getProfileImageUrl().isBlank() && user.getProfileImageUrl() == null) {
             user.setProfileImageUrl(request.getProfileImageUrl());
