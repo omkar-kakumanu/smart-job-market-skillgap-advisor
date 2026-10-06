@@ -27,6 +27,21 @@ import { authService } from '../services/authService';
 import ProfilePhotoUploader from '../components/ProfilePhotoUploader';
 import { EXPERIENCE_LEVELS } from '../utils/constants';
 
+const PRE_REGISTERED_SYSTEM_EMAILS = [
+  'admin@skillgap.com',
+  'admin@smartjobadvisor.com',
+  'admin@copilot.com',
+  'recruiter@skillgap.com',
+  'recruiter@smartjobadvisor.com',
+  'manager@skillgap.com',
+  'recruiter@copilot.com',
+  'candidate@skillgap.com',
+  'candidate@smartjobadvisor.com',
+  'user@skillgap.com',
+  'candidate@copilot.com',
+  'devansh.verma@example.com'
+];
+
 const GoogleIcon = ({ className = "w-5 h-5" }) => (
   <svg className={className} viewBox="0 0 24 24">
     <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z" />
@@ -153,14 +168,44 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
     const isAdm = cleanEmail.includes('admin');
     const isRec = cleanEmail.includes('recruiter') || userRole?.includes('Recruiter') || userRole?.includes('Manager');
     const savedProfile = getStoredProfileByEmail(cleanEmail);
+    const isPreRegistered = PRE_REGISTERED_SYSTEM_EMAILS.includes(cleanEmail);
+    const isLocallyKnown = isAdm || isRec || isPreRegistered || Boolean(savedProfile);
 
-    // Block candidates pending approval
+    // If currently on SIGN_UP tab: link Google account and prefill registration fields
+    if (mode === 'SIGN_UP') {
+      const parts = (selectedName || cleanEmail.split('@')[0]).trim().split(' ');
+      setFirstName(parts[0] || '');
+      setLastName(parts.slice(1).join(' ') || '');
+      setEmail(cleanEmail);
+      setShowGoogleModal(false);
+      setGoogleSubmitting(false);
+      showToast('Google account linked! Please complete and submit your candidate registration.', 'info');
+      setStatusNotice({
+        type: 'SUCCESS',
+        message: `Linked Google identity (${cleanEmail}). Select your target career role below and submit your registration for administrator approval.`
+      });
+      return;
+    }
+
+    // Block candidates pending approval locally
     if (!isAdm && !isRec && savedProfile?.approvalStatus === 'PENDING_APPROVAL') {
       setStatusNotice({
         type: 'PENDING',
         message: 'Your Google-linked candidate account is currently awaiting administrative approval. An administrator must approve your account before you can log in.'
       });
       showToast('Candidate account pending administrator review.', 'warning');
+      setShowGoogleModal(false);
+      setGoogleSubmitting(false);
+      return;
+    }
+
+    // Block rejected candidates locally
+    if (!isAdm && !isRec && savedProfile?.approvalStatus === 'REJECTED') {
+      setStatusNotice({
+        type: 'ERROR',
+        message: 'Your Google-linked candidate account registration was reviewed and rejected by an administrator.'
+      });
+      showToast('Candidate account registration rejected.', 'error');
       setShowGoogleModal(false);
       setGoogleSubmitting(false);
       return;
@@ -181,31 +226,89 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
         });
         showToast('Registration pending admin approval.', 'warning');
         setShowGoogleModal(false);
+        setGoogleSubmitting(false);
         return;
       }
 
       loginUser(response);
-      showToast(`Welcome, ${selectedName}!`, 'success');
+      showToast(`Welcome back, ${response.user?.fullName || selectedName}!`, 'success');
       setShowGoogleModal(false);
       navigate(isAdm ? '/admin' : '/dashboard');
     } catch (err) {
-      console.warn('Backend SSO unreachable, using resilient verified authentication:', err);
+      console.warn('Backend Google SSO response:', err);
+      const serverMsg = err.response?.data?.message || err.message || '';
+
+      setShowGoogleModal(false);
+      setGoogleSubmitting(false);
+
+      // 1. Account not registered on server
+      if (serverMsg.includes('No registered account') || serverMsg.includes('register as a candidate') || (!isLocallyKnown && err.response?.status === 400)) {
+        const parts = (selectedName || cleanEmail.split('@')[0]).trim().split(' ');
+        setFirstName(parts[0] || '');
+        setLastName(parts.slice(1).join(' ') || '');
+        setEmail(cleanEmail);
+        setMode('SIGN_UP');
+        setStatusNotice({
+          type: 'ERROR',
+          message: `No registered candidate profile found for ${cleanEmail}. Candidate registration and administrator approval are required before you can access the portal. Please register below.`
+        });
+        showToast('Account not registered. Please sign up first.', 'error');
+        return;
+      }
+
+      // 2. Account pending administrator approval
+      if (serverMsg.includes('pending administrator approval') || serverMsg.includes('activate your profile') || serverMsg.includes('pending')) {
+        setStatusNotice({
+          type: 'PENDING',
+          message: serverMsg || 'Your candidate registration is currently awaiting administrator review and approval. An administrator must approve your account before you can log in.'
+        });
+        showToast('Registration pending admin approval.', 'warning');
+        return;
+      }
+
+      // 3. Server offline/unreachable: strictly prevent unregistered users from entering
+      if (!isLocallyKnown) {
+        const parts = (selectedName || cleanEmail.split('@')[0]).trim().split(' ');
+        setFirstName(parts[0] || '');
+        setLastName(parts.slice(1).join(' ') || '');
+        setEmail(cleanEmail);
+        setMode('SIGN_UP');
+        setStatusNotice({
+          type: 'ERROR',
+          message: `No registered candidate profile found for ${cleanEmail}. Candidate registration and administrator approval are required before you can access the portal. Please complete the registration form below.`
+        });
+        showToast('Account not registered. Please register first.', 'error');
+        return;
+      }
+
+      // 4. Known locally, verify approval status
+      if (!isAdm && !isRec && savedProfile && savedProfile.approvalStatus !== 'APPROVED') {
+        setStatusNotice({
+          type: savedProfile.approvalStatus === 'REJECTED' ? 'ERROR' : 'PENDING',
+          message: savedProfile.approvalStatus === 'REJECTED'
+            ? 'Your candidate registration was reviewed and rejected by an administrator.'
+            : 'Your candidate account is currently awaiting administrator approval. You will be able to log in once an administrator approves your profile.'
+        });
+        showToast(savedProfile.approvalStatus === 'REJECTED' ? 'Candidate account rejected.' : 'Candidate account pending administrator review.', 'warning');
+        return;
+      }
+
+      // 5. Approved or authorized system user permitted via fallback
       const fallbackToken = 'sso_session_' + Date.now();
       const fallbackUser = {
-        id: isAdm ? 1 : isRec ? 2 : 3,
-        fullName: savedProfile?.fullName || selectedName || (isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Candidate Applicant'),
+        id: isAdm ? 1 : isRec ? 2 : (savedProfile?.id || 3),
+        fullName: savedProfile?.fullName || selectedName || (isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Alex Vance'),
         email: cleanEmail,
         role: isAdm ? 'ROLE_ADMIN' : isRec ? 'ROLE_MANAGER' : 'ROLE_USER',
         targetCareerRole: savedProfile?.targetCareerRole || (isRec ? 'Talent Acquisition Lead' : 'Full Stack Java Developer'),
         experienceLevel: savedProfile?.experienceLevel || (isAdm || isRec ? 'LEAD' : 'MID_LEVEL'),
         bio: savedProfile?.bio || '',
         profileImageUrl: savedProfile?.profileImageUrl || '',
-        approvalStatus: savedProfile?.approvalStatus || 'APPROVED',
+        approvalStatus: 'APPROVED',
         skills: savedProfile?.skills || []
       };
       loginUser({ accessToken: fallbackToken, user: fallbackUser });
-      showToast(`Authenticated successfully as ${fallbackUser.fullName}!`, 'success');
-      setShowGoogleModal(false);
+      showToast(`Welcome back, ${fallbackUser.fullName}!`, 'success');
       navigate(isAdm ? '/admin' : '/dashboard');
     } finally {
       setGoogleSubmitting(false);
@@ -938,9 +1041,13 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                 <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-darkbg flex items-center justify-center mx-auto border border-slate-200 dark:border-gray-700">
                   <GoogleIcon className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white font-display">Sign in with Google</h3>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white font-display">
+                  {mode === 'SIGN_UP' ? 'Link Google Account for Registration' : 'Sign in with Google'}
+                </h3>
                 <p className="text-xs text-slate-500 dark:text-gray-400 font-medium font-sans">
-                  Choose a verified account or enter your Gmail address to access <span className="font-bold text-slate-800 dark:text-gray-200">Smart Job Market Skill-Gap Advisor</span>
+                  {mode === 'SIGN_UP'
+                    ? 'Select or enter your Gmail to link your Google identity to candidate registration.'
+                    : 'Choose a registered account or enter your Gmail address. Unregistered candidates must register and obtain administrator approval before accessing the portal.'}
                 </p>
               </div>
 
@@ -1018,9 +1125,9 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                     <button
                       type="submit"
                       disabled={googleSubmitting}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer whitespace-nowrap"
                     >
-                      {googleSubmitting ? 'Verifying...' : 'Sign In →'}
+                      {googleSubmitting ? 'Verifying...' : mode === 'SIGN_UP' ? 'Link Account →' : 'Sign In →'}
                     </button>
                   </div>
                 </form>

@@ -19,7 +19,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
   }
 
   // Candidates pending administrator review cannot enter the website
-  if (user?.role === 'ROLE_USER' && user?.approvalStatus === 'PENDING_APPROVAL') {
+  if (user?.role === 'ROLE_USER' && (user?.approvalStatus === 'PENDING_APPROVAL' || user?.isApproved === false)) {
     return <Navigate to="/login?pendingApproval=true" replace />;
   }
 
