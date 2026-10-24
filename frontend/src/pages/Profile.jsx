@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Breadcrumb from '../components/Breadcrumb';
 import SkillBadge from '../components/SkillBadge';
@@ -7,7 +8,7 @@ import { useAuth, getStoredProfileByEmail, saveStoredProfileByEmail } from '../c
 import { useToast } from '../hooks/useToast';
 import { userService } from '../services/userService';
 import { jobService } from '../services/jobService';
-import { User, Plus, Trash2, Save, Award, Lock, Unlock } from 'lucide-react';
+import { User, Plus, Trash2, Save, Award, Lock, Unlock, Shield, Trophy, Edit3 } from 'lucide-react';
 import { PROFICIENCY_LEVELS, EXPERIENCE_LEVELS } from '../utils/constants';
 
 const DEFAULT_SKILLS = [
@@ -62,17 +63,43 @@ const Profile = () => {
   const [years, setYears] = useState('2.0');
   const [saving, setSaving] = useState(false);
 
-  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_MANAGER' || user?.email?.toLowerCase().includes('admin');
+  const [candidatesList, setCandidatesList] = useState([]);
+  const [selectedCandidateEmail, setSelectedCandidateEmail] = useState('');
+
+  const isPrivilegedRecruiterOrAdmin = 
+    user?.role === 'ROLE_ADMIN' || 
+    user?.role === 'ROLE_MANAGER' || 
+    user?.role === 'ROLE_RECRUITER' || 
+    user?.role === 'RECRUITER' || 
+    user?.role === 'MANAGER' || 
+    user?.role === 'ADMIN' || 
+    user?.email?.toLowerCase().includes('admin') || 
+    user?.email?.toLowerCase().includes('recruiter') || 
+    user?.email?.toLowerCase().includes('manager');
+
+  const isAdmin = isPrivilegedRecruiterOrAdmin;
   const isLocked = Boolean(profile?.isProfileLocked) && !isAdmin;
 
   const handleAdminToggleLock = () => {
     const newLock = !profile?.isProfileLocked;
     const updated = { ...profile, isProfileLocked: newLock };
     setProfile(updated);
-    updateUserProfile(updated);
-    localStorage.setItem('user', JSON.stringify(updated));
-    if (updated.email) {
-      saveStoredProfileByEmail(updated.email, updated);
+
+    if (selectedCandidateEmail) {
+      try {
+        const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+        const key = selectedCandidateEmail.toLowerCase().trim();
+        db[key] = { ...(db[key] || {}), ...updated, isProfileLocked: newLock };
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+      } catch (err) {
+        console.warn('Failed saving candidate lock', err);
+      }
+    } else {
+      updateUserProfile(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+      if (updated.email) {
+        saveStoredProfileByEmail(updated.email, updated);
+      }
     }
     showToast(newLock ? 'Profile locked.' : 'Administrator unlocked candidate profile for editing!', 'info');
   };
@@ -90,7 +117,24 @@ const Profile = () => {
         console.warn('Backend skills catalogue offline, using default skill inventory');
       }
 
-      // 2. Fetch remote profile if backend is accessible
+      // 2. Load candidate profiles for recruiters/admins
+      try {
+        const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+        const list = Object.values(db);
+        if (list.length > 0) {
+          setCandidatesList(list);
+        } else {
+          setCandidatesList([
+            { fullName: 'Devansh Verma', email: 'devansh.verma@example.com', targetCareerRole: 'Full Stack Java Developer', experienceLevel: 'SENIOR_LEVEL' },
+            { fullName: 'Candidate Applicant', email: 'candidate@skillgap.com', targetCareerRole: 'Full Stack Java Developer', experienceLevel: 'MID_LEVEL' },
+            { fullName: 'Alex Vance', email: 'user@skillgap.com', targetCareerRole: 'Full Stack Java Developer', experienceLevel: 'MID_LEVEL' }
+          ]);
+        }
+      } catch (e) {
+        console.warn('Candidates list load fallback', e);
+      }
+
+      // 3. Fetch remote profile if backend is accessible
       try {
         const p = await userService.getProfile();
         if (p) {
@@ -103,6 +147,45 @@ const Profile = () => {
     };
     init();
   }, []);
+
+  const handleSwitchCandidate = (candEmail) => {
+    setSelectedCandidateEmail(candEmail);
+    if (!candEmail) {
+      const saved = localStorage.getItem('user');
+      setProfile(user || (saved ? JSON.parse(saved) : null));
+      showToast('Switched back to your personal profile', 'info');
+      return;
+    }
+    const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+    const cand = db[candEmail.toLowerCase().trim()];
+    if (cand) {
+      setProfile({
+        ...cand,
+        skills: Array.isArray(cand.skills) ? cand.skills.map((sk, idx) => ({
+          id: sk.id || (idx + 100),
+          skillId: sk.skillId || (idx + 1),
+          skillName: sk.skillName || sk.name || (typeof sk === 'string' ? sk : 'Skill'),
+          category: sk.category || 'TECHNICAL',
+          proficiencyLevel: sk.proficiencyLevel || sk.level || 'INTERMEDIATE',
+          yearsExperience: sk.yearsExperience || sk.years || 2.0
+        })) : []
+      });
+      showToast(`Now managing candidate profile for ${cand.fullName}`, 'success');
+    } else {
+      const foundInList = candidatesList.find(c => c.email.toLowerCase() === candEmail.toLowerCase());
+      if (foundInList) {
+        setProfile({
+          fullName: foundInList.fullName,
+          email: foundInList.email,
+          targetCareerRole: foundInList.targetCareerRole || 'Full Stack Java Developer',
+          experienceLevel: foundInList.experienceLevel || 'MID_LEVEL',
+          bio: foundInList.bio || '',
+          skills: []
+        });
+        showToast(`Now managing candidate profile for ${foundInList.fullName}`, 'success');
+      }
+    }
+  };
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -118,8 +201,39 @@ const Profile = () => {
       skills: profile?.skills || []
     };
 
-    // Resilient immediate state & localStorage persistence
     setProfile(updatedProfile);
+
+    if (selectedCandidateEmail) {
+      // Recruiter saving candidate profile
+      const targetKey = selectedCandidateEmail.toLowerCase().trim();
+      try {
+        const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+        db[targetKey] = {
+          ...(db[targetKey] || {}),
+          ...updatedProfile
+        };
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+      } catch (err) {
+        console.warn('Failed saving candidate to local db', err);
+      }
+
+      try {
+        await userService.updateCandidateProfile(selectedCandidateEmail, {
+          fullName: updatedProfile.fullName,
+          targetCareerRole: updatedProfile.targetCareerRole,
+          experienceLevel: updatedProfile.experienceLevel,
+          bio: updatedProfile.bio
+        });
+      } catch (err) {
+        console.warn('Backend candidate update sync skipped:', err);
+      }
+
+      setSaving(false);
+      showToast(`Candidate profile & skills for ${updatedProfile.fullName} saved successfully!`, 'success');
+      return;
+    }
+
+    // Candidate saving own profile
     updateUserProfile(updatedProfile);
     localStorage.setItem('user', JSON.stringify(updatedProfile));
     if (updatedProfile.email) {
@@ -160,7 +274,7 @@ const Profile = () => {
 
     const currentSkills = profile?.skills || [];
     if (currentSkills.some((s) => String(s.skillId) === String(selectedSkillId) || s.skillName === skillName)) {
-      showToast('Competency is already cataloged in your profile', 'info');
+      showToast('Competency is already cataloged in profile', 'info');
       return;
     }
 
@@ -179,6 +293,37 @@ const Profile = () => {
     };
 
     setProfile(updated);
+
+    if (selectedCandidateEmail) {
+      // Recruiter saving skill to candidate
+      const targetKey = selectedCandidateEmail.toLowerCase().trim();
+      try {
+        const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+        db[targetKey] = {
+          ...(db[targetKey] || {}),
+          ...updated
+        };
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+      } catch (err) {
+        console.warn('Failed saving candidate skill locally', err);
+      }
+
+      try {
+        await userService.addCandidateSkill(selectedCandidateEmail, {
+          skillName,
+          category,
+          level: proficiency,
+          years: parseFloat(years) || 1.0
+        });
+      } catch (err) {
+        console.warn('Backend addCandidateSkill offline/sync skipped');
+      }
+
+      showToast(`Added ${skillName} to ${profile.fullName || 'candidate'} verified skills!`, 'success');
+      return;
+    }
+
+    // Candidate saving own skill
     updateUserProfile(updated);
     localStorage.setItem('user', JSON.stringify(updated));
     if (updated.email) {
@@ -209,6 +354,34 @@ const Profile = () => {
     };
 
     setProfile(updated);
+
+    if (selectedCandidateEmail) {
+      // Recruiter removing candidate skill
+      const targetKey = selectedCandidateEmail.toLowerCase().trim();
+      try {
+        const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+        db[targetKey] = {
+          ...(db[targetKey] || {}),
+          ...updated
+        };
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+      } catch (err) {
+        console.warn('Failed removing candidate skill locally', err);
+      }
+
+      try {
+        if (typeof skillId === 'number') {
+          await userService.deleteCandidateSkill(selectedCandidateEmail, skillId);
+        }
+      } catch (err) {
+        console.warn('Backend deleteCandidateSkill skipped');
+      }
+
+      showToast('Competency removed from candidate inventory', 'info');
+      return;
+    }
+
+    // Candidate removing own skill
     updateUserProfile(updated);
     localStorage.setItem('user', JSON.stringify(updated));
     if (updated.email) {
@@ -246,6 +419,64 @@ const Profile = () => {
             Maintain your verified technical competencies, target engineering specialization, and career trajectory.
           </p>
         </div>
+
+        {/* Privileged Recruiter & Administrator Candidate Switcher */}
+        {isPrivilegedRecruiterOrAdmin && (
+          <div className="mb-6 p-5 rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-indigo-700/60">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+                <Shield className="w-6 h-6 text-amber-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-extrabold text-sm sm:text-base">Recruiter & Administrator Candidate Management</h4>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
+                    Recruiter Privileges
+                  </span>
+                </div>
+                <p className="text-xs text-indigo-200 mt-0.5">
+                  {selectedCandidateEmail 
+                    ? `Currently editing candidate: ${profile?.fullName || selectedCandidateEmail}. You can add/delete skills, adjust target role, and save profile.` 
+                    : 'Select any candidate below to edit their verified competencies, adjust seniority, or manage candidates on the Leaderboard Console.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+              <select
+                id="recruiter-profile-candidate-select"
+                value={selectedCandidateEmail}
+                onChange={(e) => handleSwitchCandidate(e.target.value)}
+                className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-white text-slate-900 shadow-sm border border-indigo-300 focus:ring-2 focus:ring-indigo-400 cursor-pointer"
+              >
+                <option value="">-- Select Candidate to Edit Skills --</option>
+                {candidatesList.map(c => (
+                  <option key={c.email} value={c.email}>
+                    {c.fullName} ({c.email})
+                  </option>
+                ))}
+              </select>
+
+              {selectedCandidateEmail && (
+                <button
+                  type="button"
+                  onClick={() => handleSwitchCandidate('')}
+                  className="px-3 py-2 rounded-xl text-xs font-bold bg-white/20 hover:bg-white/30 text-white border border-white/30 transition cursor-pointer"
+                >
+                  Reset to My Profile
+                </button>
+              )}
+
+              <Link
+                to="/admin"
+                className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+              >
+                <Trophy className="w-4 h-4 text-slate-950" />
+                <span>Recruiter Console &rarr;</span>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Lock Notice Banner */}
         {profile?.isProfileLocked && (
@@ -434,7 +665,7 @@ const Profile = () => {
                   category={s.category}
                   level={s.proficiencyLevel}
                   years={s.yearsExperience}
-                  onRemove={!isLocked ? () => handleRemoveSkill(s.skillId) : undefined}
+                  onRemove={!isLocked ? () => handleRemoveSkill(s.skillId || s.id) : undefined}
                 />
               ))}
             </div>

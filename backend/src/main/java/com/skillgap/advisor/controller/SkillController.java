@@ -43,16 +43,16 @@ public class SkillController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Create new skill definition (Admin/Manager only)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECRUITER')")
+    @Operation(summary = "Create new skill definition (Admin/Recruiter/Manager)")
     public ResponseEntity<ApiResponse<SkillDto>> createSkill(@RequestBody SkillDto dto) {
         SkillDto created = skillService.createSkill(dto);
         return new ResponseEntity<>(ApiResponse.success(created, "Skill created"), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Update skill definition (Admin/Manager only)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECRUITER')")
+    @Operation(summary = "Update skill definition (Admin/Recruiter/Manager)")
     public ResponseEntity<ApiResponse<SkillDto>> updateSkill(@PathVariable Long id, @RequestBody SkillDto dto) {
         SkillDto updated = skillService.updateSkill(id, dto);
         return ResponseEntity.ok(ApiResponse.success(updated, "Skill updated"));

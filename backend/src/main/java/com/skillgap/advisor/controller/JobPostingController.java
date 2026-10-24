@@ -40,16 +40,16 @@ public class JobPostingController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Post new job description with required skills (Admin/Manager only)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECRUITER')")
+    @Operation(summary = "Post new job description with required skills (Admin/Recruiter/Manager)")
     public ResponseEntity<ApiResponse<JobPostingDto>> createJob(@RequestBody JobPostingDto dto) {
         JobPostingDto created = jobPostingService.createJob(dto);
         return new ResponseEntity<>(ApiResponse.success(created, "Job posting created"), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Remove job posting (Admin/Manager only)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECRUITER')")
+    @Operation(summary = "Remove job posting (Admin/Recruiter/Manager)")
     public ResponseEntity<ApiResponse<Void>> deleteJob(@PathVariable Long id) {
         jobPostingService.deleteJob(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Job posting deleted"));

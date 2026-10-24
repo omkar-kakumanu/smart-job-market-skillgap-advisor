@@ -50,6 +50,7 @@ public class SecurityConfig {
         http
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
@@ -63,6 +64,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/courses/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/analytics/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             );

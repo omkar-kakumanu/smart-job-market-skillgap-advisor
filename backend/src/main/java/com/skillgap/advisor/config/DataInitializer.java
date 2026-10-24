@@ -44,10 +44,10 @@ public class DataInitializer implements CommandLineRunner {
         createOrUpdateUser("admin@smartjobadvisor.com", "System Administrator", "admin123", "System Administrator", "LEAD", Role.ROLE_ADMIN);
         createOrUpdateUser("admin@copilot.com", "System Administrator", "admin123", "System Administrator", "LEAD", Role.ROLE_ADMIN);
 
-        createOrUpdateUser("recruiter@skillgap.com", "Talent Acquisition Lead", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_MANAGER);
-        createOrUpdateUser("recruiter@smartjobadvisor.com", "Talent Acquisition Lead", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+        createOrUpdateUser("recruiter@skillgap.com", "Talent Acquisition Lead", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_RECRUITER);
+        createOrUpdateUser("recruiter@smartjobadvisor.com", "Talent Acquisition Lead", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_RECRUITER);
         createOrUpdateUser("manager@skillgap.com", "Engineering Hiring Manager", "Password123!", "Engineering Hiring Manager", "SENIOR_LEVEL", Role.ROLE_MANAGER);
-        createOrUpdateUser("recruiter@copilot.com", "Talent Acquisition Lead", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_MANAGER);
+        createOrUpdateUser("recruiter@copilot.com", "Talent Acquisition Lead", "recruiter123", "Talent Acquisition Lead", "SENIOR_LEVEL", Role.ROLE_RECRUITER);
 
         createOrUpdateUser("candidate@skillgap.com", "Candidate Applicant", "candidate123", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);
         createOrUpdateUser("candidate@smartjobadvisor.com", "Candidate Applicant", "candidate123", "Full Stack Java Developer", "MID_LEVEL", Role.ROLE_USER);

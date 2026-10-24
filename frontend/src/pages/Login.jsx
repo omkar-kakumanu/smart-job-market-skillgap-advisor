@@ -166,7 +166,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
     setStatusNotice(null);
     const cleanEmail = selectedEmail.trim().toLowerCase();
     const isAdm = cleanEmail.includes('admin');
-    const isRec = cleanEmail.includes('recruiter') || userRole?.includes('Recruiter') || userRole?.includes('Manager');
+    const isRec = cleanEmail.includes('recruiter') || cleanEmail.includes('manager') || userRole?.includes('Recruiter') || userRole?.includes('Manager');
     const savedProfile = getStoredProfileByEmail(cleanEmail);
     const isPreRegistered = PRE_REGISTERED_SYSTEM_EMAILS.includes(cleanEmail);
     const isLocallyKnown = isAdm || isRec || isPreRegistered || Boolean(savedProfile);
@@ -233,7 +233,8 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
       loginUser(response);
       showToast(`Welcome back, ${response.user?.fullName || selectedName}!`, 'success');
       setShowGoogleModal(false);
-      navigate(isAdm ? '/admin' : '/dashboard');
+      const isPrivileged = isAdm || isRec || ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_RECRUITER', 'ADMIN', 'MANAGER', 'RECRUITER'].includes(response.user?.role);
+      navigate(isPrivileged ? '/admin' : '/dashboard');
     } catch (err) {
       console.warn('Backend Google SSO response:', err);
       const serverMsg = err.response?.data?.message || err.message || '';
@@ -309,7 +310,8 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
       };
       loginUser({ accessToken: fallbackToken, user: fallbackUser });
       showToast(`Welcome back, ${fallbackUser.fullName}!`, 'success');
-      navigate(isAdm ? '/admin' : '/dashboard');
+      const isPrivileged = isAdm || isRec || fallbackUser.role === 'ROLE_ADMIN' || fallbackUser.role === 'ROLE_MANAGER';
+      navigate(isPrivileged ? '/admin' : '/dashboard');
     } finally {
       setGoogleSubmitting(false);
     }
@@ -448,7 +450,8 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
 
           loginUser(response);
           showToast(`Signed in successfully as ${response.user.fullName}!`, 'success');
-          if (response.user.role === 'ROLE_ADMIN' || cleanEmail.includes('admin')) {
+          const isPrivileged = isAdm || isRec || ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_RECRUITER', 'ADMIN', 'MANAGER', 'RECRUITER'].includes(response.user.role);
+          if (isPrivileged) {
             navigate('/admin');
           } else {
             navigate('/dashboard');
@@ -471,7 +474,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
             id: isAdm ? 1 : isRec ? 2 : 3,
             fullName: savedProfile?.fullName || (isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Candidate Applicant'),
             email: cleanEmail,
-            role: isAdm ? 'ROLE_ADMIN' : isRec ? 'ROLE_MANAGER' : 'ROLE_USER',
+            role: isAdm ? 'ROLE_ADMIN' : isRec ? 'ROLE_RECRUITER' : 'ROLE_USER',
             targetCareerRole: savedProfile?.targetCareerRole || (isRec ? 'Talent Acquisition Lead' : 'Full Stack Java Developer'),
             experienceLevel: savedProfile?.experienceLevel || (isAdm || isRec ? 'LEAD' : 'MID_LEVEL'),
             bio: savedProfile?.bio || '',
@@ -481,7 +484,8 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
           };
           loginUser({ accessToken: fallbackToken, user: fallbackUser });
           showToast(`Signed in successfully as ${fallbackUser.fullName}!`, 'success');
-          if (isAdm) {
+          const isPrivileged = isAdm || isRec || ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_RECRUITER', 'ADMIN', 'MANAGER', 'RECRUITER'].includes(fallbackUser.role);
+          if (isPrivileged) {
             navigate('/admin');
           } else {
             navigate('/dashboard');

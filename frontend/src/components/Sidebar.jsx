@@ -40,8 +40,12 @@ const Sidebar = () => {
     user?.role === 'ROLE_ADMIN' ||
     user?.role === 'ROLE_MANAGER' ||
     user?.role === 'ROLE_RECRUITER' ||
+    user?.role === 'RECRUITER' ||
+    user?.role === 'MANAGER' ||
+    user?.role === 'ADMIN' ||
     user?.email?.toLowerCase().includes('admin') ||
-    user?.email?.toLowerCase().includes('recruiter')
+    user?.email?.toLowerCase().includes('recruiter') ||
+    user?.email?.toLowerCase().includes('manager')
   ) {
     links.push({ to: '/admin', label: 'Admin & Recruiter Console', icon: Shield });
   }

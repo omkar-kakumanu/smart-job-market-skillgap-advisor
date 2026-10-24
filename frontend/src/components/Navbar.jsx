@@ -6,7 +6,8 @@ import {
   Sun, 
   Moon, 
   LogOut, 
-  Cpu
+  Cpu,
+  Shield
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -14,6 +15,18 @@ const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
+
+  const isRecruiterOrAdmin = isAuthenticated && (
+    user?.role === 'ROLE_ADMIN' ||
+    user?.role === 'ROLE_MANAGER' ||
+    user?.role === 'ROLE_RECRUITER' ||
+    user?.role === 'RECRUITER' ||
+    user?.role === 'MANAGER' ||
+    user?.role === 'ADMIN' ||
+    user?.email?.toLowerCase().includes('admin') ||
+    user?.email?.toLowerCase().includes('recruiter') ||
+    user?.email?.toLowerCase().includes('manager')
+  );
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -59,6 +72,16 @@ const Navbar = () => {
 
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
+                {isRecruiterOrAdmin && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow transition cursor-pointer"
+                    title="Open Recruiter & Talent Console to edit candidate profiles and skills"
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Recruiter Console</span>
+                  </Link>
+                )}
                 <Link to="/profile" className="flex items-center space-x-2 p-1.5 rounded-xl border border-slate-200 dark:border-emerald-500/30 hover:border-indigo-400 dark:hover:border-emerald-400 bg-slate-50 dark:bg-emerald-950/40 transition">
                   {user?.profileImageUrl && !imgError ? (
                     <img

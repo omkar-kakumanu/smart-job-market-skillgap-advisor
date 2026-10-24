@@ -917,7 +917,30 @@ const AdminDashboard = () => {
 
   // Open Admin Edit Modal
   const handleOpenEditModal = (candidate) => {
+    if (!candidate) return;
     setEditingCandidate(candidate);
+    const rawSkills = Array.isArray(candidate.skills) ? candidate.skills : [];
+    const normalizedSkills = rawSkills.map((sk, idx) => {
+      if (typeof sk === 'string') {
+        return {
+          id: `sk-${idx}`,
+          skillName: sk,
+          name: sk,
+          category: 'TECHNICAL',
+          proficiencyLevel: 'INTERMEDIATE',
+          yearsExperience: 2.0
+        };
+      }
+      return {
+        ...sk,
+        skillName: sk.skillName || sk.name || 'Technical Competency',
+        name: sk.skillName || sk.name || 'Technical Competency',
+        category: sk.category || 'TECHNICAL',
+        proficiencyLevel: sk.proficiencyLevel || sk.level || 'INTERMEDIATE',
+        yearsExperience: sk.yearsExperience || sk.years || 2.0
+      };
+    });
+
     setEditForm({
       fullName: candidate.fullName || '',
       email: candidate.email || '',
@@ -927,16 +950,40 @@ const AdminDashboard = () => {
       atsScore: candidate.atsScore || 90,
       interviewScore: candidate.interviewScore || 85,
       voiceScore: candidate.voiceScore || 88,
-      skills: Array.isArray(candidate.skills) ? [...candidate.skills] : []
+      skills: normalizedSkills
+    });
+    setNewSkillItem({
+      skillName: '',
+      category: 'TECHNICAL',
+      proficiencyLevel: 'ADVANCED',
+      yearsExperience: 2.0
     });
   };
 
-  // Save Admin Candidate Edit
-  const handleSaveCandidateEdit = (e) => {
+  // Save Admin / Recruiter Candidate Edit
+  const handleSaveCandidateEdit = async (e) => {
     e.preventDefault();
     if (!editForm.fullName.trim()) {
       showToast('Candidate name is required', 'error');
       return;
+    }
+
+    // Auto-capture typed skill if user didn't hit Add Skill button
+    let finalSkills = [...editForm.skills];
+    if (newSkillItem.skillName.trim()) {
+      finalSkills.push({
+        skillName: newSkillItem.skillName.trim(),
+        name: newSkillItem.skillName.trim(),
+        category: newSkillItem.category || 'TECHNICAL',
+        proficiencyLevel: newSkillItem.proficiencyLevel || 'ADVANCED',
+        yearsExperience: parseFloat(newSkillItem.yearsExperience) || 2.0
+      });
+      setNewSkillItem({
+        skillName: '',
+        category: 'TECHNICAL',
+        proficiencyLevel: 'ADVANCED',
+        yearsExperience: 2.0
+      });
     }
 
     const updatedCand = {
@@ -948,26 +995,58 @@ const AdminDashboard = () => {
       atsScore: parseInt(editForm.atsScore) || 90,
       interviewScore: parseInt(editForm.interviewScore) || 85,
       voiceScore: parseInt(editForm.voiceScore) || 88,
-      skills: editForm.skills
+      skills: finalSkills
     };
 
+    const targetEmail = (editingCandidate.email || '').toLowerCase().trim();
     const updatedList = candidates.map(c => 
-      c.email.toLowerCase() === editingCandidate.email.toLowerCase() ? updatedCand : c
+      (c.email || '').toLowerCase().trim() === targetEmail ? updatedCand : c
     );
     setCandidates(updatedList);
 
-    // Persist in localStorage
+    // Sync with backend API
+    try {
+      const candidateId = editingCandidate.id || editingCandidate.email;
+      // 1. Update candidate basic profile
+      try {
+        await userService.updateCandidateProfile(candidateId, {
+          fullName: updatedCand.fullName,
+          targetCareerRole: updatedCand.targetCareerRole,
+          experienceLevel: updatedCand.experienceLevel,
+          bio: updatedCand.bio
+        });
+      } catch (profErr) {
+        console.warn('Backend updateCandidateProfile fallback:', profErr);
+      }
+
+      // 2. Sync candidate skills
+      for (const sk of finalSkills) {
+        try {
+          await userService.addCandidateSkill(candidateId, {
+            skillName: sk.skillName || sk.name,
+            category: sk.category || 'TECHNICAL',
+            level: sk.proficiencyLevel || 'INTERMEDIATE',
+            years: sk.yearsExperience || 1.0
+          });
+        } catch {
+          // ignore individual sync failure
+        }
+      }
+    } catch (apiErr) {
+      console.warn('Backend candidate skill sync fallback:', apiErr);
+    }
+
+    // Persist in localStorage DB
     try {
       const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
-      const key = editingCandidate.email.toLowerCase().trim();
-      db[key] = {
-        ...(db[key] || {}),
+      db[targetEmail] = {
+        ...(db[targetEmail] || {}),
         ...updatedCand
       };
       localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
 
       // If active user is this candidate, update context as well
-      if (user?.email && user.email.toLowerCase().trim() === key) {
+      if (user?.email && user.email.toLowerCase().trim() === targetEmail) {
         updateUserProfile({ ...user, ...updatedCand });
       }
     } catch (err) {
@@ -975,7 +1054,7 @@ const AdminDashboard = () => {
     }
 
     setEditingCandidate(null);
-    showToast(`Candidate profile for ${updatedCand.fullName} updated by Administrator!`, 'success');
+    showToast(`Candidate skills & profile for ${updatedCand.fullName} updated successfully!`, 'success');
   };
 
   // Add skill in Edit modal
@@ -983,8 +1062,9 @@ const AdminDashboard = () => {
     if (!newSkillItem.skillName.trim()) return;
     const item = {
       skillName: newSkillItem.skillName.trim(),
-      category: newSkillItem.category,
-      proficiencyLevel: newSkillItem.proficiencyLevel,
+      name: newSkillItem.skillName.trim(),
+      category: newSkillItem.category || 'TECHNICAL',
+      proficiencyLevel: newSkillItem.proficiencyLevel || 'ADVANCED',
       yearsExperience: parseFloat(newSkillItem.yearsExperience) || 2.0
     };
     setEditForm(prev => ({
@@ -993,18 +1073,31 @@ const AdminDashboard = () => {
     }));
     setNewSkillItem({
       skillName: '',
-      category: 'Backend',
+      category: 'TECHNICAL',
       proficiencyLevel: 'ADVANCED',
       yearsExperience: 2.0
     });
   };
 
   // Remove skill in Edit modal
-  const handleRemoveSkillInEdit = (idx) => {
+  const handleRemoveSkillInEdit = async (idx) => {
+    const skillToRemove = editForm.skills[idx];
     setEditForm(prev => ({
       ...prev,
       skills: prev.skills.filter((_, i) => i !== idx)
     }));
+
+    if (editingCandidate && (skillToRemove?.skillId || skillToRemove?.id)) {
+      try {
+        const candidateId = editingCandidate.id || editingCandidate.email;
+        const sId = skillToRemove.skillId || skillToRemove.id;
+        if (typeof sId === 'number') {
+          await userService.deleteCandidateSkill(candidateId, sId);
+        }
+      } catch (delErr) {
+        console.warn('Backend deleteCandidateSkill skipped/fallback:', delErr);
+      }
+    }
   };
 
   // Admin approves certificate
@@ -1311,12 +1404,24 @@ const AdminDashboard = () => {
             </select>
 
             {selectedCandidate && (
-              <button
-                onClick={() => setSelectedCandidate(null)}
-                className="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
-              >
-                Clear
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleOpenEditModal(selectedCandidate)}
+                  className="px-3.5 py-2 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                  title="Recruiter: Add or update candidate skills and profile"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Candidate & Skills</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCandidate(null)}
+                  className="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+                >
+                  Clear
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -1410,16 +1515,28 @@ const AdminDashboard = () => {
                               )}
                             </td>
                             <td className="p-4 text-center">
-                              <button
-                                onClick={() => {
-                                  setSelectedCandidate(c);
-                                  setDossierSubTab('voice');
-                                }}
-                                className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs border border-indigo-200 transition inline-flex items-center gap-1.5"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>Inspect Answers</span>
-                              </button>
+                              <div className="flex items-center justify-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedCandidate(c);
+                                    setDossierSubTab('voice');
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs border border-indigo-200 transition inline-flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>Answers</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditModal(c)}
+                                  className="px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition inline-flex items-center gap-1 cursor-pointer"
+                                  title="Recruiter: Edit candidate profile & skills"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                  <span>Edit Skills</span>
+                                </button>
+                              </div>
                             </td>
                             <td className="p-4 text-right">
                               <div className="flex items-center justify-end gap-2">
@@ -1725,14 +1842,15 @@ const AdminDashboard = () => {
                               )}
                             </button>
 
-                            {/* Edit Candidate Profile (Admin Only) */}
+                            {/* Edit Candidate Profile & Skills (Recruiter & Admin) */}
                             <button
+                              type="button"
                               onClick={() => handleOpenEditModal(cand)}
-                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow flex items-center gap-1.5 transition"
-                              title="Admin: Edit candidate skills, role, or evaluation"
+                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow flex items-center gap-1.5 transition cursor-pointer"
+                              title="Recruiter/Admin: Add skills, update competencies, or adjust candidate role"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
-                              <span>Admin Edit</span>
+                              <span>Edit Candidate & Skills</span>
                             </button>
                           </div>
                         </div>
@@ -2533,19 +2651,33 @@ const AdminDashboard = () => {
                     )}
                   </button>
 
-                  <button
-                    onClick={() => setSelectedCandidate(null)}
-                    className="px-5 py-2 text-xs font-black text-white gradient-btn rounded-xl shadow"
-                  >
-                    Close Dossier
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const c = selectedCandidate;
+                        setSelectedCandidate(null);
+                        handleOpenEditModal(c);
+                      }}
+                      className="px-4 py-2 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow transition flex items-center gap-1.5 cursor-pointer"
+                      title="Recruiter: Add or update candidate skills"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Add / Edit Skills</span>
+                    </button>
+                    <button
+                      onClick={() => setSelectedCandidate(null)}
+                      className="px-5 py-2 text-xs font-black text-white gradient-btn rounded-xl shadow cursor-pointer"
+                    >
+                      Close Dossier
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           );
         })()}
 
-        {/* MODAL 2: ADMIN EDIT CANDIDATE PROFILE MODAL */}
+        {/* MODAL 2: ADMIN & RECRUITER EDIT CANDIDATE PROFILE MODAL */}
         {editingCandidate && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="glass max-w-2xl w-full p-6 sm:p-8 rounded-3xl border border-indigo-300/60 dark:border-indigo-800/60 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95">
@@ -2553,10 +2685,10 @@ const AdminDashboard = () => {
                 <div>
                   <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
                     <Edit3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    <span>Administrator Profile Override: {editingCandidate.fullName}</span>
+                    <span>Recruiter & Administrator Profile Override: {editingCandidate.fullName}</span>
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    As an administrator or recruiter, you have privileged authority to update candidate attributes, role benchmarks, and skills.
+                    As an authorized recruiter or administrator, you have privileged authority to add candidate skills, adjust proficiency levels, and update career benchmarks.
                   </p>
                 </div>
                 <button
@@ -2674,31 +2806,42 @@ const AdminDashboard = () => {
 
                   {/* Skills pill list with remove button */}
                   <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
-                    {editForm.skills.map((s, idx) => (
-                      <span
-                        key={idx}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-white dark:bg-darkcard text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-sm"
-                      >
-                        <span>{s.skillName || s.name}</span>
-                        <span className="text-[10px] text-indigo-600 dark:text-indigo-400">({s.proficiencyLevel || 'ADVANCED'})</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSkillInEdit(idx)}
-                          className="text-rose-500 hover:text-rose-700 ml-1"
+                    {editForm.skills.length === 0 ? (
+                      <p className="text-xs text-gray-400 italic p-1">No verified skills cataloged yet. Type below and click Add Skill.</p>
+                    ) : (
+                      editForm.skills.map((s, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-white dark:bg-darkcard text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-sm"
                         >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
+                          <span>{typeof s === 'string' ? s : (s.skillName || s.name || 'Competency')}</span>
+                          <span className="text-[10px] text-indigo-600 dark:text-indigo-400">({typeof s === 'object' ? (s.proficiencyLevel || s.level || 'ADVANCED') : 'ADVANCED'})</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSkillInEdit(idx)}
+                            className="text-rose-500 hover:text-rose-700 ml-1 cursor-pointer"
+                            title="Remove skill"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))
+                    )}
                   </div>
 
                   {/* Add skill row */}
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
                     <input
                       type="text"
-                      placeholder="Add technical skill..."
+                      placeholder="Add technical skill (e.g. AWS, Python, Kubernetes)..."
                       value={newSkillItem.skillName}
                       onChange={(e) => setNewSkillItem({ ...newSkillItem, skillName: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddSkillInEdit();
+                        }
+                      }}
                       className="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-darkcard text-xs sm:col-span-2"
                     />
                     <select

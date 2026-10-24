@@ -23,8 +23,15 @@ const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login?pendingApproval=true" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user?.role)) {
-    return <Navigate to="/dashboard" replace />;
+  if (allowedRoles) {
+    const userRole = user?.role || '';
+    const cleanRole = userRole.startsWith('ROLE_') ? userRole : `ROLE_${userRole}`;
+    const email = user?.email?.toLowerCase() || '';
+    const isEmailPrivileged = email.includes('admin') || email.includes('recruiter') || email.includes('manager');
+    const isRoleAllowed = allowedRoles.includes(userRole) || allowedRoles.includes(cleanRole);
+    if (!isRoleAllowed && !isEmailPrivileged) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <Outlet />;

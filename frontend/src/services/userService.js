@@ -34,5 +34,20 @@ export const userService = {
   getCandidateInterviews: async (userId) => {
     const res = await api.get(`/interviews/candidate/${userId}`);
     return res.data.data;
+  },
+
+  addCandidateSkill: async (userId, skillData) => {
+    const res = await api.post(`/users/${userId}/skills`, skillData);
+    return res.data.data;
+  },
+
+  deleteCandidateSkill: async (userId, skillId) => {
+    const res = await api.delete(`/users/${userId}/skills/${skillId}`);
+    return res.data;
+  },
+
+  updateCandidateProfile: async (userId, data) => {
+    const res = await api.put(`/users/${userId}/profile`, data);
+    return res.data.data;
   }
 };

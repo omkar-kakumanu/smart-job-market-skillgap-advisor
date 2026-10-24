@@ -109,7 +109,7 @@ public class AuthService {
             user = userOpt.get();
             boolean matches = passwordEncoder.matches(password, user.getPassword()) ||
                               ("admin123".equals(password) && user.getRole() == Role.ROLE_ADMIN) ||
-                              ("recruiter123".equals(password) && user.getRole() == Role.ROLE_MANAGER) ||
+                              ("recruiter123".equals(password) && (user.getRole() == Role.ROLE_MANAGER || user.getRole() == Role.ROLE_RECRUITER)) ||
                               ("candidate123".equals(password) && user.getRole() == Role.ROLE_USER) ||
                               "password123".equals(password) ||
                               "AdminPass123!".equals(password) ||
@@ -127,7 +127,9 @@ public class AuthService {
             Role role = Role.ROLE_USER;
             if (email.contains("admin")) {
                 role = Role.ROLE_ADMIN;
-            } else if (email.contains("recruiter") || email.contains("manager")) {
+            } else if (email.contains("recruiter")) {
+                role = Role.ROLE_RECRUITER;
+            } else if (email.contains("manager")) {
                 role = Role.ROLE_MANAGER;
             }
 
@@ -178,7 +180,9 @@ public class AuthService {
         Role role = Role.ROLE_USER;
         if (email.contains("admin")) {
             role = Role.ROLE_ADMIN;
-        } else if (email.contains("recruiter") || email.contains("manager") || "Talent Acquisition Lead".equalsIgnoreCase(request.getRole())) {
+        } else if (email.contains("recruiter") || "Talent Acquisition Lead".equalsIgnoreCase(request.getRole())) {
+            role = Role.ROLE_RECRUITER;
+        } else if (email.contains("manager")) {
             role = Role.ROLE_MANAGER;
         }
 

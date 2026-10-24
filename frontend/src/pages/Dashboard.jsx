@@ -60,8 +60,12 @@ const Dashboard = () => {
     user?.role === 'ROLE_ADMIN' || 
     user?.role === 'ROLE_MANAGER' || 
     user?.role === 'ROLE_RECRUITER' || 
+    user?.role === 'RECRUITER' || 
+    user?.role === 'MANAGER' || 
+    user?.role === 'ADMIN' || 
     user?.email?.toLowerCase().includes('admin') || 
-    user?.email?.toLowerCase().includes('recruiter');
+    user?.email?.toLowerCase().includes('recruiter') ||
+    user?.email?.toLowerCase().includes('manager');
 
   const atsScore = user?.atsScore || 92;
   const matchScore = user?.skillMatchScore || (latestScan ? latestScan.matchPercentage : 94);

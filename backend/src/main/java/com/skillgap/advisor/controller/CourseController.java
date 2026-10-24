@@ -34,8 +34,8 @@ public class CourseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Add new course resource (Admin/Manager only)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECRUITER')")
+    @Operation(summary = "Add new course resource (Admin/Recruiter/Manager)")
     public ResponseEntity<ApiResponse<CourseDto>> createCourse(@RequestBody CourseDto dto) {
         CourseDto created = courseService.createCourse(dto);
         return new ResponseEntity<>(ApiResponse.success(created, "Course created"), HttpStatus.CREATED);
