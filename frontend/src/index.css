@@ -156,15 +156,25 @@
 
 @keyframes trainBob {
   0%, 100% {
-    transform: translateY(0px) scale(1.03);
+    transform: translateY(0px) scale(1);
   }
   50% {
-    transform: translateY(-6px) scale(1.03);
+    transform: translateY(-4px) scale(1.01);
   }
 }
 
 .animate-train-bob {
-  animation: trainBob 3s ease-in-out infinite;
+  transform-origin: center bottom;
+  animation: trainBob 3.5s ease-in-out infinite;
+}
+
+/* Day Mode styling for the train frame: converts dark cockpit into high-tech pearlescent silver/white cockpit */
+.train-frame-day {
+  filter: invert(0.92) hue-rotate(185deg) brightness(1.08) contrast(1.1);
+}
+
+.dark .train-frame-day {
+  filter: none;
 }
 
 /* Typography Hierarchy */
