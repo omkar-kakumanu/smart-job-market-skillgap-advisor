@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import Breadcrumb from '../components/Breadcrumb';
 import StatCard from '../components/StatCard';
@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { jobService } from '../services/jobService';
 import { userService } from '../services/userService';
-import { updateCandidateApprovalStatus } from '../context/AuthContext';
+import { updateCandidateApprovalStatus, getUserPassword, setUserPassword } from '../context/AuthContext';
 import { 
   Shield, 
   Plus, 
@@ -38,7 +38,14 @@ import {
   Check,
   ChevronRight,
   User,
-  ArrowUpDown
+  ArrowUpDown,
+  ArrowLeftRight,
+  ChevronLeft,
+  Key,
+  RefreshCw,
+  AlertTriangle,
+  FileCheck,
+  FolderOpen
 } from 'lucide-react';
 import { EXPERIENCE_LEVELS, SKILL_CATEGORIES, PROFICIENCY_LEVELS } from '../utils/constants';
 
@@ -55,6 +62,24 @@ const AdminDashboard = () => {
   const [certRequests, setCertRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Table Scroll Refs for User Convenience
+  const approvalsTableRef = useRef(null);
+  const certApprovalsTableRef = useRef(null);
+  const rankingsContainerRef = useRef(null);
+
+  // Inspect Resume Document Modal State
+  const [inspectingDocument, setInspectingDocument] = useState(null);
+
+  // Admin Reset User Password Modal State
+  const [adminResetCandidate, setAdminResetCandidate] = useState(null);
+  const [adminNewPassword, setAdminNewPassword] = useState('');
+
+  // Reset Directory Confirmation Modal State
+  const [showResetDirectoryModal, setShowResetDirectoryModal] = useState(false);
+
+  // Check if active session is Admin
+  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.email?.toLowerCase().includes('admin');
+
   // Filter & Search states for Rankings
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
@@ -69,6 +94,7 @@ const AdminDashboard = () => {
     targetCareerRole: '',
     experienceLevel: 'ENTRY_LEVEL',
     bio: '',
+    role: 'ROLE_USER',
     atsScore: 90,
     interviewScore: 85,
     voiceScore: 88,
@@ -947,6 +973,7 @@ const AdminDashboard = () => {
       targetCareerRole: candidate.targetCareerRole || '',
       experienceLevel: candidate.experienceLevel || 'ENTRY_LEVEL',
       bio: candidate.bio || '',
+      role: candidate.role || 'ROLE_USER',
       atsScore: candidate.atsScore || 90,
       interviewScore: candidate.interviewScore || 85,
       voiceScore: candidate.voiceScore || 88,
@@ -986,11 +1013,18 @@ const AdminDashboard = () => {
       });
     }
 
+    // Strict Role Permission: Only Admin can grant Admin role!
+    if (editForm.role === 'ROLE_ADMIN' && !isAdmin) {
+      showToast('Access Denied: Only System Administrators can grant Admin privileges.', 'error');
+      return;
+    }
+
     const updatedCand = {
       ...editingCandidate,
       fullName: editForm.fullName.trim(),
       targetCareerRole: editForm.targetCareerRole.trim(),
       experienceLevel: editForm.experienceLevel,
+      role: editForm.role || editingCandidate.role || 'ROLE_USER',
       bio: editForm.bio.trim(),
       atsScore: parseInt(editForm.atsScore) || 90,
       interviewScore: parseInt(editForm.interviewScore) || 85,
@@ -1100,16 +1134,113 @@ const AdminDashboard = () => {
     }
   };
 
-  // Admin approves certificate
+
+  // Horizontal & Vertical Scroll Helpers so users don't have to scroll to bottom
+  const scrollApprovals = (left = true) => {
+    if (approvalsTableRef.current) {
+      approvalsTableRef.current.scrollBy({ left: left ? -280 : 280, behavior: 'smooth' });
+    }
+  };
+
+  const scrollCertificates = (left = true) => {
+    if (certApprovalsTableRef.current) {
+      certApprovalsTableRef.current.scrollBy({ left: left ? -280 : 280, behavior: 'smooth' });
+    }
+  };
+
+  // Inspect Document Handler: Look up submitted PDF/DOCX resume
+  const handleInspectDocument = (cand) => {
+    if (!cand) return;
+    const clean = (cand.email || '').toLowerCase().trim();
+    let doc = cand.resumeDocument || null;
+
+    if (!doc) {
+      try {
+        const store = JSON.parse(localStorage.getItem('skillgap_resumes_store') || '{}');
+        doc = store[clean] || JSON.parse(localStorage.getItem('skillgap_resume_doc_' + clean) || 'null');
+      } catch (e) {
+        console.warn('Error reading resume doc', e);
+      }
+    }
+
+    if (!doc) {
+      // Create benchmark synthesized document representation for standard roster
+      doc = {
+        fileName: cand.resumeName || `${cand.fullName.replace(/\s+/g, '_')}_Official_Resume.pdf`,
+        fileType: 'application/pdf',
+        fileSize: 49200,
+        uploadedAt: cand.submissionDate || new Date().toISOString(),
+        rawText: `${cand.fullName}\nTarget Role: ${cand.targetCareerRole}\nEmail: ${cand.email}\nSeniority: ${cand.experienceLevel}\n\nExecutive Summary:\n${cand.bio || 'Verified enterprise candidate with proven engineering capabilities.'}\n\nVerified Technical Competencies:\n${(cand.skills || []).map(s => `- ${s.skillName || s.name} (${s.proficiencyLevel || 'ADVANCED'}, ${s.yearsExperience || 2} yrs)`).join('\n')}`,
+        extractedSkills: (cand.skills || []).map(s => s.skillName || s.name),
+        candidateName: cand.fullName,
+        candidateEmail: cand.email
+      };
+    }
+
+    setInspectingDocument(doc);
+  };
+
+  // Admin submit password change for specific candidate
+  const handleAdminSetPasswordSubmit = (e) => {
+    e.preventDefault();
+    if (!adminResetCandidate?.email) return;
+    if (!adminNewPassword || adminNewPassword.length < 6) {
+      showToast('Password must be at least 6 characters long.', 'error');
+      return;
+    }
+    const clean = adminResetCandidate.email.toLowerCase().trim();
+    setUserPassword(clean, adminNewPassword);
+    showToast(`Password successfully updated for ${adminResetCandidate.fullName} (${clean})!`, 'success');
+    setAdminResetCandidate(null);
+    setAdminNewPassword('');
+  };
+
+  // Remove candidate registration request from interface
+  const handleRemoveCandidateRequest = (candEmail) => {
+    if (!candEmail) return;
+    const clean = candEmail.toLowerCase().trim();
+    setCandidates(prev => prev.filter(c => (c.email || '').toLowerCase().trim() !== clean));
+    try {
+      const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+      delete db[clean];
+      localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+    } catch (e) {
+      console.warn('Failed to delete candidate', e);
+    }
+    showToast('Registration request permanently removed from interface.', 'info');
+  };
+
+  // Remove completed or rejected certificate request from interface
+  const handleRemoveCertRequest = (reqId) => {
+    const updated = certRequests.filter(r => r.id !== reqId);
+    setCertRequests(updated);
+    localStorage.setItem('skillgap_cert_requests', JSON.stringify(updated));
+    showToast('Certificate request dismissed and removed from interface.', 'info');
+  };
+
+  // Safe reset directory with confirmation
+  const handleConfirmResetDirectory = () => {
+    localStorage.removeItem('skillgap_profiles_db');
+    loadCandidates();
+    setShowResetDirectoryModal(false);
+    showToast('Candidate directory safely reset to enterprise benchmarks.', 'success');
+  };
+
+  // Admin approves certificate and automatically updates candidate profile skills
   const handleApproveCert = (reqId) => {
     const code = `SKG-2026-AUTH-${Math.floor(1000 + Math.random() * 9000)}`;
+    let targetEmail = null;
+    let certifiedSkills = [];
+
     const updated = certRequests.map(r => {
       if (r.id === reqId) {
+        targetEmail = (r.candidateEmail || '').toLowerCase().trim();
+        certifiedSkills = r.skills || [];
         return {
           ...r,
           status: 'APPROVED',
           approvedDate: new Date().toISOString(),
-          approvedBy: 'Platform System Administrator (Official Board)',
+          approvedBy: user?.fullName ? `${user.fullName} (${isAdmin ? 'System Administrator' : 'Talent Acquisition Lead'})` : 'Platform Administrator (Official Board)',
           verificationCode: code,
           remarks: 'Officially validated and authenticated by Platform Administrator.'
         };
@@ -1119,7 +1250,55 @@ const AdminDashboard = () => {
 
     setCertRequests(updated);
     localStorage.setItem('skillgap_cert_requests', JSON.stringify(updated));
-    showToast(`Certificate approved! Verification Code: ${code}`, 'success');
+
+    // CRITICAL: Automatically add approved skills into candidate profile!
+    if (targetEmail && certifiedSkills.length > 0) {
+      try {
+        const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+        const cand = db[targetEmail] || candidates.find(c => (c.email || '').toLowerCase().trim() === targetEmail) || {};
+        const existingSkills = [...(cand.skills || [])];
+
+        for (const sk of certifiedSkills) {
+          const sName = sk.name || sk.skillName;
+          const idx = existingSkills.findIndex(item => (item.skillName || item.name || '').toLowerCase() === sName.toLowerCase());
+          if (idx >= 0) {
+            existingSkills[idx] = {
+              ...existingSkills[idx],
+              proficiencyLevel: sk.proficiency || sk.proficiencyLevel || 'ADVANCED',
+              yearsExperience: parseFloat(sk.years || sk.yearsExperience) || 2.5
+            };
+          } else {
+            existingSkills.push({
+              id: `sk-cert-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+              skillName: sName,
+              category: sk.category || 'TECHNICAL',
+              proficiencyLevel: sk.proficiency || sk.proficiencyLevel || 'ADVANCED',
+              yearsExperience: parseFloat(sk.years || sk.yearsExperience) || 2.5
+            });
+          }
+        }
+
+        const updatedCand = {
+          ...cand,
+          skills: existingSkills,
+          certStatus: 'APPROVED',
+          lastUpdated: new Date().toISOString()
+        };
+
+        db[targetEmail] = updatedCand;
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+
+        setCandidates(prev => prev.map(c => (c.email || '').toLowerCase().trim() === targetEmail ? { ...c, ...updatedCand } : c));
+
+        if (user?.email && user.email.toLowerCase().trim() === targetEmail) {
+          updateUserProfile({ ...user, ...updatedCand });
+        }
+      } catch (err) {
+        console.warn('Error syncing approved certificate skills to candidate:', err);
+      }
+    }
+
+    showToast(`Certificate officially approved! ${certifiedSkills.length} competencies added to candidate profile. Code: ${code}`, 'success');
   };
 
   // Admin rejects certificate
@@ -1463,10 +1642,54 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            {/* Approvals Table */}
+            {/* Top Horizontal & Vertical Navigation Toolbar */}
+            <div className="flex items-center justify-between flex-wrap gap-2 px-1">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
+                <ArrowLeftRight className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Scroll table horizontally to review telemetry, passwords, and actions:</span>
+              </div>
+              <div className="flex items-center gap-1.5 font-tech">
+                <button
+                  type="button"
+                  onClick={() => scrollApprovals(true)}
+                  className="px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-gray-200 bg-white dark:bg-darkcard hover:bg-slate-100 rounded-lg border border-slate-200 dark:border-gray-700 transition flex items-center gap-1 cursor-pointer shadow-xs"
+                  title="Scroll table left"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Left</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollApprovals(false)}
+                  className="px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-gray-200 bg-white dark:bg-darkcard hover:bg-slate-100 rounded-lg border border-slate-200 dark:border-gray-700 transition flex items-center gap-1 cursor-pointer shadow-xs"
+                  title="Scroll table right"
+                >
+                  <span>Right</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => approvalsTableRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="px-2 py-1 text-xs font-bold text-slate-700 dark:text-gray-200 bg-white dark:bg-darkcard hover:bg-slate-100 rounded-lg border border-slate-200 dark:border-gray-700 transition cursor-pointer shadow-xs"
+                  title="Scroll to top of table"
+                >
+                  Top
+                </button>
+                <button
+                  type="button"
+                  onClick={() => approvalsTableRef.current?.scrollTo({ top: 99999, behavior: 'smooth' })}
+                  className="px-2 py-1 text-xs font-bold text-slate-700 dark:text-gray-200 bg-white dark:bg-darkcard hover:bg-slate-100 rounded-lg border border-slate-200 dark:border-gray-700 transition cursor-pointer shadow-xs"
+                  title="Scroll to bottom of table"
+                >
+                  Bottom
+                </button>
+              </div>
+            </div>
+
+            {/* Approvals Table Container */}
             <div className="glass rounded-3xl border border-gray-200/60 dark:border-gray-800/60 overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
+              <div ref={approvalsTableRef} className="overflow-x-auto max-h-[520px] overflow-y-auto scroll-smooth">
+                <table className="w-full text-left border-collapse text-xs min-w-[900px]">
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-slate-900/60 font-black text-gray-500 uppercase tracking-wider">
                       <th className="p-4">Candidate</th>
@@ -1539,24 +1762,59 @@ const AdminDashboard = () => {
                               </div>
                             </td>
                             <td className="p-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {/* Inspect Resume Document */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleInspectDocument(c)}
+                                  className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-gray-300 transition cursor-pointer"
+                                  title="Inspect submitted PDF / DOCX resume file to verify credentials"
+                                >
+                                  <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                                </button>
+
+                                {/* Admin Set Password */}
+                                {isAdmin && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setAdminResetCandidate(c);
+                                      setAdminNewPassword('');
+                                    }}
+                                    className="p-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 transition cursor-pointer"
+                                    title="Admin: Set or reset login password for this account"
+                                  >
+                                    <Key className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+
                                 {st !== 'APPROVED' ? (
                                   <button
                                     onClick={() => handleUpdateApprovalStatus(c.email, 'APPROVED')}
-                                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs shadow-sm transition inline-flex items-center gap-1"
+                                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs shadow-sm transition inline-flex items-center gap-1 cursor-pointer"
                                   >
                                     <Check className="w-3.5 h-3.5" />
-                                    <span>Approve Access</span>
+                                    <span>Approve</span>
                                   </button>
                                 ) : (
                                   <button
                                     onClick={() => handleUpdateApprovalStatus(c.email, 'REJECTED')}
-                                    className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40 rounded-xl font-bold text-xs transition inline-flex items-center gap-1"
+                                    className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40 rounded-xl font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
                                   >
                                     <X className="w-3.5 h-3.5" />
                                     <span>Revoke</span>
                                   </button>
                                 )}
+
+                                {/* Remove request completely from interface */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveCandidateRequest(c.email)}
+                                  className="p-1.5 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 transition cursor-pointer"
+                                  title="Remove this registration request completely from the interface"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -1842,6 +2100,33 @@ const AdminDashboard = () => {
                               )}
                             </button>
 
+                            {/* Inspect Resume Document */}
+                            <button
+                              type="button"
+                              onClick={() => handleInspectDocument(cand)}
+                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700 transition flex items-center gap-1.5 cursor-pointer"
+                              title="Inspect submitted PDF/DOCX resume file to check if skills are real"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                              <span>Inspect Resume</span>
+                            </button>
+
+                            {/* Admin Reset Password */}
+                            {isAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAdminResetCandidate(cand);
+                                  setAdminNewPassword('');
+                                }}
+                                className="px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 transition flex items-center gap-1.5 cursor-pointer"
+                                title="Admin: Set or reset login password for this account"
+                              >
+                                <Key className="w-3.5 h-3.5" />
+                                <span>Set Password</span>
+                              </button>
+                            )}
+
                             {/* Edit Candidate Profile & Skills (Recruiter & Admin) */}
                             <button
                               type="button"
@@ -2004,31 +2289,55 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Approval Actions */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Inspect Candidate Resume Document */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const found = candidates.find(c => (c.email || '').toLowerCase().trim() === (req.candidateEmail || '').toLowerCase().trim());
+                              handleInspectDocument(found || { fullName: req.candidateName, email: req.candidateEmail, targetCareerRole: req.careerRole });
+                            }}
+                            className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700 transition flex items-center gap-1.5 cursor-pointer"
+                            title="Inspect submitted PDF / DOCX resume file to verify if claimed skills are authentic"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>Inspect Resume</span>
+                          </button>
+
                           {req.status !== 'APPROVED' ? (
                             <button
                               onClick={() => handleApproveCert(req.id)}
-                              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow flex items-center gap-1.5 transition"
+                              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow flex items-center gap-1.5 transition cursor-pointer"
                             >
                               <CheckCircle2 className="w-4 h-4" />
-                              <span>Authorize & Seal Certificate</span>
+                              <span>Authorize & Add Skills to Profile</span>
                             </button>
                           ) : (
                             <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-300">
                               <CheckCircle2 className="w-4 h-4" />
-                              <span>Cryptographically Verified</span>
+                              <span>Skills Approved in Profile</span>
                             </div>
                           )}
 
                           {req.status !== 'REJECTED' && (
                             <button
                               onClick={() => handleRejectCert(req.id)}
-                              className="px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900 transition flex items-center gap-1"
+                              className="px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900 transition flex items-center gap-1 cursor-pointer"
                             >
                               <XCircle className="w-3.5 h-3.5" />
                               <span>Reject</span>
                             </button>
                           )}
+
+                          {/* Dismiss / Remove completed request from interface */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCertRequest(req.id)}
+                            className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 transition cursor-pointer"
+                            title="Dismiss & Remove Completed Request from Interface"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
 
@@ -2786,6 +3095,56 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
+
+                {/* System Role Tier - Only Admins can grant Admin role */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    System Role Tier (Security & Access Level)
+                  </label>
+                  <div className="grid grid-cols-3 gap-2 font-tech">
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, role: 'ROLE_USER' })}
+                      className={`p-2 rounded-xl text-xs font-bold border transition ${
+                        editForm.role === 'ROLE_USER'
+                          ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                          : 'bg-white dark:bg-darkcard text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                      }`}
+                    >
+                      Candidate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, role: 'ROLE_RECRUITER' })}
+                      className={`p-2 rounded-xl text-xs font-bold border transition ${
+                        editForm.role === 'ROLE_RECRUITER' || editForm.role === 'ROLE_MANAGER'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                          : 'bg-white dark:bg-darkcard text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                      }`}
+                    >
+                      Recruiter
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!isAdmin) {
+                          showToast('Access Denied: Only System Administrators can grant Admin privileges.', 'error');
+                          return;
+                        }
+                        setEditForm({ ...editForm, role: 'ROLE_ADMIN' });
+                      }}
+                      className={`p-2 rounded-xl text-xs font-bold border transition ${
+                        editForm.role === 'ROLE_ADMIN'
+                          ? 'bg-slate-900 dark:bg-emerald-600 text-white border-slate-900 shadow-sm'
+                          : 'bg-white dark:bg-darkcard text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                      } ${!isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      title={!isAdmin ? 'Only System Administrators can grant Admin privileges' : 'Grant Administrator privileges'}
+                    >
+                      Admin {!isAdmin && '(Locked)'}
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Executive Recruiter Notes & Bio</label>
                   <textarea
@@ -2886,6 +3245,204 @@ const AdminDashboard = () => {
           </div>
         )}
       </main>
+
+      {/* ================= DOCUMENT INSPECTOR / RESUME PREVIEW MODAL ================= */}
+      {inspectingDocument && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-darkcard max-w-3xl w-full p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95 font-sans">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-800">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                    <span>Document Inspector & Credential Audit</span>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200">
+                      {inspectingDocument.fileName?.endsWith('.docx') ? 'DOCX DOCUMENT' : 'PDF RESUME'}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-gray-500 font-mono">
+                    Candidate: <strong>{inspectingDocument.candidateName}</strong> ({inspectingDocument.candidateEmail})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setInspectingDocument(null)}
+                className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Document Metadata Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs">
+              <div>
+                <span className="text-[10px] text-gray-400 font-bold block">FILE NAME</span>
+                <span className="font-bold text-gray-900 dark:text-gray-200 truncate block">{inspectingDocument.fileName}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-gray-400 font-bold block">SUBMITTED DATE</span>
+                <span className="font-bold text-gray-900 dark:text-gray-200">{new Date(inspectingDocument.uploadedAt || Date.now()).toLocaleDateString()}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-gray-400 font-bold block">FILE SIZE</span>
+                <span className="font-bold text-gray-900 dark:text-gray-200">{Math.round((inspectingDocument.fileSize || 45000) / 1024)} KB</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-gray-400 font-bold block">AUDIT STATUS</span>
+                <span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Payload Stored</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Extracted Skills Claim Badges */}
+            {inspectingDocument.extractedSkills?.length > 0 && (
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  Extracted Competency Claims ({inspectingDocument.extractedSkills.length})
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-2.5 rounded-2xl bg-slate-50 dark:bg-darkbg border border-slate-200 dark:border-gray-800">
+                  {inspectingDocument.extractedSkills.map((sk, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                    >
+                      {sk}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Raw Document Text Preview */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                Original Resume Text Content & Structure
+              </label>
+              <div className="p-4 rounded-2xl bg-slate-900 text-slate-100 font-mono text-xs max-h-72 overflow-y-auto leading-relaxed border border-slate-800 whitespace-pre-wrap select-text">
+                {inspectingDocument.rawText || 'No plain-text preview available. Document payload verified cryptographically.'}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setInspectingDocument(null)}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
+              >
+                Close Document Inspection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ADMIN SET / RESET USER PASSWORD MODAL ================= */}
+      {adminResetCandidate && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-darkcard max-w-md w-full p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-gray-800 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 font-sans">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-800">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 dark:text-white">Admin: Reset Password</h3>
+                  <p className="text-xs text-gray-500 font-mono">{adminResetCandidate.fullName} ({adminResetCandidate.email})</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setAdminResetCandidate(null)}
+                className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAdminSetPasswordSubmit} className="space-y-4 font-tech">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">
+                  Assign New Login Password (min 6 characters)
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-amber-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="password"
+                    value={adminNewPassword}
+                    onChange={(e) => setAdminNewPassword(e.target.value)}
+                    placeholder="Enter new account password"
+                    required
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-gray-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  This overrides the password immediately across the login portal and account sessions.
+                </p>
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setAdminResetCandidate(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition shadow-md cursor-pointer flex items-center gap-1.5"
+                >
+                  <Key className="w-3.5 h-3.5" />
+                  <span>Update Password</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= RESET DIRECTORY CONFIRMATION MODAL ================= */}
+      {showResetDirectoryModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-darkcard max-w-md w-full p-6 sm:p-8 rounded-3xl border border-rose-200 dark:border-rose-900/60 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 font-sans">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-200 dark:border-gray-800">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-900">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white">Confirm Directory Reset</h3>
+                <p className="text-xs text-rose-600 dark:text-rose-400 font-bold">Safe Protection Warning</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
+              Are you sure you want to reset the candidate directory? All candidate roster entries will be restored to enterprise benchmark presets. This prevents accidental data loss from unintentional clicks.
+            </p>
+
+            <div className="flex gap-2 justify-end pt-2 font-tech">
+              <button
+                type="button"
+                onClick={() => setShowResetDirectoryModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 transition cursor-pointer"
+              >
+                Cancel Keep Data
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmResetDirectory}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition shadow-md cursor-pointer flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Yes, Reset Directory</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

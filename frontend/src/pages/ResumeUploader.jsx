@@ -178,6 +178,14 @@ const ResumeUploader = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
+  const isPrivileged =
+    user?.role === 'ROLE_ADMIN' ||
+    user?.role === 'ROLE_MANAGER' ||
+    user?.role === 'ROLE_RECRUITER' ||
+    user?.email?.toLowerCase().includes('admin') ||
+    user?.email?.toLowerCase().includes('recruiter') ||
+    user?.email?.toLowerCase().includes('manager');
+
   const isAdmin = user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_MANAGER' || user?.email?.toLowerCase().includes('admin');
   const isProfileLocked = Boolean(user?.isProfileLocked);
 
@@ -316,6 +324,29 @@ Bachelor of Technology (B.Tech) in Computer Science
         console.warn('Backend update fallback', backendErr);
       }
 
+      // Construct comprehensive document payload for administrative audit
+      const userEmail = (user?.email || parsedProfile.email || 'user@skillgap.com').toLowerCase().trim();
+      const documentPayload = {
+        fileName: parsedProfile.documentName || (file?.name) || 'Candidate_Resume.pdf',
+        fileType: file?.type || (parsedProfile.documentName?.endsWith('.docx') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'application/pdf'),
+        fileSize: file?.size || (parsedProfile.rawText ? parsedProfile.rawText.length * 2 : 48500),
+        uploadedAt: new Date().toISOString(),
+        rawText: parsedProfile.rawText || pastedText || 'Submitted candidate credentials, experience history, and claimed technical proficiencies.',
+        extractedSkills: parsedProfile.extractedSkills || [],
+        candidateName: parsedProfile.fullName,
+        candidateEmail: userEmail
+      };
+
+      // Store in global resume file store for recruiter & admin inspection
+      try {
+        const resumesStore = JSON.parse(localStorage.getItem('skillgap_resumes_store') || '{}');
+        resumesStore[userEmail] = documentPayload;
+        localStorage.setItem('skillgap_resumes_store', JSON.stringify(resumesStore));
+        localStorage.setItem('skillgap_resume_doc_' + userEmail, JSON.stringify(documentPayload));
+      } catch (e) {
+        console.warn('Failed saving to skillgap_resumes_store:', e);
+      }
+
       // Lock profile state
       const updatedUser = {
         ...user,
@@ -323,6 +354,7 @@ Bachelor of Technology (B.Tech) in Computer Science
         targetCareerRole: parsedProfile.currentRole,
         bio: parsedProfile.headline,
         resumeFileName: parsedProfile.documentName,
+        resumeDocument: documentPayload,
         skills: convertedSkills,
         isProfileLocked: true, // PROFILE IS NOW LOCKED!
         atsScore: parsedProfile.atsScore || 92
@@ -332,7 +364,6 @@ Bachelor of Technology (B.Tech) in Computer Science
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
       // Persist in localStorage DB
-      const userEmail = (user?.email || parsedProfile.email || 'user@skillgap.com').toLowerCase();
       try {
         const stored = localStorage.getItem('skillgap_profiles_db');
         const db = stored ? JSON.parse(stored) : {};
@@ -342,6 +373,7 @@ Bachelor of Technology (B.Tech) in Computer Science
           targetCareerRole: parsedProfile.currentRole,
           bio: parsedProfile.headline,
           resumeFileName: parsedProfile.documentName,
+          resumeDocument: documentPayload,
           skills: convertedSkills,
           isProfileLocked: true,
           atsScore: parsedProfile.atsScore || 92,
@@ -688,24 +720,33 @@ Bachelor of Technology (B.Tech) in Computer Science
                       ))}
                     </div>
 
-                    {/* Add Custom Skill Form (Disabled when locked) */}
+                    {/* Add Custom Skill Form (Restricted to Recruiter and Admin) */}
                     {!isLocked && (
-                      <form onSubmit={handleAddSkill} className="flex gap-2 pt-1">
-                        <input
-                          type="text"
-                          value={newSkillInput}
-                          onChange={(e) => setNewSkillInput(e.target.value)}
-                          placeholder="Add new skill (e.g. Redis, Kafka, AWS)..."
-                          className="flex-1 px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkcard text-xs focus:ring-2 focus:ring-sky-500"
-                        />
-                        <button
-                          type="submit"
-                          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold text-xs rounded-xl transition flex items-center gap-1"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Add Skill</span>
-                        </button>
-                      </form>
+                      isPrivileged ? (
+                        <form onSubmit={handleAddSkill} className="flex gap-2 pt-1 font-tech">
+                          <input
+                            type="text"
+                            value={newSkillInput}
+                            onChange={(e) => setNewSkillInput(e.target.value)}
+                            placeholder="Add verified skill (Recruiter/Admin authority)..."
+                            className="flex-1 px-3 py-2 rounded-xl border border-indigo-300 dark:border-emerald-500/40 bg-white dark:bg-darkcard text-xs focus:ring-2 focus:ring-indigo-500"
+                          />
+                          <button
+                            type="submit"
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1 cursor-pointer whitespace-nowrap shadow-sm"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Add Verified Skill</span>
+                          </button>
+                        </form>
+                      ) : (
+                        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+                          <span>
+                            <strong>Candidate Skill Addition Restricted:</strong> To maintain credential authenticity, manual skill entry is restricted to verified Recruiters & Administrators. All competencies must be verified from your uploaded resume or through official certificate audit.
+                          </span>
+                        </div>
+                      )
                     )}
                   </div>
 

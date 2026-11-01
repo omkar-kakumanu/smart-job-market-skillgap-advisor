@@ -5,6 +5,94 @@ export const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
 
+// Pre-defined default system credentials for recognized accounts
+export const DEFAULT_USER_PASSWORDS = {
+  'admin@skillgap.com': 'AdminPass123!',
+  'admin@copilot.com': 'admin123',
+  'admin@smartjobadvisor.com': 'AdminPass123!',
+  'j.manju.raghvin@gmail.com': 'admin123',
+  'manager@skillgap.com': 'Password123!',
+  'recruiter@skillgap.com': 'Password123!',
+  'recruiter@copilot.com': 'recruiter123',
+  'sarah.jenkins@gmail.com': 'recruiter123',
+  'user@skillgap.com': 'Password123!',
+  'candidate@skillgap.com': 'Password123!',
+  'candidate@copilot.com': 'candidate123',
+  'devansh.verma@example.com': 'Password123!',
+  'rohan.mehta@cloudhire.io': 'Password123!',
+  'priya.sharma@aimodels.io': 'Password123!',
+  'sarah.johnson@example.com': 'candidate123',
+  'sarah.johnson@gmail.com': 'candidate123',
+  'abhishek@gmail.com': 'candidate123',
+  'omkar.kakumanu17@gmail.com': 'candidate123'
+};
+
+export const EMAIL_ALIASES_MAP = {
+  'admin@skillgap.com': ['admin@copilot.com', 'admin@smartjobadvisor.com', 'j.manju.raghvin@gmail.com'],
+  'admin@copilot.com': ['admin@skillgap.com', 'admin@smartjobadvisor.com', 'j.manju.raghvin@gmail.com'],
+  'j.manju.raghvin@gmail.com': ['admin@skillgap.com', 'admin@copilot.com', 'admin@smartjobadvisor.com'],
+  'manager@skillgap.com': ['recruiter@skillgap.com', 'recruiter@copilot.com', 'sarah.jenkins@gmail.com'],
+  'recruiter@skillgap.com': ['manager@skillgap.com', 'recruiter@copilot.com', 'sarah.jenkins@gmail.com'],
+  'recruiter@copilot.com': ['manager@skillgap.com', 'recruiter@skillgap.com', 'sarah.jenkins@gmail.com'],
+  'sarah.jenkins@gmail.com': ['manager@skillgap.com', 'recruiter@skillgap.com', 'recruiter@copilot.com'],
+  'user@skillgap.com': ['candidate@skillgap.com', 'candidate@copilot.com'],
+  'candidate@skillgap.com': ['user@skillgap.com', 'candidate@copilot.com'],
+  'candidate@copilot.com': ['user@skillgap.com', 'candidate@skillgap.com', 'sarah.johnson@example.com', 'sarah.johnson@gmail.com'],
+  'sarah.johnson@example.com': ['sarah.johnson@gmail.com', 'candidate@copilot.com', 'user@skillgap.com'],
+  'sarah.johnson@gmail.com': ['sarah.johnson@example.com', 'candidate@copilot.com', 'user@skillgap.com']
+};
+
+export const getUserPassword = (email) => {
+  if (!email) return null;
+  const clean = email.toLowerCase().trim();
+  try {
+    const passwords = JSON.parse(localStorage.getItem('skillgap_user_passwords') || '{}');
+    if (passwords[clean]) return passwords[clean];
+    const rcPass = localStorage.getItem('rc_password_' + clean);
+    if (rcPass) return rcPass;
+    if (DEFAULT_USER_PASSWORDS[clean]) return DEFAULT_USER_PASSWORDS[clean];
+    // Check aliases
+    const aliases = EMAIL_ALIASES_MAP[clean] || [];
+    for (const a of aliases) {
+      if (passwords[a]) return passwords[a];
+      if (DEFAULT_USER_PASSWORDS[a]) return DEFAULT_USER_PASSWORDS[a];
+    }
+  } catch (err) {
+    console.warn('Error reading user password:', err);
+  }
+  return DEFAULT_USER_PASSWORDS[clean] || null;
+};
+
+export const setUserPassword = (email, newPassword) => {
+  if (!email || !newPassword) return false;
+  const clean = email.toLowerCase().trim();
+  try {
+    const passwords = JSON.parse(localStorage.getItem('skillgap_user_passwords') || '{}');
+    passwords[clean] = newPassword;
+    localStorage.setItem('rc_password_' + clean, newPassword);
+
+    const aliases = EMAIL_ALIASES_MAP[clean] || [];
+    for (const a of aliases) {
+      passwords[a] = newPassword;
+      localStorage.setItem('rc_password_' + a, newPassword);
+    }
+    localStorage.setItem('skillgap_user_passwords', JSON.stringify(passwords));
+    return true;
+  } catch (err) {
+    console.warn('Error setting user password:', err);
+    return false;
+  }
+};
+
+export const verifyUserPassword = (email, inputPassword) => {
+  if (!email || !inputPassword) return false;
+  const stored = getUserPassword(email);
+  if (!stored) {
+    return false;
+  }
+  return stored === inputPassword;
+};
+
 export const getStoredProfileByEmail = (email) => {
   if (!email) return null;
   try {
@@ -47,10 +135,17 @@ export const updateCandidateApprovalStatus = (email, status) => {
 };
 
 export const AuthProvider = ({ children }) => {
+  // REQUIREMENT: When website is opened freshly, there should NOT be any active account automatically logged in!
+  // Direct "Bridge Gap..." landing page should be shown.
+  // Active session exists ONLY if user explicitly logged in during this active browser session.
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
-    if (!saved) return null;
     try {
+      const sessionActive = sessionStorage.getItem('skillgap_active_session');
+      if (!sessionActive) {
+        return null; // Start with NO active account on site open!
+      }
+      const saved = sessionStorage.getItem('user') || localStorage.getItem('user');
+      if (!saved) return null;
       const parsed = JSON.parse(saved);
       if (parsed?.email) {
         const stored = getStoredProfileByEmail(parsed.email);
@@ -61,11 +156,35 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   });
-  const [loading, setLoading] = useState(true);
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const saved = localStorage.getItem('user');
+    // Initialize default passwords in localStorage if not set
+    try {
+      const current = JSON.parse(localStorage.getItem('skillgap_user_passwords') || '{}');
+      let changed = false;
+      for (const [em, pass] of Object.entries(DEFAULT_USER_PASSWORDS)) {
+        if (!current[em]) {
+          current[em] = pass;
+          changed = true;
+        }
+      }
+      if (changed) {
+        localStorage.setItem('skillgap_user_passwords', JSON.stringify(current));
+      }
+    } catch (e) {
+      console.warn('Could not initialize default passwords', e);
+    }
+
+    const sessionActive = sessionStorage.getItem('skillgap_active_session');
+    if (!sessionActive) {
+      setLoading(false);
+      return;
+    }
+
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    const saved = sessionStorage.getItem('user') || localStorage.getItem('user');
     if (token) {
       if (saved) {
         try {
@@ -73,7 +192,7 @@ export const AuthProvider = ({ children }) => {
           const stored = parsed?.email ? getStoredProfileByEmail(parsed.email) : null;
           setUser(stored ? { ...parsed, ...stored } : parsed);
         } catch (e) {
-          // ignore corrupted localstorage
+          // ignore corrupted storage
         }
       }
       userService.getProfile()
@@ -82,11 +201,11 @@ export const AuthProvider = ({ children }) => {
             const stored = data.email ? getStoredProfileByEmail(data.email) : null;
             const merged = stored ? { ...data, ...stored } : data;
             setUser(merged);
+            sessionStorage.setItem('user', JSON.stringify(merged));
             localStorage.setItem('user', JSON.stringify(merged));
           }
         })
         .catch((err) => {
-          // Only log out on explicit 401 Unauthorized from backend
           if (err.response?.status === 401) {
             logout();
           }
@@ -102,7 +221,13 @@ export const AuthProvider = ({ children }) => {
     const stored = email ? getStoredProfileByEmail(email) : null;
     const mergedUser = stored ? { ...authData.user, ...stored } : authData.user;
     
-    localStorage.setItem('token', authData.accessToken);
+    // Set active session flags
+    sessionStorage.setItem('skillgap_active_session', 'true');
+    sessionStorage.setItem('token', authData.accessToken || ('token_' + Date.now()));
+    sessionStorage.setItem('user', JSON.stringify(mergedUser));
+
+    // Also sync to localStorage for persistent settings/profiles
+    localStorage.setItem('token', authData.accessToken || ('token_' + Date.now()));
     localStorage.setItem('user', JSON.stringify(mergedUser));
     setUser(mergedUser);
   };
@@ -111,6 +236,9 @@ export const AuthProvider = ({ children }) => {
     if (user?.email) {
       saveStoredProfileByEmail(user.email, user);
     }
+    sessionStorage.removeItem('skillgap_active_session');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
@@ -118,6 +246,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateUserProfile = (newProfile) => {
     setUser(newProfile);
+    sessionStorage.setItem('user', JSON.stringify(newProfile));
     localStorage.setItem('user', JSON.stringify(newProfile));
     if (newProfile?.email) {
       saveStoredProfileByEmail(newProfile.email, newProfile);
@@ -125,7 +254,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginUser, logout, updateUserProfile, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      loginUser, 
+      logout, 
+      updateUserProfile, 
+      isAuthenticated: !!user,
+      getUserPassword,
+      setUserPassword,
+      verifyUserPassword
+    }}>
       {children}
     </AuthContext.Provider>
   );

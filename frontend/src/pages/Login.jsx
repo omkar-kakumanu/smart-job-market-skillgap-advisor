@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   CheckCircle2, 
-  AlertCircle, 
+  AlertCircle,
+  Info, 
   Eye, 
   EyeOff, 
   Sparkles, 
@@ -17,10 +18,13 @@ import {
   Zap, 
   UserPlus,
   Clock,
-  ShieldAlert
+  ShieldAlert,
+  Key,
+  Send,
+  Check
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { getStoredProfileByEmail, saveStoredProfileByEmail } from '../context/AuthContext';
+import { getStoredProfileByEmail, saveStoredProfileByEmail, getUserPassword, setUserPassword, verifyUserPassword } from '../context/AuthContext';
 import { useToast } from '../hooks/useToast';
 import { useTheme } from '../hooks/useTheme';
 import { authService } from '../services/authService';
@@ -91,7 +95,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('manager@skillgap.com');
-  const [password, setPassword] = useState('Password123!');
+  const [password, setPassword] = useState('');
   const [targetRole, setTargetRole] = useState('Full Stack Java Developer');
   const [experienceLevel, setExperienceLevel] = useState('ENTRY_LEVEL');
   const [profileImageUrl, setProfileImageUrl] = useState('');
@@ -106,6 +110,17 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
   const [showGoogleModal, setShowGoogleModal] = useState(false);
   const [customGmail, setCustomGmail] = useState('');
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
+
+  // Forgot Password Modal State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotCode, setForgotCode] = useState('');
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [forgotNotice, setForgotNotice] = useState(null);
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
 
   // Left Column Active Step
   const [activeStep, setActiveStep] = useState(1);
@@ -126,15 +141,16 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
     setMode(newMode);
     setStatusNotice(null);
     setRegistrationSubmitted(null);
+    setPassword(''); // Strictly clear password! Must prompt for password.
     if (newMode === 'RECRUITER') {
       setEmail('manager@skillgap.com');
-      setPassword('Password123!');
+      showToast('Loaded Recruiter account (manager@skillgap.com). Please enter your password.', 'info');
     } else if (newMode === 'CANDIDATE') {
       setEmail('user@skillgap.com');
-      setPassword('Password123!');
+      showToast('Loaded Candidate account (user@skillgap.com). Please enter your password.', 'info');
     } else if (newMode === 'ADMIN') {
       setEmail('admin@skillgap.com');
-      setPassword('AdminPass123!');
+      showToast('Loaded Administrator account (admin@skillgap.com). Please enter your password.', 'info');
     } else if (newMode === 'SIGN_UP') {
       setEmail('');
       setPassword('');
@@ -145,18 +161,28 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
   const handleQuickDemoFill = (roleMode) => {
     setStatusNotice(null);
     setRegistrationSubmitted(null);
+    setPassword(''); // Strictly clear password!
     if (roleMode === 'RECRUITER') {
       setEmail('manager@skillgap.com');
-      setPassword('Password123!');
-      showToast('Loaded Recruiter / Manager Credentials (manager@skillgap.com)', 'info');
+      showToast('Loaded Recruiter email. Please enter your account password.', 'info');
+      setStatusNotice({
+        type: 'INFO',
+        message: 'Loaded recruiter email (manager@skillgap.com). Please enter your password to sign in.'
+      });
     } else if (roleMode === 'CANDIDATE') {
       setEmail('user@skillgap.com');
-      setPassword('Password123!');
-      showToast('Loaded Candidate Credentials (user@skillgap.com)', 'info');
+      showToast('Loaded Candidate email. Please enter your account password.', 'info');
+      setStatusNotice({
+        type: 'INFO',
+        message: 'Loaded candidate email (user@skillgap.com). Please enter your password to sign in.'
+      });
     } else if (roleMode === 'ADMIN') {
       setEmail('admin@skillgap.com');
-      setPassword('AdminPass123!');
-      showToast('Loaded Administrator Credentials (admin@skillgap.com)', 'info');
+      showToast('Loaded Administrator email. Please enter your account password.', 'info');
+      setStatusNotice({
+        type: 'INFO',
+        message: 'Loaded administrator email (admin@skillgap.com). Please enter your password to sign in.'
+      });
     }
   };
 
@@ -168,8 +194,6 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
     const isAdm = cleanEmail.includes('admin');
     const isRec = cleanEmail.includes('recruiter') || cleanEmail.includes('manager') || userRole?.includes('Recruiter') || userRole?.includes('Manager');
     const savedProfile = getStoredProfileByEmail(cleanEmail);
-    const isPreRegistered = PRE_REGISTERED_SYSTEM_EMAILS.includes(cleanEmail);
-    const isLocallyKnown = isAdm || isRec || isPreRegistered || Boolean(savedProfile);
 
     // If currently on SIGN_UP tab: link Google account and prefill registration fields
     if (mode === 'SIGN_UP') {
@@ -177,12 +201,13 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
       setFirstName(parts[0] || '');
       setLastName(parts.slice(1).join(' ') || '');
       setEmail(cleanEmail);
+      setPassword('');
       setShowGoogleModal(false);
       setGoogleSubmitting(false);
-      showToast('Google account linked! Please complete and submit your candidate registration.', 'info');
+      showToast('Google account linked! Please create your password to submit registration.', 'info');
       setStatusNotice({
         type: 'SUCCESS',
-        message: `Linked Google identity (${cleanEmail}). Select your target career role below and submit your registration for administrator approval.`
+        message: `Linked Google identity (${cleanEmail}). Set your password and target career role below.`
       });
       return;
     }
@@ -211,110 +236,16 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
       return;
     }
 
-    try {
-      const response = await authService.googleSso({
-        email: cleanEmail,
-        name: selectedName,
-        role: userRole,
-        profileImageUrl: ''
-      });
-
-      if (!isAdm && !isRec && (response.user?.approvalStatus === 'PENDING_APPROVAL' || response.user?.isApproved === false)) {
-        setStatusNotice({
-          type: 'PENDING',
-          message: 'Your registration is awaiting administrative review. An administrator must activate your profile before you can log in.'
-        });
-        showToast('Registration pending admin approval.', 'warning');
-        setShowGoogleModal(false);
-        setGoogleSubmitting(false);
-        return;
-      }
-
-      loginUser(response);
-      showToast(`Welcome back, ${response.user?.fullName || selectedName}!`, 'success');
-      setShowGoogleModal(false);
-      const isPrivileged = isAdm || isRec || ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_RECRUITER', 'ADMIN', 'MANAGER', 'RECRUITER'].includes(response.user?.role);
-      navigate(isPrivileged ? '/admin' : '/dashboard');
-    } catch (err) {
-      console.warn('Backend Google SSO response:', err);
-      const serverMsg = err.response?.data?.message || err.message || '';
-
-      setShowGoogleModal(false);
-      setGoogleSubmitting(false);
-
-      // 1. Account not registered on server
-      if (serverMsg.includes('No registered account') || serverMsg.includes('register as a candidate') || (!isLocallyKnown && err.response?.status === 400)) {
-        const parts = (selectedName || cleanEmail.split('@')[0]).trim().split(' ');
-        setFirstName(parts[0] || '');
-        setLastName(parts.slice(1).join(' ') || '');
-        setEmail(cleanEmail);
-        setMode('SIGN_UP');
-        setStatusNotice({
-          type: 'ERROR',
-          message: `No registered candidate profile found for ${cleanEmail}. Candidate registration and administrator approval are required before you can access the portal. Please register below.`
-        });
-        showToast('Account not registered. Please sign up first.', 'error');
-        return;
-      }
-
-      // 2. Account pending administrator approval
-      if (serverMsg.includes('pending administrator approval') || serverMsg.includes('activate your profile') || serverMsg.includes('pending')) {
-        setStatusNotice({
-          type: 'PENDING',
-          message: serverMsg || 'Your candidate registration is currently awaiting administrator review and approval. An administrator must approve your account before you can log in.'
-        });
-        showToast('Registration pending admin approval.', 'warning');
-        return;
-      }
-
-      // 3. Server offline/unreachable: strictly prevent unregistered users from entering
-      if (!isLocallyKnown) {
-        const parts = (selectedName || cleanEmail.split('@')[0]).trim().split(' ');
-        setFirstName(parts[0] || '');
-        setLastName(parts.slice(1).join(' ') || '');
-        setEmail(cleanEmail);
-        setMode('SIGN_UP');
-        setStatusNotice({
-          type: 'ERROR',
-          message: `No registered candidate profile found for ${cleanEmail}. Candidate registration and administrator approval are required before you can access the portal. Please complete the registration form below.`
-        });
-        showToast('Account not registered. Please register first.', 'error');
-        return;
-      }
-
-      // 4. Known locally, verify approval status
-      if (!isAdm && !isRec && savedProfile && savedProfile.approvalStatus !== 'APPROVED') {
-        setStatusNotice({
-          type: savedProfile.approvalStatus === 'REJECTED' ? 'ERROR' : 'PENDING',
-          message: savedProfile.approvalStatus === 'REJECTED'
-            ? 'Your candidate registration was reviewed and rejected by an administrator.'
-            : 'Your candidate account is currently awaiting administrator approval. You will be able to log in once an administrator approves your profile.'
-        });
-        showToast(savedProfile.approvalStatus === 'REJECTED' ? 'Candidate account rejected.' : 'Candidate account pending administrator review.', 'warning');
-        return;
-      }
-
-      // 5. Approved or authorized system user permitted via fallback
-      const fallbackToken = 'sso_session_' + Date.now();
-      const fallbackUser = {
-        id: isAdm ? 1 : isRec ? 2 : (savedProfile?.id || 3),
-        fullName: savedProfile?.fullName || selectedName || (isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Alex Vance'),
-        email: cleanEmail,
-        role: isAdm ? 'ROLE_ADMIN' : isRec ? 'ROLE_MANAGER' : 'ROLE_USER',
-        targetCareerRole: savedProfile?.targetCareerRole || (isRec ? 'Talent Acquisition Lead' : 'Full Stack Java Developer'),
-        experienceLevel: savedProfile?.experienceLevel || (isAdm || isRec ? 'LEAD' : 'MID_LEVEL'),
-        bio: savedProfile?.bio || '',
-        profileImageUrl: savedProfile?.profileImageUrl || '',
-        approvalStatus: 'APPROVED',
-        skills: savedProfile?.skills || []
-      };
-      loginUser({ accessToken: fallbackToken, user: fallbackUser });
-      showToast(`Welcome back, ${fallbackUser.fullName}!`, 'success');
-      const isPrivileged = isAdm || isRec || fallbackUser.role === 'ROLE_ADMIN' || fallbackUser.role === 'ROLE_MANAGER';
-      navigate(isPrivileged ? '/admin' : '/dashboard');
-    } finally {
-      setGoogleSubmitting(false);
-    }
+    // REQUIRE PASSWORD: Select the account, set password empty, prompt user to enter password
+    setEmail(cleanEmail);
+    setPassword('');
+    setShowGoogleModal(false);
+    setGoogleSubmitting(false);
+    showToast(`Google account selected (${cleanEmail}). Please enter your password to sign in.`, 'info');
+    setStatusNotice({
+      type: 'INFO',
+      message: `Selected account: ${cleanEmail}. Please enter your password to authenticate securely.`
+    });
   };
 
   const handleCustomGmailSubmit = (e) => {
@@ -331,6 +262,89 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
       .join(' ') || 'Candidate Applicant';
 
     handleGoogleSelect(clean, formattedName, 'Candidate Applicant');
+  };
+
+
+  // Forgot Password: Step 1 - Send Confirmation Code
+  const handleSendResetEmail = (e) => {
+    e.preventDefault();
+    setForgotNotice(null);
+    const clean = (forgotEmail || '').toLowerCase().trim();
+    if (!clean || !clean.includes('@')) {
+      setForgotNotice({ type: 'ERROR', message: 'Please provide a valid registered email address.' });
+      return;
+    }
+
+    const savedProf = getStoredProfileByEmail(clean);
+    const storedPass = getUserPassword(clean);
+    const isPreReg = PRE_REGISTERED_SYSTEM_EMAILS.includes(clean);
+    const isRecognized = Boolean(savedProf) || Boolean(storedPass) || isPreReg;
+
+    if (!isRecognized) {
+      setForgotNotice({
+        type: 'ERROR',
+        message: `No account registered with ${clean}. Please register as a candidate first.`
+      });
+      return;
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code);
+    setForgotStep(2);
+    setForgotNotice({
+      type: 'SUCCESS',
+      message: `Password reset confirmation email dispatched to ${clean}! Your 6-digit confirmation code is: ${code}`
+    });
+    showToast(`Verification code generated: ${code}`, 'info');
+  };
+
+  // Forgot Password: Step 2 - Verify Code & Set New Password
+  const handleResetPasswordSubmit = (e) => {
+    e.preventDefault();
+    setForgotNotice(null);
+    const clean = (forgotEmail || '').toLowerCase().trim();
+
+    if (!forgotCode.trim()) {
+      setForgotNotice({ type: 'ERROR', message: 'Please enter the 6-digit confirmation code.' });
+      return;
+    }
+
+    if (forgotCode.trim() !== generatedCode.trim()) {
+      setForgotNotice({ type: 'ERROR', message: 'Invalid confirmation code. Please check your simulated email alert.' });
+      return;
+    }
+
+    if (!forgotNewPassword || forgotNewPassword.length < 6) {
+      setForgotNotice({ type: 'ERROR', message: 'New password must be at least 6 characters long.' });
+      return;
+    }
+
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setForgotNotice({ type: 'ERROR', message: 'New password and confirm password do not match.' });
+      return;
+    }
+
+    setForgotSubmitting(true);
+    const updated = setUserPassword(clean, forgotNewPassword);
+    setForgotSubmitting(false);
+
+    if (updated) {
+      showToast('Password updated successfully! You can now log in.', 'success');
+      setEmail(clean);
+      setPassword(forgotNewPassword);
+      setShowForgotModal(false);
+      setForgotCode('');
+      setForgotNewPassword('');
+      setForgotConfirmPassword('');
+      setGeneratedCode('');
+      setForgotStep(1);
+      setStatusNotice({
+        type: 'SUCCESS',
+        message: `Password for ${clean} updated successfully. Please enter your new password to sign in.`
+      });
+    } else {
+      setForgotNotice({ type: 'ERROR', message: 'Failed to update password. Please try again.' });
+    }
   };
 
   // Form Submission
@@ -374,6 +388,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
 
         // Persist to local candidates registry
         saveStoredProfileByEmail(cleanEmail, candidateProfile);
+        setUserPassword(cleanEmail, password || 'candidate123');
 
         try {
           await authService.register({
@@ -432,10 +447,20 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
           }
         }
 
+        if (!password || password.trim() === '') {
+          setStatusNotice({
+            type: 'ERROR',
+            message: 'Password is required to sign in. Please enter your account password.'
+          });
+          showToast('Password is required. Please enter your password.', 'error');
+          setSubmitting(false);
+          return;
+        }
+
         try {
           const response = await authService.login({
             email: cleanEmail,
-            password: password || (mode === 'ADMIN' ? 'AdminPass123!' : 'Password123!')
+            password: password.trim()
           });
 
           // Check if response indicated pending approval
@@ -469,9 +494,42 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
             return;
           }
 
+          // Absolute password verification: random passwords and unregistered accounts are strictly rejected!
+          const isPreReg = PRE_REGISTERED_SYSTEM_EMAILS.includes(cleanEmail);
+          const storedPass = getUserPassword(cleanEmail);
+          const isLocallyKnown = isAdm || isRec || isPreReg || Boolean(savedProfile) || Boolean(storedPass);
+
+          if (!isLocallyKnown) {
+            setStatusNotice({
+              type: 'ERROR',
+              message: `No registered account found for "${cleanEmail}". Unregistered users cannot sign in. Please sign up as a candidate first.`
+            });
+            showToast('Account not found. Please register first.', 'error');
+            return;
+          }
+
+          if (!password || password.length < 6) {
+            setStatusNotice({
+              type: 'ERROR',
+              message: 'Password must be at least 6 characters long.'
+            });
+            showToast('Password must be at least 6 characters.', 'error');
+            return;
+          }
+
+          const expectedPass = getUserPassword(cleanEmail);
+          if (expectedPass && password !== expectedPass) {
+            setStatusNotice({
+              type: 'ERROR',
+              message: 'Invalid password. Random or incorrect passwords are not allowed on this platform. Please check your credentials or click "Forgot password?".'
+            });
+            showToast('Invalid password. Access denied.', 'error');
+            return;
+          }
+
           const fallbackToken = 'auth_session_' + Date.now();
           const fallbackUser = {
-            id: isAdm ? 1 : isRec ? 2 : 3,
+            id: isAdm ? 1 : isRec ? 2 : (savedProfile?.id || 3),
             fullName: savedProfile?.fullName || (isAdm ? 'System Administrator' : isRec ? 'Talent Acquisition Lead' : 'Candidate Applicant'),
             email: cleanEmail,
             role: isAdm ? 'ROLE_ADMIN' : isRec ? 'ROLE_RECRUITER' : 'ROLE_USER',
@@ -517,7 +575,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] w-full bg-slate-50 dark:bg-darkbg text-slate-900 dark:text-gray-100 font-sans transition-colors duration-300 p-2 sm:p-4 lg:p-6 items-center justify-center">
+    <div className="flex min-h-[calc(100vh-4rem)] w-full bg-gradient-to-br from-slate-100 via-indigo-50/30 to-slate-200/60 dark:from-darkbg dark:via-darkcard dark:to-darkbg text-slate-900 dark:text-gray-100 font-sans transition-colors duration-300 p-2 sm:p-4 lg:p-6 items-center justify-center relative overflow-hidden">
       <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 items-stretch justify-center">
         
         {/* ================= LEFT COLUMN: HERO, LIVE METRICS & VIDEO BACKGROUND ================= */}
@@ -632,7 +690,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="w-full bg-white dark:bg-darkcard border border-slate-200 dark:border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5"
+            className="w-full bg-white/95 dark:bg-darkcard border border-slate-200/90 dark:border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(15,23,42,0.08)] dark:shadow-2xl space-y-5 backdrop-blur-xl"
           >
             {/* Top Bar: 4 Portal Selector Pills + Theme Toggle */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-gray-800 gap-2 font-tech">
@@ -724,11 +782,15 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                     ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-300'
                     : statusNotice.type === 'SUCCESS'
                     ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-300'
+                    : statusNotice.type === 'INFO'
+                    ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700 text-blue-900 dark:text-blue-300'
                     : 'bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-700 text-rose-900 dark:text-rose-300'
                 }`}
               >
                 {statusNotice.type === 'SUCCESS' ? (
                   <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                ) : statusNotice.type === 'INFO' ? (
+                  <Info className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
                 ) : (
                   <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
                 )}
@@ -826,7 +888,7 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                   onClick={() => handleQuickDemoFill(mode)}
                   className="px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition cursor-pointer shadow-sm"
                 >
-                  ⚡ Autofill {mode === 'RECRUITER' ? 'Recruiter' : mode === 'CANDIDATE' ? 'Candidate' : 'Admin'}
+                  ⚡ Fill {mode === 'RECRUITER' ? 'Recruiter' : mode === 'CANDIDATE' ? 'Candidate' : 'Admin'}
                 </button>
               </div>
             )}
@@ -928,7 +990,23 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300 mb-1">Password</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300">Password</label>
+                  {mode !== 'SIGN_UP' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotEmail(email || '');
+                        setForgotStep(1);
+                        setForgotNotice(null);
+                        setShowForgotModal(true);
+                      }}
+                      className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition cursor-pointer"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-indigo-600 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -1136,6 +1214,163 @@ const Login = ({ initialMode = 'RECRUITER' }) => {
                   </div>
                 </form>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ================= FORGOT PASSWORD CONFIRMATION MODAL ================= */}
+      <AnimatePresence>
+        {showForgotModal && (
+          <div className="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-darkcard border border-slate-200 dark:border-emerald-500/40 rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl space-y-5 relative text-slate-900 dark:text-gray-100 font-sans"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setShowForgotModal(false)}
+                className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 dark:hover:text-gray-200 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-darkbg transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Modal Header */}
+              <div className="text-center space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-emerald-950/30 text-indigo-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-indigo-200 dark:border-emerald-800">
+                  <Key className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white font-display">
+                  Reset Account Password
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">
+                  {forgotStep === 1
+                    ? 'Enter your registered email address. We will dispatch a 6-digit verification code to confirm your identity.'
+                    : 'Enter the 6-digit verification code sent to your email along with your new password.'}
+                </p>
+              </div>
+
+              {/* Alert Notice */}
+              {forgotNotice && (
+                <div
+                  className={`p-3.5 rounded-2xl text-xs font-medium border flex items-start gap-2.5 ${
+                    forgotNotice.type === 'SUCCESS'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                      : 'bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800'
+                  }`}
+                >
+                  {forgotNotice.type === 'SUCCESS' ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1 leading-relaxed">{forgotNotice.message}</div>
+                </div>
+              )}
+
+              {/* Step 1: Request Code */}
+              {forgotStep === 1 && (
+                <form onSubmit={handleSendResetEmail} className="space-y-4 font-tech">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300 mb-1">
+                      Registered Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-indigo-600 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        placeholder="your.email@example.com"
+                        required
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>Send Confirmation Code</span>
+                    <Send className="w-3.5 h-3.5" />
+                  </button>
+                </form>
+              )}
+
+              {/* Step 2: Verify Code and Reset Password */}
+              {forgotStep === 2 && (
+                <form onSubmit={handleResetPasswordSubmit} className="space-y-3.5 font-tech">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300">
+                        6-Digit Confirmation Code
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setForgotStep(1)}
+                        className="text-[10px] text-indigo-600 dark:text-emerald-400 font-bold hover:underline"
+                      >
+                        Change Email
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={forgotCode}
+                      onChange={(e) => setForgotCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="e.g. 123456"
+                      required
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-center tracking-widest font-mono text-base font-bold focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300 mb-1">
+                      New Password (min 6 characters)
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-indigo-600 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="password"
+                        value={forgotNewPassword}
+                        onChange={(e) => setForgotNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-emerald-300 mb-1">
+                      Confirm New Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-indigo-600 dark:text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="password"
+                        value={forgotConfirmPassword}
+                        onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-darkbg text-slate-900 dark:text-gray-100 text-xs font-sans focus:ring-2 focus:ring-indigo-500 dark:focus:ring-emerald-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={forgotSubmitting}
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <span>{forgotSubmitting ? 'Updating Password...' : 'Confirm & Set New Password'}</span>
+                    <Check className="w-3.5 h-3.5" />
+                  </button>
+                </form>
+              )}
             </motion.div>
           </div>
         )}

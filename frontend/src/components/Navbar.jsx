@@ -38,7 +38,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-40 bg-white/90 dark:bg-[#09120e]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-emerald-500/30 transition-all duration-300 shadow-[0_4px_20px_rgba(15,23,42,0.05)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.5)]">
+    <nav className="sticky top-0 z-40 bg-white/95 dark:bg-[#09120e]/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-emerald-500/30 transition-all duration-300 shadow-[0_4px_25px_rgba(15,23,42,0.05)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.5)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-3 group">
@@ -120,7 +120,7 @@ const Navbar = () => {
                   to="/register"
                   className="px-4 py-2 text-xs font-extrabold text-white gradient-btn rounded-xl shadow-sm hover:scale-105 transition"
                 >
-                  Get Started
+                  Register
                 </Link>
               </div>
             )}

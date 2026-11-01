@@ -4,11 +4,11 @@ import Sidebar from '../components/Sidebar';
 import Breadcrumb from '../components/Breadcrumb';
 import SkillBadge from '../components/SkillBadge';
 import ProfilePhotoUploader from '../components/ProfilePhotoUploader';
-import { useAuth, getStoredProfileByEmail, saveStoredProfileByEmail } from '../context/AuthContext';
+import { useAuth, getStoredProfileByEmail, saveStoredProfileByEmail, getUserPassword, setUserPassword, verifyUserPassword } from '../context/AuthContext';
 import { useToast } from '../hooks/useToast';
 import { userService } from '../services/userService';
 import { jobService } from '../services/jobService';
-import { User, Plus, Trash2, Save, Award, Lock, Unlock, Shield, Trophy, Edit3 } from 'lucide-react';
+import { User, Plus, Trash2, Save, Award, Lock, Unlock, Shield, Trophy, Edit3, Key, CheckCircle2, AlertCircle } from 'lucide-react';
 import { PROFICIENCY_LEVELS, EXPERIENCE_LEVELS } from '../utils/constants';
 
 const DEFAULT_SKILLS = [
@@ -79,6 +79,61 @@ const Profile = () => {
 
   const isAdmin = isPrivilegedRecruiterOrAdmin;
   const isLocked = Boolean(profile?.isProfileLocked) && !isAdmin;
+
+  // Password Change State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordNotice, setPasswordNotice] = useState(null);
+  const [passwordUpdating, setPasswordUpdating] = useState(false);
+
+  const handlePasswordChange = (e) => {
+    e.preventDefault();
+    setPasswordNotice(null);
+
+    const userEmail = profile?.email || user?.email;
+    if (!userEmail) {
+      setPasswordNotice({ type: 'ERROR', message: 'No active user session detected.' });
+      return;
+    }
+
+    if (!currentPassword) {
+      setPasswordNotice({ type: 'ERROR', message: 'Please enter your current password.' });
+      return;
+    }
+
+    const expected = getUserPassword(userEmail);
+    if (expected && currentPassword !== expected) {
+      setPasswordNotice({ type: 'ERROR', message: 'Current password is incorrect. Please verify your credentials.' });
+      showToast('Current password does not match.', 'error');
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      setPasswordNotice({ type: 'ERROR', message: 'New password must be at least 6 characters long.' });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordNotice({ type: 'ERROR', message: 'New password and confirm password do not match.' });
+      return;
+    }
+
+    setPasswordUpdating(true);
+    const updated = setUserPassword(userEmail, newPassword);
+    setPasswordUpdating(false);
+
+    if (updated) {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordNotice({ type: 'SUCCESS', message: 'Password updated successfully! Next time please sign in with your new password.' });
+      showToast('Account password updated successfully!', 'success');
+    } else {
+      setPasswordNotice({ type: 'ERROR', message: 'Failed to update password. Please try again.' });
+    }
+  };
+
 
   const handleAdminToggleLock = () => {
     const newLock = !profile?.isProfileLocked;
@@ -671,6 +726,92 @@ const Profile = () => {
             </div>
           </div>
         </div>
+
+          {/* Account Security & Password Management Card */}
+          <div className="glass p-6 rounded-3xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm space-y-4 font-sans mt-6">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-200/60 dark:border-gray-800/60">
+              <div className="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-emerald-950/40 text-indigo-600 dark:text-emerald-400 flex items-center justify-center border border-indigo-200 dark:border-emerald-800">
+                <Key className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm text-gray-900 dark:text-white">Account Security & Change Password</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Update your platform login credentials for <span className="font-mono font-bold text-indigo-600 dark:text-emerald-400">{profile?.email || user?.email}</span>
+                </p>
+              </div>
+            </div>
+
+            {passwordNotice && (
+              <div
+                className={`p-3 rounded-2xl text-xs font-medium border flex items-start gap-2 ${
+                  passwordNotice.type === 'SUCCESS'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                    : 'bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800'
+                }`}
+              >
+                {passwordNotice.type === 'SUCCESS' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                )}
+                <span>{passwordNotice.message}</span>
+              </div>
+            )}
+
+            <form onSubmit={handlePasswordChange} className="grid grid-cols-1 md:grid-cols-3 gap-3 font-tech">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  required
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">
+                  New Password (min 6 chars)
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  required
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">
+                  Confirm New Password
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    required
+                    className="flex-1 px-3 py-2 text-xs rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkbg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={passwordUpdating}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer whitespace-nowrap"
+                  >
+                    {passwordUpdating ? 'Updating...' : 'Update Password'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
       </main>
     </div>
   );
