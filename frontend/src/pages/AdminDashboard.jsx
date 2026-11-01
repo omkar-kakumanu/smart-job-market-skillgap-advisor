@@ -53,7 +53,8 @@ const AdminDashboard = () => {
   const { user, updateUserProfile } = useAuth();
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState('rankings'); // 'rankings', 'approvals', 'certificates', 'jobs', 'skills'
+  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN' || user?.email?.toLowerCase().includes('admin');
+  const [activeTab, setActiveTab] = useState(() => (user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN' || user?.email?.toLowerCase().includes('admin') ? 'approvals' : 'rankings')); // 'rankings', 'approvals', 'certificates', 'jobs', 'skills'
   const [dossierSubTab, setDossierSubTab] = useState('voice'); // 'voice', 'interview', 'profile'
   const [approvalFilter, setApprovalFilter] = useState('ALL'); // 'ALL', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED'
   const [candidates, setCandidates] = useState([]);
@@ -78,7 +79,7 @@ const AdminDashboard = () => {
   const [showResetDirectoryModal, setShowResetDirectoryModal] = useState(false);
 
   // Check if active session is Admin
-  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.email?.toLowerCase().includes('admin');
+//   const isAdmin = user?.role === 'ROLE_ADMIN' || user?.email?.toLowerCase().includes('admin');
 
   // Filter & Search states for Rankings
   const [searchTerm, setSearchTerm] = useState('');
@@ -1447,20 +1448,26 @@ const AdminDashboard = () => {
     <div className="flex min-h-[calc(100vh-4rem)]">
       <Sidebar />
       <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
-        <Breadcrumb items={[{ label: 'Executive Dashboard', to: '/dashboard' }, { label: 'Admin & Talent Console' }]} />
+        <Breadcrumb items={[{ label: 'Executive Dashboard', to: '/dashboard' }, { label: isAdmin ? 'System Administration Console' : 'Talent & Recruiter Console' }]} />
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-emerald-950/40 text-indigo-700 dark:text-emerald-300 border border-indigo-200 dark:border-emerald-500/30 rounded-full text-xs font-bold mb-2">
-              <Shield className="w-3.5 h-3.5" />
-              <span>Privileged Administrator & Talent Recruiter Governance</span>
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mb-2 ${
+              isAdmin 
+                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30'
+                : 'bg-indigo-50 dark:bg-emerald-950/40 text-indigo-700 dark:text-emerald-300 border border-indigo-200 dark:border-emerald-500/30'
+            }`}>
+              <Shield className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>{isAdmin ? 'System Administrator Governance Console' : 'Talent Acquisition & Recruiter Access'}</span>
             </div>
             <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-              <span>Candidate Leaderboard & Administrative Console</span>
+              <span>{isAdmin ? 'System Administration & Candidate Approvals' : 'Candidate Leaderboard & Talent Acquisition'}</span>
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              Multi-dimensional candidate ranking leaderboard, candidate registration access approval, voice & technical interview telemetry audits, and requisition publishing.
+              {isAdmin 
+                ? 'Candidate registration access verification, skill & certificate approvals, audit telemetry, and system governance.'
+                : 'Multi-dimensional candidate ranking leaderboard, candidate competency profiles, and technical interview evaluations.'}
             </p>
           </div>
 

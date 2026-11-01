@@ -7,6 +7,7 @@ import {
   TrendingUp,
   BookOpen,
   Shield,
+  Briefcase,
   Award,
   PanelLeftClose,
   PanelLeftOpen,
@@ -36,18 +37,20 @@ const Sidebar = () => {
     { to: '/profile', label: 'Candidate Profile', icon: User },
   ];
 
-  if (
-    user?.role === 'ROLE_ADMIN' ||
+  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN' || user?.email?.toLowerCase().includes('admin');
+  const isRecruiter = !isAdmin && (
     user?.role === 'ROLE_MANAGER' ||
     user?.role === 'ROLE_RECRUITER' ||
     user?.role === 'RECRUITER' ||
     user?.role === 'MANAGER' ||
-    user?.role === 'ADMIN' ||
-    user?.email?.toLowerCase().includes('admin') ||
     user?.email?.toLowerCase().includes('recruiter') ||
     user?.email?.toLowerCase().includes('manager')
-  ) {
-    links.push({ to: '/admin', label: 'Admin & Recruiter Console', icon: Shield });
+  );
+
+  if (isAdmin) {
+    links.push({ to: '/admin', label: 'System Admin Console', icon: Shield });
+  } else if (isRecruiter) {
+    links.push({ to: '/admin', label: 'Recruiter Console', icon: Briefcase });
   }
 
   const isLeft = position === 'left';

@@ -7,7 +7,8 @@ import {
   Moon, 
   LogOut, 
   Cpu,
-  Shield
+  Shield,
+  Briefcase
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -16,14 +17,17 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
 
-  const isRecruiterOrAdmin = isAuthenticated && (
+  const isAdmin = isAuthenticated && (
     user?.role === 'ROLE_ADMIN' ||
+    user?.role === 'ADMIN' ||
+    user?.email?.toLowerCase().includes('admin')
+  );
+
+  const isRecruiter = isAuthenticated && !isAdmin && (
     user?.role === 'ROLE_MANAGER' ||
     user?.role === 'ROLE_RECRUITER' ||
     user?.role === 'RECRUITER' ||
     user?.role === 'MANAGER' ||
-    user?.role === 'ADMIN' ||
-    user?.email?.toLowerCase().includes('admin') ||
     user?.email?.toLowerCase().includes('recruiter') ||
     user?.email?.toLowerCase().includes('manager')
   );
@@ -72,13 +76,24 @@ const Navbar = () => {
 
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
-                {isRecruiterOrAdmin && (
+                {isAdmin && (
                   <Link
                     to="/admin"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow transition cursor-pointer"
-                    title="Open Recruiter & Talent Console to edit candidate profiles and skills"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-md transition cursor-pointer border border-white/20"
+                    title="Open System Administrator Governance Console"
                   >
-                    <Shield className="w-3.5 h-3.5" />
+                    <Shield className="w-3.5 h-3.5 text-amber-400 dark:text-white" />
+                    <span className="hidden sm:inline">Admin Console</span>
+                  </Link>
+                )}
+
+                {isRecruiter && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow transition cursor-pointer"
+                    title="Open Talent Acquisition & Recruiter Console"
+                  >
+                    <Briefcase className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Recruiter Console</span>
                   </Link>
                 )}
