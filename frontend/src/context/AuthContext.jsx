@@ -119,10 +119,28 @@ export const saveStoredProfileByEmail = (email, profileData) => {
   }
 };
 
+// Recognized Protected Main / Super Administrators (Infosys Enterprise Governance Standard)
+export const PROTECTED_MAIN_ADMIN_EMAILS = [
+  'admin@skillgap.com',
+  'admin@smartjobadvisor.com',
+  'admin@copilot.com',
+  'j.manju.raghvin@gmail.com'
+];
+
+export const isProtectedMainAdmin = (email) => {
+  if (!email) return false;
+  const clean = email.toLowerCase().trim();
+  return PROTECTED_MAIN_ADMIN_EMAILS.includes(clean);
+};
+
 export const updateCandidateApprovalStatus = (email, status) => {
   if (!email) return;
   try {
     const key = email.toLowerCase().trim();
+    if (isProtectedMainAdmin(key) && status !== 'APPROVED') {
+      console.warn('Protected main admin status cannot be revoked.');
+      return;
+    }
     const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
     if (db[key]) {
       db[key].approvalStatus = status;

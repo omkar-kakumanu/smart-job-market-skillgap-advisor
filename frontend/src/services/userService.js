@@ -49,5 +49,10 @@ export const userService = {
   updateCandidateProfile: async (userId, data) => {
     const res = await api.put(`/users/${userId}/profile`, data);
     return res.data.data;
+  },
+
+  setUserRole: async (userId, role) => {
+    const res = await api.put(`/users/${userId}/role?role=${role}`);
+    return res.data.data;
   }
 };

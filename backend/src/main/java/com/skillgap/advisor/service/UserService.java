@@ -164,11 +164,61 @@ public class UserService {
         userSkillRepository.deleteByUserIdAndSkillId(user.getId(), skillId);
     }
 
+    public static boolean isProtectedMainAdmin(String email) {
+        if (email == null) return false;
+        String clean = email.toLowerCase().trim();
+        return clean.equals("admin@skillgap.com") ||
+               clean.equals("admin@smartjobadvisor.com") ||
+               clean.equals("admin@copilot.com") ||
+               clean.equals("j.manju.raghvin@gmail.com");
+    }
+
     @Transactional
     public UserProfileDto setUserApproval(Long userId, boolean approved) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        if (isProtectedMainAdmin(user.getEmail()) && !approved) {
+            throw new BadRequestException("Action Prohibited: The primary system administrator account is protected and cannot have access revoked.");
+        }
         user.setIsApproved(approved);
+        User saved = userRepository.save(user);
+        return mapToProfileDto(saved);
+    }
+
+
+    @Transactional
+    public UserProfileDto setUserRole(String userIdentifier, String roleStr) {
+        User user;
+        if (userIdentifier != null && userIdentifier.contains("@")) {
+            user = userRepository.findByEmail(userIdentifier.trim().toLowerCase())
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "email", userIdentifier));
+        } else {
+            try {
+                Long uid = Long.parseLong(userIdentifier);
+                user = userRepository.findById(uid)
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "id", uid));
+            } catch (NumberFormatException e) {
+                user = userRepository.findByEmail(userIdentifier.trim().toLowerCase())
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "identifier", userIdentifier));
+            }
+        }
+
+        Role newRole = Role.ROLE_USER;
+        String r = roleStr != null ? roleStr.trim().toUpperCase() : "ROLE_USER";
+        if (r.contains("ADMIN")) {
+            newRole = Role.ROLE_ADMIN;
+        } else if (r.contains("RECRUITER")) {
+            newRole = Role.ROLE_RECRUITER;
+        } else if (r.contains("MANAGER")) {
+            newRole = Role.ROLE_MANAGER;
+        } else {
+            newRole = Role.ROLE_USER;
+        }
+
+                if (isProtectedMainAdmin(user.getEmail()) && newRole != Role.ROLE_ADMIN) {
+            throw new BadRequestException("Action Prohibited: The primary system administrator account is protected and cannot be demoted.");
+        }
+        user.setRole(newRole);
         User saved = userRepository.save(user);
         return mapToProfileDto(saved);
     }

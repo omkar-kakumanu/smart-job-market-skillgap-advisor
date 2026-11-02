@@ -67,6 +67,16 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(updated, "Candidate approval status updated"));
     }
 
+    @PutMapping("/{userId}/role")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECRUITER')")
+    @Operation(summary = "Admin/Recruiter: Update candidate position / system role (e.g. promote candidate to recruiter)")
+    public ResponseEntity<ApiResponse<UserProfileDto>> updateUserRole(
+            @PathVariable String userId,
+            @RequestParam String role) {
+        UserProfileDto updated = userService.setUserRole(userId, role);
+        return ResponseEntity.ok(ApiResponse.success(updated, "User position and system role updated successfully"));
+    }
+
     @PutMapping("/{userId}/profile")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECRUITER')")
     @Operation(summary = "Recruiter/Admin: Update candidate profile details")

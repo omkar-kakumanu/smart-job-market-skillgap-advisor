@@ -25,18 +25,6 @@ const Sidebar = () => {
   const { user } = useAuth();
   const { isCollapsed, toggleCollapse, position, togglePosition } = useSidebar();
 
-  const links = [
-    { to: '/dashboard', label: 'Candidate Dashboard', icon: LayoutDashboard },
-    { to: '/advisor', label: 'Skill Gap Advisor', icon: Sparkles },
-    { to: '/interview', label: 'AI Technical Interview', icon: Bot },
-    { to: '/voice-screening', label: 'Voice Competency Screening', icon: Mic },
-    { to: '/resume', label: 'Resume & ATS Analyzer', icon: FileText },
-    { to: '/ats', label: 'Talent Pipeline (ATS)', icon: GitBranch },
-    { to: '/trends', label: 'Market Demand Telemetry', icon: TrendingUp },
-    { to: '/certificates', label: 'Verified Credentials', icon: Award },
-    { to: '/profile', label: 'Candidate Profile', icon: User },
-  ];
-
   const isAdmin = user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN' || user?.email?.toLowerCase().includes('admin');
   const isRecruiter = !isAdmin && (
     user?.role === 'ROLE_MANAGER' ||
@@ -47,10 +35,27 @@ const Sidebar = () => {
     user?.email?.toLowerCase().includes('manager')
   );
 
+  // Reordered: First Resume, followed by AI Technical, then Voice in line
+  const links = [
+    { to: '/resume', label: 'Resume & ATS Analyzer', icon: FileText },
+    { to: '/interview', label: 'AI Technical Interview', icon: Bot },
+    { to: '/voice-screening', label: 'Voice Competency Screening', icon: Mic },
+    { to: '/advisor', label: 'Skill Gap Advisor', icon: Sparkles },
+    { to: '/dashboard', label: isAdmin || isRecruiter ? 'Talent Analytics Dashboard' : 'Candidate Dashboard', icon: LayoutDashboard },
+    { to: '/ats', label: 'Talent Pipeline (ATS)', icon: GitBranch },
+    { to: '/trends', label: 'Market Demand Telemetry', icon: TrendingUp },
+    { to: '/certificates', label: 'Verified Credentials', icon: Award },
+  ];
+
+  // For Admin/Recruiter: Remove Candidate Profile and keep appropriately as Admin/Recruiter Profile
   if (isAdmin) {
+    links.push({ to: '/profile', label: 'Administrator Profile', icon: Shield });
     links.push({ to: '/admin', label: 'System Admin Console', icon: Shield });
   } else if (isRecruiter) {
+    links.push({ to: '/profile', label: 'Recruiter Profile', icon: Briefcase });
     links.push({ to: '/admin', label: 'Recruiter Console', icon: Briefcase });
+  } else {
+    links.push({ to: '/profile', label: 'Candidate Profile', icon: User });
   }
 
   const isLeft = position === 'left';
@@ -105,7 +110,7 @@ const Sidebar = () => {
           const Icon = link.icon;
           return (
             <NavLink
-              key={link.to}
+              key={link.to + link.label}
               to={link.to}
               title={isCollapsed ? link.label : ''}
               className={({ isActive }) =>

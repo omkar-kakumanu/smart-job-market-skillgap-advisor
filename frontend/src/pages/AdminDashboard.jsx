@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { jobService } from '../services/jobService';
 import { userService } from '../services/userService';
-import { updateCandidateApprovalStatus, getUserPassword, setUserPassword } from '../context/AuthContext';
+import { updateCandidateApprovalStatus, getUserPassword, setUserPassword, isProtectedMainAdmin } from '../context/AuthContext';
 import { 
   Shield, 
   Plus, 
@@ -61,6 +61,8 @@ const AdminDashboard = () => {
   const [jobs, setJobs] = useState([]);
   const [skills, setSkills] = useState([]);
   const [certRequests, setCertRequests] = useState([]);
+  const [skillRequests, setSkillRequests] = useState([]);
+  const [skillRequestFilter, setSkillRequestFilter] = useState('ALL');
   const [loading, setLoading] = useState(true);
 
   // Table Scroll Refs for User Convenience
@@ -769,6 +771,10 @@ const AdminDashboard = () => {
   const handleUpdateApprovalStatus = async (candidateEmail, newStatus) => {
     try {
       const emailKey = candidateEmail.toLowerCase().trim();
+      if (isProtectedMainAdmin(emailKey) && newStatus !== 'APPROVED') {
+        showToast(`Action Prohibited: Primary system administrator account (${candidateEmail}) is permanently protected and cannot be revoked.`, 'error');
+        return;
+      }
       const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
       if (db[emailKey]) {
         db[emailKey].approvalStatus = newStatus;
@@ -817,6 +823,225 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error(err);
       showToast('Failed to update candidate approval status', 'error');
+    }
+  };
+
+
+  const loadSkillRequests = () => {
+    try {
+      const stored = localStorage.getItem('skillgap_skill_requests');
+      if (stored) {
+        setSkillRequests(JSON.parse(stored));
+      } else {
+        const seed = [
+          {
+            id: 'skill_req_101',
+            candidateEmail: 'devansh.verma@example.com',
+            candidateName: 'Devansh Verma',
+            targetCareerRole: 'Full Stack Java Developer',
+            skillName: 'Apache Kafka Event Streams',
+            category: 'Messaging',
+            proficiencyLevel: 'ADVANCED',
+            yearsExperience: 2.5,
+            justification: 'Architected distributed event messaging with Kafka clusters and Spring Cloud Stream in high-throughput telemetry.',
+            status: 'PENDING_APPROVAL',
+            requestedAt: new Date(Date.now() - 3600000 * 24).toISOString()
+          },
+          {
+            id: 'skill_req_102',
+            candidateEmail: 'user@skillgap.com',
+            candidateName: 'Alex Vance',
+            targetCareerRole: 'Full Stack Java Developer',
+            skillName: 'GraphQL & Apollo Federation',
+            category: 'API',
+            proficiencyLevel: 'INTERMEDIATE',
+            yearsExperience: 1.5,
+            justification: 'Completed production schema stitching and Spring Boot GraphQL API gateway for microservices.',
+            status: 'PENDING_APPROVAL',
+            requestedAt: new Date(Date.now() - 3600000 * 12).toISOString()
+          },
+          {
+            id: 'skill_req_103',
+            candidateEmail: 'candidate@skillgap.com',
+            candidateName: 'Candidate Applicant',
+            targetCareerRole: 'Full Stack Java Developer',
+            skillName: 'Kubernetes Cluster Management',
+            category: 'DevOps',
+            proficiencyLevel: 'ADVANCED',
+            yearsExperience: 3.0,
+            justification: 'Certified Kubernetes Administrator (CKA). Managed multi-node cluster deployments with Helm charts and zero-downtime rolling updates.',
+            status: 'APPROVED',
+            approvedBy: 'Administrator Review Board',
+            approvedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+            requestedAt: new Date(Date.now() - 3600000 * 72).toISOString()
+          }
+        ];
+        localStorage.setItem('skillgap_skill_requests', JSON.stringify(seed));
+        setSkillRequests(seed);
+      }
+    } catch (e) {
+      console.warn('Failed loading skill requests', e);
+    }
+  };
+
+  const handleApproveSkillRequest = async (reqId) => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('skillgap_skill_requests') || '[]');
+      const req = stored.find(r => r.id === reqId);
+      if (!req) return;
+
+      const reviewerTitle = isAdmin ? 'Administrator Review Board' : 'Talent Acquisition Team';
+
+      const updatedStored = stored.map(r => {
+        if (r.id === reqId) {
+          return {
+            ...r,
+            status: 'APPROVED',
+            approvedBy: user?.fullName ? `${user.fullName} (${reviewerTitle})` : reviewerTitle,
+            approvedDate: new Date().toISOString()
+          };
+        }
+        return r;
+      });
+
+      localStorage.setItem('skillgap_skill_requests', JSON.stringify(updatedStored));
+      setSkillRequests(updatedStored);
+
+      const candEmail = (req.candidateEmail || '').toLowerCase().trim();
+      let db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+      let targetCand = db[candEmail] || candidates.find(c => (c.email || '').toLowerCase().trim() === candEmail);
+
+      const newSkillObj = {
+        id: Date.now(),
+        skillId: Date.now(),
+        name: req.skillName,
+        skillName: req.skillName,
+        category: req.category || 'TECHNICAL',
+        proficiencyLevel: req.proficiencyLevel || 'ADVANCED',
+        yearsExperience: req.yearsExperience || 2.0
+      };
+
+      if (targetCand) {
+        const existingSkills = targetCand.skills || [];
+        const alreadyHas = existingSkills.some(s => (s.skillName || s.name || '').toLowerCase() === req.skillName.toLowerCase());
+        const updatedSkills = alreadyHas ? existingSkills : [...existingSkills, newSkillObj];
+        targetCand = { ...targetCand, skills: updatedSkills };
+        db[candEmail] = targetCand;
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+
+        setCandidates(prev => prev.map(c => (c.email || '').toLowerCase().trim() === candEmail ? targetCand : c));
+      }
+
+      try {
+        await userService.addCandidateSkill(candEmail, {
+          skillName: req.skillName,
+          category: req.category,
+          level: req.proficiencyLevel,
+          years: req.yearsExperience
+        });
+      } catch (err) {
+        console.warn('Backend skill sync skipped:', err);
+      }
+
+      showToast(`Skill "${req.skillName}" approved and added to ${req.candidateName}'s verified profile!`, 'success');
+    } catch (e) {
+      console.error(e);
+      showToast('Failed to approve skill request', 'error');
+    }
+  };
+
+  const handleRejectSkillRequest = (reqId) => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('skillgap_skill_requests') || '[]');
+      const reviewerTitle = isAdmin ? 'Administrator' : 'Recruiter';
+      const updatedStored = stored.map(r => {
+        if (r.id === reqId) {
+          return {
+            ...r,
+            status: 'REJECTED',
+            rejectedBy: user?.fullName ? `${user.fullName} (${reviewerTitle})` : reviewerTitle,
+            rejectedDate: new Date().toISOString()
+          };
+        }
+        return r;
+      });
+
+      localStorage.setItem('skillgap_skill_requests', JSON.stringify(updatedStored));
+      setSkillRequests(updatedStored);
+      showToast('Skill request rejected.', 'info');
+    } catch (e) {
+      console.error(e);
+      showToast('Failed to reject skill request', 'error');
+    }
+  };
+
+  const handleRemoveSkillRequest = (reqId) => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('skillgap_skill_requests') || '[]');
+      const updated = stored.filter(r => r.id !== reqId);
+      localStorage.setItem('skillgap_skill_requests', JSON.stringify(updated));
+      setSkillRequests(updated);
+      showToast('Skill request dismissed and removed from interface.', 'info');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdateCandidatePosition = async (candidateEmail, newRole) => {
+    if (!candidateEmail) return;
+    const emailKey = candidateEmail.toLowerCase().trim();
+
+    // INFOSYS ENTERPRISE STANDARD: PROTECTED ROOT / MAIN ADMIN
+    if (isProtectedMainAdmin(emailKey)) {
+      showToast(`Action Prohibited: ${candidateEmail} is the protected primary system administrator. Root authority cannot be altered or demoted.`, 'error');
+      return;
+    }
+
+    if (newRole === 'ROLE_ADMIN' && !isAdmin) {
+      showToast('Access Denied: Only System Administrators can grant Admin privileges.', 'error');
+      return;
+    }
+
+    try {
+      const updatedList = candidates.map(c => {
+        if ((c.email || '').toLowerCase().trim() === emailKey) {
+          return { ...c, role: newRole };
+        }
+        return c;
+      });
+      setCandidates(updatedList);
+
+      if (selectedCandidate && (selectedCandidate.email || '').toLowerCase().trim() === emailKey) {
+        setSelectedCandidate({ ...selectedCandidate, role: newRole });
+      }
+
+      const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+      if (db[emailKey]) {
+        db[emailKey].role = newRole;
+        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
+      }
+
+      if (user?.email && user.email.toLowerCase().trim() === emailKey) {
+        updateUserProfile({ ...user, role: newRole });
+      }
+
+      try {
+        await userService.setUserRole(emailKey, newRole);
+      } catch (err) {
+        console.warn('Backend role sync skipped:', err);
+      }
+
+      const roleLabel = newRole === 'ROLE_RECRUITER' || newRole === 'ROLE_MANAGER' 
+        ? 'Recruiter' 
+        : newRole === 'ROLE_ADMIN' 
+        ? 'Administrator' 
+        : 'Candidate';
+
+      const candName = candidates.find(c => (c.email || '').toLowerCase().trim() === emailKey)?.fullName || candidateEmail;
+      showToast(`Position updated! ${candName} is now appointed as ${roleLabel}.`, 'success');
+    } catch (err) {
+      console.error('Failed to update candidate position:', err);
+      showToast('Failed to update position. Please try again.', 'error');
     }
   };
 
@@ -902,6 +1127,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchData();
     loadCertificateRequests();
+    loadSkillRequests();
     loadCandidates();
   }, []);
 
@@ -1200,6 +1426,10 @@ const AdminDashboard = () => {
   const handleRemoveCandidateRequest = (candEmail) => {
     if (!candEmail) return;
     const clean = candEmail.toLowerCase().trim();
+    if (isProtectedMainAdmin(clean)) {
+      showToast(`Action Prohibited: Primary system administrator account (${candEmail}) is permanently protected and cannot be deleted.`, 'error');
+      return;
+    }
     setCandidates(prev => prev.filter(c => (c.email || '').toLowerCase().trim() !== clean));
     try {
       const db = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
@@ -1439,6 +1669,7 @@ const AdminDashboard = () => {
 
   const pendingApprovalsCount = certRequests.filter(r => r.status === 'PENDING_APPROVAL').length;
   const pendingRegistrationsCount = candidates.filter(c => c.approvalStatus === 'PENDING_APPROVAL').length;
+  const pendingSkillRequestsCount = skillRequests.filter(r => (r.status || 'PENDING_APPROVAL') === 'PENDING_APPROVAL').length;
   const lockedCount = candidates.filter(c => c.isProfileLocked).length;
   const avgReadiness = candidates.length 
     ? Math.round(candidates.reduce((acc, c) => acc + calculateCompositeScore(c), 0) / candidates.length)
@@ -1503,6 +1734,24 @@ const AdminDashboard = () => {
               )}
             </button>
 
+
+            {/* Tab 3: Candidate Skill Requests */}
+            <button
+              onClick={() => setActiveTab('skill_requests')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                activeTab === 'skill_requests'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>Skill Requests</span>
+              {pendingSkillRequestsCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-indigo-500 text-white font-mono text-[10px] flex items-center justify-center font-black animate-pulse">
+                  {pendingSkillRequestsCount}
+                </span>
+              )}
+            </button>
             {/* Tab 3: Certificate Approvals */}
             <button
               onClick={() => setActiveTab('certificates')}
@@ -1701,6 +1950,7 @@ const AdminDashboard = () => {
                     <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-slate-900/60 font-black text-gray-500 uppercase tracking-wider">
                       <th className="p-4">Candidate</th>
                       <th className="p-4">Target Career Role</th>
+                      <th className="p-4 text-center text-slate-800 dark:text-slate-100 font-extrabold">Appointed Position</th>
                       <th className="p-4">Registered Date</th>
                       <th className="p-4">Website Access Status</th>
                       <th className="p-4 text-center">Inspect Telemetry</th>
@@ -1720,6 +1970,38 @@ const AdminDashboard = () => {
                             </td>
                             <td className="p-4">
                               <span className="font-bold text-gray-700 dark:text-gray-300">{c.targetCareerRole || 'Full Stack Java Developer'}</span>
+                            </td>
+                            {/* Appointed Position / Role Cell */}
+                            <td className="p-4 text-center">
+                              {isProtectedMainAdmin(c.email) ? (
+                                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 text-slate-950 border border-amber-300 shadow-sm" title="Infosys Enterprise Standard: Root Primary System Administrator">
+                                  <Shield className="w-3.5 h-3.5 text-slate-950" />
+                                  <span>Protected Main Admin</span>
+                                  <Lock className="w-3 h-3 text-slate-950" />
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center gap-1 font-tech">
+                                  <select
+                                    value={c.role || 'ROLE_USER'}
+                                    onChange={(e) => handleUpdateCandidatePosition(c.email, e.target.value)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer shadow-sm ${
+                                      c.role === 'ROLE_ADMIN'
+                                        ? 'bg-amber-100 dark:bg-slate-900 text-amber-900 dark:text-amber-300 border-amber-400 dark:border-amber-600 ring-1 ring-amber-400/30'
+                                        : c.role === 'ROLE_RECRUITER' || c.role === 'ROLE_MANAGER'
+                                        ? 'bg-indigo-100 dark:bg-slate-900 text-indigo-900 dark:text-indigo-300 border-indigo-400 dark:border-indigo-600 ring-1 ring-indigo-400/30'
+                                        : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-300 dark:border-slate-600 ring-1 ring-slate-400/20'
+                                    }`}
+                                    title="Appoint position: Candidate, Recruiter, Administrator"
+                                  >
+                                    <option value="ROLE_USER" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">Candidate</option>
+                                    <option value="ROLE_RECRUITER" className="bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-300 font-medium">Appoint as Recruiter</option>
+                                    {isAdmin && <option value="ROLE_ADMIN" className="bg-white dark:bg-slate-900 text-amber-900 dark:text-amber-300 font-medium">Appoint as Administrator</option>}
+                                  </select>
+                                  <span className="text-[10px] text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider">
+                                    {c.role === 'ROLE_RECRUITER' || c.role === 'ROLE_MANAGER' ? 'Talent Recruiter' : c.role === 'ROLE_ADMIN' ? 'Platform Admin' : 'Job Seeker'}
+                                  </span>
+                                </div>
+                              )}
                             </td>
                             <td className="p-4 text-gray-500">
                               {new Date(c.submissionDate || Date.now()).toLocaleDateString()}
@@ -1795,7 +2077,12 @@ const AdminDashboard = () => {
                                   </button>
                                 )}
 
-                                {st !== 'APPROVED' ? (
+                                {isProtectedMainAdmin(c.email) ? (
+                                  <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 shadow-xs" title="Protected Main Admin - Permanent Access">
+                                    <Lock className="w-3 h-3 text-emerald-600" />
+                                    <span>Permanent Access</span>
+                                  </span>
+                                ) : st !== 'APPROVED' ? (
                                   <button
                                     onClick={() => handleUpdateApprovalStatus(c.email, 'APPROVED')}
                                     className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs shadow-sm transition inline-flex items-center gap-1 cursor-pointer"
@@ -1814,6 +2101,11 @@ const AdminDashboard = () => {
                                 )}
 
                                 {/* Remove request completely from interface */}
+                                {isProtectedMainAdmin(c.email) ? (
+                                  <span className="p-1.5 rounded-xl text-gray-300 dark:text-gray-700 cursor-not-allowed" title="Protected Main Admin cannot be deleted">
+                                    <Lock className="w-3.5 h-3.5" />
+                                  </span>
+                                ) : (
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveCandidateRequest(c.email)}
@@ -1822,6 +2114,7 @@ const AdminDashboard = () => {
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -2071,6 +2364,31 @@ const AdminDashboard = () => {
                               </button>
                             )}
 
+
+                            {/* Appoint Position Quick Action with Protected Main Admin */}
+                            {isProtectedMainAdmin(cand.email) ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black bg-amber-400 text-slate-950 border border-amber-300 shadow-xs" title="Root Super Administrator - Protected Account">
+                                <Shield className="w-3.5 h-3.5 text-slate-950" />
+                                <span>Protected Main Admin</span>
+                              </span>
+                            ) : (
+                              <select
+                                value={cand.role || 'ROLE_USER'}
+                                onChange={(e) => handleUpdateCandidatePosition(cand.email, e.target.value)}
+                                className={`px-3 py-2 rounded-xl text-xs font-black border transition cursor-pointer shadow-sm ${
+                                  cand.role === 'ROLE_ADMIN'
+                                    ? 'bg-amber-100 dark:bg-slate-900 text-amber-900 dark:text-amber-300 border-amber-400 dark:border-amber-600 ring-1 ring-amber-400/30'
+                                    : cand.role === 'ROLE_RECRUITER' || cand.role === 'ROLE_MANAGER'
+                                    ? 'bg-indigo-100 dark:bg-slate-900 text-indigo-900 dark:text-indigo-300 border-indigo-400 dark:border-indigo-600 ring-1 ring-indigo-400/30'
+                                    : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-300 dark:border-slate-600 ring-1 ring-slate-400/20'
+                                }`}
+                                title="Appoint candidate position: Candidate, Recruiter, Administrator"
+                              >
+                                <option value="ROLE_USER" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-semibold">Position: Candidate</option>
+                                <option value="ROLE_RECRUITER" className="bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-300 font-semibold">Make Recruiter</option>
+                                {isAdmin && <option value="ROLE_ADMIN" className="bg-white dark:bg-slate-900 text-amber-900 dark:text-amber-300 font-semibold">Make Administrator</option>}
+                              </select>
+                            )}
                             {/* View Dossier */}
                             <button
                               onClick={() => {
@@ -2367,6 +2685,182 @@ const AdminDashboard = () => {
           </div>
         )}
 
+
+        {/* TAB: CANDIDATE SKILL REQUESTS (ADMIN & RECRUITER) */}
+        {activeTab === 'skill_requests' && (
+          <div className="space-y-6">
+            <div className="glass p-6 sm:p-8 rounded-3xl border border-gray-200/50 dark:border-gray-800/50 shadow-md space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200/60 dark:border-gray-800/60">
+                <div>
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-indigo-600 dark:text-emerald-400" />
+                    <span>Candidate Skill Requests & Endorsement Audit</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 font-mono">
+                      {skillRequests.length} Total
+                    </span>
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Review candidate-submitted requests for newly acquired competencies, frameworks, and technical credentials. Authorize to append to verified candidate profiles.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 font-tech">
+                  {['ALL', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED'].map((filterVal) => (
+                    <button
+                      key={filterVal}
+                      type="button"
+                      onClick={() => setSkillRequestFilter(filterVal)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                        skillRequestFilter === filterVal
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-gray-300 hover:bg-slate-200'
+                      }`}
+                    >
+                      {filterVal === 'ALL' ? 'All Requests' : filterVal === 'PENDING_APPROVAL' ? 'Pending Review' : filterVal === 'APPROVED' ? 'Approved' : 'Rejected'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {skillRequests.filter(r => skillRequestFilter === 'ALL' || (r.status || 'PENDING_APPROVAL') === skillRequestFilter).length === 0 ? (
+                <div className="p-8 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center space-y-2">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+                  <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">No Skill Requests Matching Selected Filter</h4>
+                  <p className="text-xs text-gray-500">All submitted candidate competencies have been processed.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {skillRequests
+                    .filter(r => skillRequestFilter === 'ALL' || (r.status || 'PENDING_APPROVAL') === skillRequestFilter)
+                    .map((req) => (
+                      <div
+                        key={req.id}
+                        className="p-5 rounded-2xl bg-white/60 dark:bg-darkcard/60 border border-gray-200/60 dark:border-gray-800/60 shadow-xs space-y-4 flex flex-col justify-between"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <h4 className="font-extrabold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                                <span>{req.candidateName}</span>
+                                <span className="text-xs font-normal text-gray-400 font-mono">({req.candidateEmail})</span>
+                              </h4>
+                              <p className="text-xs text-indigo-600 dark:text-emerald-400 font-bold">
+                                {req.targetCareerRole || 'Engineering Candidate'}
+                              </p>
+                            </div>
+
+                            <div>
+                              {req.status === 'APPROVED' ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  Approved in Profile
+                                </span>
+                              ) : req.status === 'REJECTED' ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300">
+                                  <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                                  Rejected
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 animate-pulse">
+                                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                  Pending Review
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Skill Card Details */}
+                          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <span className="text-xs font-black text-gray-900 dark:text-white flex items-center gap-1.5">
+                                <Cpu className="w-4 h-4 text-indigo-500" />
+                                <span>{req.skillName}</span>
+                              </span>
+                              <div className="flex items-center gap-1.5 font-mono text-[11px]">
+                                <span className="px-2 py-0.5 rounded bg-white dark:bg-darkcard border border-gray-200 dark:border-gray-700 font-bold">
+                                  {req.category}
+                                </span>
+                                <span className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200">
+                                  {req.proficiencyLevel}
+                                </span>
+                                <span className="text-gray-500">{req.yearsExperience} yrs</span>
+                              </div>
+                            </div>
+
+                            {req.justification && (
+                              <p className="text-xs text-gray-600 dark:text-gray-300 italic pt-1 border-t border-gray-200/60 dark:border-gray-800">
+                                &ldquo;{req.justification}&rdquo;
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800 flex-wrap gap-2">
+                          <span className="text-[10px] text-gray-400">
+                            Requested: {new Date(req.requestedAt).toLocaleDateString()}
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            {/* Inspect Resume */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const found = candidates.find(c => (c.email || '').toLowerCase().trim() === (req.candidateEmail || '').toLowerCase().trim());
+                                handleInspectDocument(found || { fullName: req.candidateName, email: req.candidateEmail, targetCareerRole: req.targetCareerRole });
+                              }}
+                              className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700 transition flex items-center gap-1 cursor-pointer"
+                              title="Inspect resume to verify candidate skill credentials"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                              <span>Inspect</span>
+                            </button>
+
+                            {req.status !== 'APPROVED' ? (
+                              <button
+                                type="button"
+                                onClick={() => handleApproveSkillRequest(req.id)}
+                                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1 cursor-pointer"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Approve & Add Skill</span>
+                              </button>
+                            ) : (
+                              <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Cataloged in Profile</span>
+                              </span>
+                            )}
+
+                            {req.status !== 'REJECTED' && (
+                              <button
+                                type="button"
+                                onClick={() => handleRejectSkillRequest(req.id)}
+                                className="px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900 transition flex items-center gap-1 cursor-pointer"
+                              >
+                                <XCircle className="w-3.5 h-3.5" />
+                                <span>Reject</span>
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSkillRequest(req.id)}
+                              className="p-1.5 rounded-xl text-gray-400 hover:text-rose-600 transition cursor-pointer"
+                              title="Dismiss request"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* TAB 3: ENTERPRISE REQUISITIONS */}
         {activeTab === 'jobs' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -2613,6 +3107,102 @@ const AdminDashboard = () => {
                             Approved Access
                           </span>
                         )}
+
+                        {/* Position Role Badge & Action with Protected Main Admin */}
+                        {isProtectedMainAdmin(selectedCandidate.email) ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-400 text-slate-950 border border-amber-300 shadow-sm">
+                            <Shield className="w-3.5 h-3.5 text-slate-950" />
+                            <span>Protected Main Admin (Locked)</span>
+                            <Lock className="w-3 h-3 text-slate-950" />
+                          </span>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className={`text-xs font-black px-3 py-1 rounded-full border shadow-xs ${
+                              selectedCandidate.role === 'ROLE_ADMIN'
+                                ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-200 border-amber-400 dark:border-amber-600'
+                                : selectedCandidate.role === 'ROLE_RECRUITER' || selectedCandidate.role === 'ROLE_MANAGER'
+                                ? 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-950 dark:text-indigo-200 border-indigo-400 dark:border-indigo-600'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600'
+                            }`}>
+                              Position: {selectedCandidate.role === 'ROLE_ADMIN' ? 'Administrator' : selectedCandidate.role === 'ROLE_RECRUITER' || selectedCandidate.role === 'ROLE_MANAGER' ? 'Recruiter' : 'Candidate'}
+                            </span>
+
+                            {/* One-click Action to Appoint as Recruiter or Admin */}
+                            {selectedCandidate.role === 'ROLE_USER' && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateCandidatePosition(selectedCandidate.email, 'ROLE_RECRUITER')}
+                                  className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center gap-1 cursor-pointer shadow-xs"
+                                  title="Appoint this candidate to Recruiter position"
+                                >
+                                  <Briefcase className="w-3 h-3" />
+                                  <span>Make Recruiter</span>
+                                </button>
+                                {isAdmin && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateCandidatePosition(selectedCandidate.email, 'ROLE_ADMIN')}
+                                    className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white transition flex items-center gap-1 cursor-pointer shadow-xs border border-white/20"
+                                    title="Elevate this candidate to Platform Administrator"
+                                  >
+                                    <Shield className="w-3 h-3 text-amber-400 dark:text-white" />
+                                    <span>Make Admin</span>
+                                  </button>
+                                )}
+                              </>
+                            )}
+
+                            {(selectedCandidate.role === 'ROLE_RECRUITER' || selectedCandidate.role === 'ROLE_MANAGER') && (
+                              <>
+                                {isAdmin && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateCandidatePosition(selectedCandidate.email, 'ROLE_ADMIN')}
+                                    className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white transition flex items-center gap-1 cursor-pointer shadow-xs border border-white/20"
+                                    title="Elevate Recruiter to Platform Administrator"
+                                  >
+                                    <Shield className="w-3 h-3 text-amber-400 dark:text-white" />
+                                    <span>Make Admin</span>
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateCandidatePosition(selectedCandidate.email, 'ROLE_USER')}
+                                  className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-950 dark:text-purple-300 transition flex items-center gap-1 cursor-pointer"
+                                  title="Reassign to Candidate position"
+                                >
+                                  <User className="w-3 h-3" />
+                                  <span>Reassign as Candidate</span>
+                                </button>
+                              </>
+                            )}
+
+                            {selectedCandidate.role === 'ROLE_ADMIN' && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateCandidatePosition(selectedCandidate.email, 'ROLE_RECRUITER')}
+                                  className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center gap-1 cursor-pointer"
+                                  title="Reassign to Recruiter position"
+                                >
+                                  <Briefcase className="w-3 h-3" />
+                                  <span>Reassign as Recruiter</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateCandidatePosition(selectedCandidate.email, 'ROLE_USER')}
+                                  className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-950 dark:text-purple-300 transition flex items-center gap-1 cursor-pointer"
+                                  title="Reassign to Candidate position"
+                                >
+                                  <User className="w-3 h-3" />
+                                  <span>Reassign as Candidate</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+
                         {selectedCandidate.isProfileLocked && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300">
                             Profile Locked

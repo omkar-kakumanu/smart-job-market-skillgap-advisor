@@ -45,7 +45,8 @@ const Navbar = () => {
     <nav className="sticky top-0 z-40 bg-white/95 dark:bg-[#09120e]/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-emerald-500/30 transition-all duration-300 shadow-[0_4px_25px_rgba(15,23,42,0.05)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.5)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-3 group">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3 group flex-shrink-0">
             <div className="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center shadow-brand-glow dark:shadow-emerald-glow group-hover:scale-105 transition-all duration-300 border border-indigo-400/40 dark:border-emerald-400/30">
               <Cpu className="w-6 h-6 text-white animate-pulse" />
             </div>
@@ -64,6 +65,7 @@ const Navbar = () => {
             </div>
           </Link>
 
+          {/* Right Header Controls */}
           <div className="flex items-center space-x-3">
             <button
               onClick={toggleTheme}
@@ -97,7 +99,13 @@ const Navbar = () => {
                     <span className="hidden sm:inline">Recruiter Console</span>
                   </Link>
                 )}
-                <Link to="/profile" className="flex items-center space-x-2 p-1.5 rounded-xl border border-slate-200 dark:border-emerald-500/30 hover:border-indigo-400 dark:hover:border-emerald-400 bg-slate-50 dark:bg-emerald-950/40 transition">
+
+                {/* Profile Link with appropriate role-based label */}
+                <Link
+                  to="/profile"
+                  className="flex items-center space-x-2 p-1.5 rounded-xl border border-slate-200 dark:border-emerald-500/30 hover:border-indigo-400 dark:hover:border-emerald-400 bg-slate-50 dark:bg-emerald-950/40 transition"
+                  title={isAdmin ? 'Administrator Profile & Security' : isRecruiter ? 'Recruiter Profile & Security' : 'Candidate Profile & Competency Matrix'}
+                >
                   {user?.profileImageUrl && !imgError ? (
                     <img
                       src={user.profileImageUrl}
@@ -107,11 +115,11 @@ const Navbar = () => {
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 dark:from-emerald-500 dark:to-teal-700 text-white font-extrabold text-xs flex items-center justify-center border border-white/20">
-                      {getInitials(user?.fullName)}
+                      {isAdmin ? <Shield className="w-4 h-4 text-amber-300" /> : isRecruiter ? <Briefcase className="w-4 h-4 text-white" /> : getInitials(user?.fullName)}
                     </div>
                   )}
                   <span className="hidden sm:inline font-tech font-bold text-xs text-slate-800 dark:text-white">
-                    {user?.fullName?.split(' ')[0]}
+                    {isAdmin ? 'Admin' : isRecruiter ? 'Recruiter' : user?.fullName?.split(' ')[0]}
                   </span>
                 </Link>
 

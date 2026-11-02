@@ -24,7 +24,16 @@ import {
   Plus,
   Trash2,
   X,
-  Edit2
+  Edit2,
+  Layers,
+  Search,
+  Zap,
+  Check,
+  Send,
+  Save,
+  BookOpen,
+  RefreshCw,
+  HelpCircle
 } from 'lucide-react';
 
 // 80+ Comprehensive Technical Competency Taxonomy
@@ -38,7 +47,86 @@ const SKILL_TAXONOMY = [
   'RESTful APIs', 'Microservices', 'GraphQL', 'Apache Kafka', 'RabbitMQ', 'gRPC',
   'HTML5', 'CSS3', 'TailwindCSS', 'Bootstrap', 'Redux', 'Zustand',
   'C++', 'C#', '.NET', 'Go', 'Golang', 'Rust',
-  'System Design', 'Agile', 'Scrum', 'Unit Testing', 'JUnit', 'Jest', 'Playwright'
+  'System Design', 'Agile', 'Scrum', 'Unit Testing', 'JUnit', 'Jest', 'Playwright',
+  'LangChain', 'RAG Architecture', 'Vector Databases', 'Prompt Engineering'
+];
+
+// Enterprise Skill Categories
+const SKILL_CATEGORIES = [
+  { value: 'BACKEND', label: 'Backend & Microservices' },
+  { value: 'FRONTEND', label: 'Frontend & Web UI' },
+  { value: 'CLOUD_DEVOPS', label: 'Cloud & DevOps' },
+  { value: 'DATABASE', label: 'Databases & Caching' },
+  { value: 'AI_ML', label: 'AI, ML & Generative Models' },
+  { value: 'TESTING', label: 'Testing, QA & Security' },
+  { value: 'ARCHITECTURE', label: 'System Architecture' },
+  { value: 'TECHNICAL', label: 'Core Technical' }
+];
+
+// Proficiency Levels (Infosys Project Standard)
+const PROFICIENCY_LEVELS = [
+  { value: 'BEGINNER', label: 'Beginner (0-1 yrs)', badgeClass: 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 border-sky-300 dark:border-sky-700' },
+  { value: 'INTERMEDIATE', label: 'Intermediate (2-3 yrs)', badgeClass: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700' },
+  { value: 'ADVANCED', label: 'Advanced (4-5 yrs)', badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' },
+  { value: 'EXPERT', label: 'Expert (6+ yrs)', badgeClass: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 border-amber-300 dark:border-amber-700' }
+];
+
+// Enterprise Preset Skill Packs (Infosys Standard)
+const ENTERPRISE_SKILL_PACKS = [
+  {
+    name: 'Full Stack Java',
+    icon: '☕',
+    description: 'Enterprise Java 21, Spring Boot 3, React, PostgreSQL, Docker, AWS, Microservices',
+    skills: [
+      { name: 'Java 21', category: 'BACKEND', level: 'ADVANCED', years: 4.0 },
+      { name: 'Spring Boot 3', category: 'BACKEND', level: 'ADVANCED', years: 3.5 },
+      { name: 'React', category: 'FRONTEND', level: 'INTERMEDIATE', years: 3.0 },
+      { name: 'PostgreSQL', category: 'DATABASE', level: 'ADVANCED', years: 3.0 },
+      { name: 'Docker', category: 'CLOUD_DEVOPS', level: 'INTERMEDIATE', years: 2.5 },
+      { name: 'AWS', category: 'CLOUD_DEVOPS', level: 'INTERMEDIATE', years: 2.0 },
+      { name: 'Microservices', category: 'BACKEND', level: 'ADVANCED', years: 3.5 }
+    ]
+  },
+  {
+    name: 'Cloud Native DevOps',
+    icon: '☁️',
+    description: 'Kubernetes, Docker, AWS, Terraform, CI/CD, Git, Linux',
+    skills: [
+      { name: 'Kubernetes', category: 'CLOUD_DEVOPS', level: 'ADVANCED', years: 3.0 },
+      { name: 'Docker', category: 'CLOUD_DEVOPS', level: 'EXPERT', years: 4.0 },
+      { name: 'AWS', category: 'CLOUD_DEVOPS', level: 'ADVANCED', years: 3.5 },
+      { name: 'Terraform', category: 'CLOUD_DEVOPS', level: 'INTERMEDIATE', years: 2.5 },
+      { name: 'CI/CD', category: 'CLOUD_DEVOPS', level: 'ADVANCED', years: 3.0 },
+      { name: 'Git', category: 'CLOUD_DEVOPS', level: 'EXPERT', years: 4.5 },
+      { name: 'Linux', category: 'CLOUD_DEVOPS', level: 'ADVANCED', years: 4.0 }
+    ]
+  },
+  {
+    name: 'AI & Data Engineering',
+    icon: '🤖',
+    description: 'Python, PyTorch, LangChain, RAG Architecture, PostgreSQL, FastAPI',
+    skills: [
+      { name: 'Python', category: 'BACKEND', level: 'EXPERT', years: 4.5 },
+      { name: 'PyTorch', category: 'AI_ML', level: 'ADVANCED', years: 3.0 },
+      { name: 'LangChain', category: 'AI_ML', level: 'INTERMEDIATE', years: 2.0 },
+      { name: 'RAG Architecture', category: 'AI_ML', level: 'ADVANCED', years: 2.0 },
+      { name: 'FastAPI', category: 'BACKEND', level: 'ADVANCED', years: 3.0 },
+      { name: 'PostgreSQL', category: 'DATABASE', level: 'INTERMEDIATE', years: 3.0 }
+    ]
+  },
+  {
+    name: 'Modern MERN Stack',
+    icon: '⚛️',
+    description: 'React, TypeScript, Node.js, Express, MongoDB, TailwindCSS',
+    skills: [
+      { name: 'React', category: 'FRONTEND', level: 'EXPERT', years: 4.0 },
+      { name: 'TypeScript', category: 'FRONTEND', level: 'ADVANCED', years: 3.5 },
+      { name: 'Node.js', category: 'BACKEND', level: 'ADVANCED', years: 3.0 },
+      { name: 'Express', category: 'BACKEND', level: 'ADVANCED', years: 3.0 },
+      { name: 'MongoDB', category: 'DATABASE', level: 'INTERMEDIATE', years: 2.5 },
+      { name: 'TailwindCSS', category: 'FRONTEND', level: 'EXPERT', years: 3.5 }
+    ]
+  }
 ];
 
 const parseResumeText = (rawText, defaultUser, initialDocName = 'Candidate_Resume.pdf') => {
@@ -149,6 +237,27 @@ const parseResumeText = (rawText, defaultUser, initialDocName = 'Candidate_Resum
   }
   const extractedSkills = Array.from(extractedSkillsSet);
 
+  // Initialize metadata map for skills
+  const skillsMetadata = {};
+  extractedSkills.forEach((sk) => {
+    let category = 'BACKEND';
+    const lower = sk.toLowerCase();
+    if (lower.includes('react') || lower.includes('html') || lower.includes('css') || lower.includes('tailwind') || lower.includes('front')) {
+      category = 'FRONTEND';
+    } else if (lower.includes('docker') || lower.includes('k8s') || lower.includes('kubernetes') || lower.includes('aws') || lower.includes('cloud') || lower.includes('ci/cd') || lower.includes('git')) {
+      category = 'CLOUD_DEVOPS';
+    } else if (lower.includes('sql') || lower.includes('postgres') || lower.includes('mongo') || lower.includes('redis') || lower.includes('data')) {
+      category = 'DATABASE';
+    } else if (lower.includes('python') || lower.includes('pytorch') || lower.includes('ai') || lower.includes('ml') || lower.includes('rag')) {
+      category = 'AI_ML';
+    }
+    skillsMetadata[sk] = {
+      level: 'ADVANCED',
+      category,
+      years: totalExperienceYears
+    };
+  });
+
   // 9. Calculate ATS Score
   let contactScore = (emailMatch ? 10 : 5) + (phoneMatch ? 10 : 5);
   let roleScore = currentRole ? 15 : 8;
@@ -167,6 +276,7 @@ const parseResumeText = (rawText, defaultUser, initialDocName = 'Candidate_Resum
     totalExperienceYears,
     degree,
     extractedSkills,
+    skillsMetadata,
     headline: `${currentRole} with ${totalExperienceYears} years of verified experience in ${extractedSkills.slice(0, 3).join(', ')}`,
     atsScore,
     isSubmitted: Boolean(defaultUser?.isProfileLocked)
@@ -195,29 +305,105 @@ const ResumeUploader = () => {
   const [isParsing, setIsParsing] = useState(false);
   const [parsingProgress, setParsingProgress] = useState(0);
 
+  // Candidate Skill Addition Form State (Infosys Project Standard)
+  const [newSkillInput, setNewSkillInput] = useState('');
+  const [newSkillCategory, setNewSkillCategory] = useState('BACKEND');
+  const [newSkillProficiency, setNewSkillProficiency] = useState('ADVANCED');
+  const [newSkillYears, setNewSkillYears] = useState('3.0');
+  const [skillSearchFilter, setSkillSearchFilter] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('ALL');
+  const [isSavingSkills, setIsSavingSkills] = useState(false);
+
+  // Locked Profile Skill Endorsement Request Form State
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestSkillForm, setRequestSkillForm] = useState({
+    skillName: '',
+    category: 'BACKEND',
+    proficiencyLevel: 'ADVANCED',
+    yearsExperience: '3.0',
+    justification: ''
+  });
+
+  // Track Skill Requests Submitted by this Candidate
+  const [myResumeSkillRequests, setMyResumeSkillRequests] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('skillgap_skill_requests') || '[]');
+      const candidateEmail = (user?.email || '').toLowerCase().trim();
+      return stored.filter(r => (r.candidateEmail || '').toLowerCase().trim() === candidateEmail);
+    } catch (e) {
+      return [];
+    }
+  });
+
   // Pre-load from user profile if already present
   const [parsedProfile, setParsedProfile] = useState(() => {
     if (user?.skills && user.skills.length > 0) {
+      const skillNames = user.skills.map(s => s.skillName || s.name);
+      const meta = {};
+      user.skills.forEach(s => {
+        const name = s.skillName || s.name;
+        meta[name] = {
+          level: s.proficiencyLevel || 'ADVANCED',
+          category: s.category || 'TECHNICAL',
+          years: s.yearsExperience || 3.0
+        };
+      });
       return {
         documentName: user?.resumeFileName || 'Candidate_Resume.pdf',
         fullName: user?.fullName || 'Candidate',
-        email: user?.email || 'user@skillgap.com',
+        email: user?.email || 'candidate@skillgap.com',
         phone: '+91 98765 43210',
         location: 'Bengaluru, Karnataka (Hybrid)',
         currentRole: user?.targetCareerRole || 'Full Stack Software Engineer',
         totalExperienceYears: 3.5,
         degree: 'Bachelor of Technology in Computer Science',
-        extractedSkills: user.skills.map(s => s.skillName || s.name),
+        extractedSkills: skillNames,
+        skillsMetadata: meta,
         headline: user?.bio || `${user?.targetCareerRole || 'Engineer'} with verified competencies`,
-        atsScore: 92,
+        atsScore: user?.atsScore || 92,
         isSubmitted: Boolean(user?.isProfileLocked)
       };
     }
     return null;
   });
 
-  // Candidate Skill Add Form State
-  const [newSkillInput, setNewSkillInput] = useState('');
+  // Dynamic ATS Score Calculation Engine
+  const calculateDynamicAts = (skillCount, expYears = 3.5) => {
+    const baseScore = 65;
+    const countScore = Math.min(25, Math.round(skillCount * 2.5));
+    const expScore = Math.min(10, Math.round((parseFloat(expYears) || 3) * 2));
+    return Math.min(99, Math.max(70, baseScore + countScore + expScore));
+  };
+
+  // Ensure a Candidate Profile is active to edit
+  const ensureCandidateProfileLoaded = () => {
+    if (parsedProfile) return parsedProfile;
+    const initial = {
+      documentName: user?.resumeFileName || 'Candidate_Resume.pdf',
+      fullName: user?.fullName || 'Candidate',
+      email: user?.email || 'candidate@skillgap.com',
+      phone: '+91 98765 43210',
+      location: 'Bengaluru, Karnataka (Hybrid)',
+      currentRole: user?.targetCareerRole || 'Full Stack Software Engineer',
+      totalExperienceYears: 3.5,
+      degree: 'Bachelor of Technology in Computer Science',
+      extractedSkills: (user?.skills || []).map(s => s.skillName || s.name),
+      skillsMetadata: (user?.skills || []).reduce((acc, s) => {
+        const name = s.skillName || s.name;
+        acc[name] = {
+          level: s.proficiencyLevel || 'ADVANCED',
+          category: s.category || 'TECHNICAL',
+          years: s.yearsExperience || 3.0
+        };
+        return acc;
+      }, {}),
+      headline: user?.bio || `${user?.targetCareerRole || 'Engineer'} with verified competencies`,
+      atsScore: calculateDynamicAts((user?.skills || []).length, 3.5),
+      isSubmitted: Boolean(user?.isProfileLocked)
+    };
+    setParsedProfile(initial);
+    return initial;
+  };
 
   const executeParsing = (rawText, fileName = 'Candidate_Resume.pdf') => {
     setIsParsing(true);
@@ -229,7 +415,7 @@ const ResumeUploader = () => {
         const parsed = parseResumeText(rawText, user, fileName);
         setParsedProfile(parsed);
         setParsingProgress(100);
-        showToast('Resume parsed! Review and edit your document name, profile, and skills below.', 'success');
+        showToast('Resume parsed! Candidate competencies and entity details extracted successfully.', 'success');
       } catch (err) {
         console.error('Parsing error', err);
         showToast('Parser error. Falling back to structured profile.', 'warning');
@@ -275,29 +461,202 @@ Bachelor of Technology (B.Tech) in Computer Science
     executeParsing(sample, 'Alex_Mercer_FullStack_Resume.pdf');
   };
 
-  // Skill Add / Remove Handlers for Candidate
+  // Skill Add Handler for Candidate (Infosys Project Standard)
   const handleAddSkill = (e) => {
-    e.preventDefault();
-    if (!newSkillInput.trim() || !parsedProfile) return;
-    if (parsedProfile.extractedSkills.some(s => s.toLowerCase() === newSkillInput.trim().toLowerCase())) {
-      showToast('Skill is already included!', 'info');
+    if (e) e.preventDefault();
+    const profileToUpdate = ensureCandidateProfileLoaded();
+    const skillNameClean = newSkillInput.trim();
+    if (!skillNameClean) {
+      showToast('Please enter or select a skill to add', 'warning');
       return;
     }
+
+    if (profileToUpdate.extractedSkills.some(s => s.toLowerCase() === skillNameClean.toLowerCase())) {
+      showToast(`"${skillNameClean}" is already in your skills inventory!`, 'info');
+      return;
+    }
+
+    const updatedSkills = [...profileToUpdate.extractedSkills, skillNameClean];
+    const updatedMetadata = {
+      ...(profileToUpdate.skillsMetadata || {}),
+      [skillNameClean]: {
+        level: newSkillProficiency,
+        category: newSkillCategory,
+        years: parseFloat(newSkillYears) || 3.0
+      }
+    };
+    const newAts = calculateDynamicAts(updatedSkills.length, profileToUpdate.totalExperienceYears);
+
     setParsedProfile({
-      ...parsedProfile,
-      extractedSkills: [...parsedProfile.extractedSkills, newSkillInput.trim()]
+      ...profileToUpdate,
+      extractedSkills: updatedSkills,
+      skillsMetadata: updatedMetadata,
+      atsScore: newAts
     });
+
     setNewSkillInput('');
-    showToast(`Added ${newSkillInput.trim()} to competencies!`, 'success');
+    showToast(`Added "${skillNameClean}" (${newSkillProficiency})! ATS score increased to ${newAts}%.`, 'success');
   };
 
+  // Quick Apply One-Click Enterprise Skill Pack (Infosys Standard)
+  const handleApplyEnterpriseSkillPack = (pack) => {
+    const profileToUpdate = ensureCandidateProfileLoaded();
+    const existingNamesLower = new Set(profileToUpdate.extractedSkills.map(s => s.toLowerCase()));
+    
+    const toAdd = pack.skills.filter(s => !existingNamesLower.has(s.name.toLowerCase()));
+    if (toAdd.length === 0) {
+      showToast(`All skills from "${pack.name}" are already added!`, 'info');
+      return;
+    }
+
+    const updatedSkills = [...profileToUpdate.extractedSkills, ...toAdd.map(s => s.name)];
+    const updatedMetadata = { ...(profileToUpdate.skillsMetadata || {}) };
+    toAdd.forEach(s => {
+      updatedMetadata[s.name] = {
+        level: s.level,
+        category: s.category,
+        years: s.years
+      };
+    });
+    const newAts = calculateDynamicAts(updatedSkills.length, profileToUpdate.totalExperienceYears);
+
+    setParsedProfile({
+      ...profileToUpdate,
+      extractedSkills: updatedSkills,
+      skillsMetadata: updatedMetadata,
+      atsScore: newAts
+    });
+    showToast(`Applied ${pack.name} pack! Added ${toAdd.length} skills. ATS score updated to ${newAts}%.`, 'success');
+  };
+
+  // Remove Skill Handler with Live ATS Recalculation
   const handleRemoveSkill = (skillToRemove) => {
     if (!parsedProfile) return;
+    const updatedSkills = parsedProfile.extractedSkills.filter(s => s !== skillToRemove);
+    const updatedMetadata = { ...(parsedProfile.skillsMetadata || {}) };
+    delete updatedMetadata[skillToRemove];
+    const newAts = calculateDynamicAts(updatedSkills.length, parsedProfile.totalExperienceYears);
+
     setParsedProfile({
       ...parsedProfile,
-      extractedSkills: parsedProfile.extractedSkills.filter(s => s !== skillToRemove)
+      extractedSkills: updatedSkills,
+      skillsMetadata: updatedMetadata,
+      atsScore: newAts
     });
-    showToast(`Removed ${skillToRemove}`, 'info');
+    showToast(`Removed "${skillToRemove}"`, 'info');
+  };
+
+  // Instant Sync Skills to Profile & Backend
+  const handleSaveSkillsToProfile = async () => {
+    if (!parsedProfile || !parsedProfile.extractedSkills || parsedProfile.extractedSkills.length === 0) {
+      showToast('No skills to save yet. Add competencies above!', 'warning');
+      return;
+    }
+    setIsSavingSkills(true);
+    try {
+      const formattedSkills = parsedProfile.extractedSkills.map((sk, index) => {
+        const meta = parsedProfile.skillsMetadata?.[sk] || {};
+        return {
+          id: Date.now() + index,
+          skillId: 1000 + index,
+          skillName: sk,
+          category: meta.category || 'TECHNICAL',
+          proficiencyLevel: meta.level || 'ADVANCED',
+          yearsExperience: meta.years || 3.0
+        };
+      });
+
+      const updatedUser = {
+        ...user,
+        skills: formattedSkills,
+        atsScore: parsedProfile.atsScore || 92
+      };
+
+      updateUserProfile(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      if (updatedUser.email) {
+        try {
+          const storedProfiles = JSON.parse(localStorage.getItem('skillgap_registered_profiles') || '{}');
+          storedProfiles[updatedUser.email.toLowerCase().trim()] = updatedUser;
+          localStorage.setItem('skillgap_registered_profiles', JSON.stringify(storedProfiles));
+        } catch (e) {
+          console.warn('Fallback store write', e);
+        }
+      }
+
+      try {
+        await userService.updateProfile({
+          targetCareerRole: parsedProfile.currentRole,
+          bio: parsedProfile.headline
+        });
+      } catch (e) {
+        console.warn('Backend updateProfile skipped');
+      }
+
+      showToast('Skills synchronized to your Verified Candidate Profile and across all platform modules!', 'success');
+    } catch (err) {
+      console.error('Failed saving skills', err);
+      showToast('Failed saving skills. Please try again.', 'error');
+    } finally {
+      setIsSavingSkills(false);
+    }
+  };
+
+  // Candidate Submits Skill Request (When Profile Is Locked)
+  const handleCandidateSkillRequest = (e) => {
+    e.preventDefault();
+    if (!requestSkillForm.skillName.trim()) {
+      showToast('Please specify the skill name you wish to request endorsement for', 'error');
+      return;
+    }
+    const newReq = {
+      id: `skill_req_${Date.now()}`,
+      candidateEmail: (user?.email || parsedProfile?.email || 'candidate@skillgap.com').toLowerCase().trim(),
+      candidateName: parsedProfile?.fullName || user?.fullName || 'Candidate',
+      targetCareerRole: parsedProfile?.currentRole || user?.targetCareerRole || 'Engineering Candidate',
+      skillName: requestSkillForm.skillName.trim(),
+      category: requestSkillForm.category || 'BACKEND',
+      proficiencyLevel: requestSkillForm.proficiencyLevel || 'ADVANCED',
+      yearsExperience: parseFloat(requestSkillForm.yearsExperience) || 3.0,
+      justification: requestSkillForm.justification.trim() || 'Verified professional project and engineering experience from resume.',
+      status: 'PENDING_APPROVAL',
+      requestedAt: new Date().toISOString()
+    };
+
+    try {
+      const stored = JSON.parse(localStorage.getItem('skillgap_skill_requests') || '[]');
+      const updated = [newReq, ...stored];
+      localStorage.setItem('skillgap_skill_requests', JSON.stringify(updated));
+      const candEmail = (user?.email || '').toLowerCase().trim();
+      setMyResumeSkillRequests(updated.filter(r => (r.candidateEmail || '').toLowerCase().trim() === candEmail));
+      setRequestSkillForm({
+        skillName: '',
+        category: 'BACKEND',
+        proficiencyLevel: 'ADVANCED',
+        yearsExperience: '3.0',
+        justification: ''
+      });
+      setShowRequestModal(false);
+      showToast(`Skill endorsement request for "${newReq.skillName}" sent to Administrators & Recruiters!`, 'success');
+    } catch (err) {
+      console.error('Failed saving skill request', err);
+      showToast('Failed to submit skill request', 'error');
+    }
+  };
+
+  // Unlock Draft Profile for Continued Editing
+  const handleUnlockDraftProfile = () => {
+    const updatedUser = {
+      ...user,
+      isProfileLocked: false
+    };
+    updateUserProfile(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    if (parsedProfile) {
+      setParsedProfile({ ...parsedProfile, isSubmitted: false });
+    }
+    showToast('Profile draft unlocked! You can now add and refine skills freely.', 'info');
   };
 
   // Submit and LOCK Candidate Profile
@@ -305,15 +664,17 @@ Bachelor of Technology (B.Tech) in Computer Science
     if (!parsedProfile) return;
 
     try {
-      const convertedSkills = parsedProfile.extractedSkills.map((sk) => ({
-        id: `sk-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-        skillName: sk,
-        category: 'TECHNICAL',
-        proficiencyLevel: 'ADVANCED',
-        yearsExperience: parsedProfile.totalExperienceYears || 3.0,
-      }));
+      const convertedSkills = parsedProfile.extractedSkills.map((sk) => {
+        const meta = parsedProfile.skillsMetadata?.[sk] || {};
+        return {
+          id: `sk-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+          skillName: sk,
+          category: meta.category || 'TECHNICAL',
+          proficiencyLevel: meta.level || 'ADVANCED',
+          yearsExperience: meta.years || parsedProfile.totalExperienceYears || 3.0,
+        };
+      });
 
-      // Update backend if active
       try {
         await userService.updateProfile({
           fullName: parsedProfile.fullName,
@@ -324,8 +685,7 @@ Bachelor of Technology (B.Tech) in Computer Science
         console.warn('Backend update fallback', backendErr);
       }
 
-      // Construct comprehensive document payload for administrative audit
-      const userEmail = (user?.email || parsedProfile.email || 'user@skillgap.com').toLowerCase().trim();
+      const userEmail = (user?.email || parsedProfile.email || 'candidate@skillgap.com').toLowerCase().trim();
       const documentPayload = {
         fileName: parsedProfile.documentName || (file?.name) || 'Candidate_Resume.pdf',
         fileType: file?.type || (parsedProfile.documentName?.endsWith('.docx') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'application/pdf'),
@@ -337,7 +697,6 @@ Bachelor of Technology (B.Tech) in Computer Science
         candidateEmail: userEmail
       };
 
-      // Store in global resume file store for recruiter & admin inspection
       try {
         const resumesStore = JSON.parse(localStorage.getItem('skillgap_resumes_store') || '{}');
         resumesStore[userEmail] = documentPayload;
@@ -347,7 +706,6 @@ Bachelor of Technology (B.Tech) in Computer Science
         console.warn('Failed saving to skillgap_resumes_store:', e);
       }
 
-      // Lock profile state
       const updatedUser = {
         ...user,
         fullName: parsedProfile.fullName,
@@ -356,427 +714,736 @@ Bachelor of Technology (B.Tech) in Computer Science
         resumeFileName: parsedProfile.documentName,
         resumeDocument: documentPayload,
         skills: convertedSkills,
-        isProfileLocked: true, // PROFILE IS NOW LOCKED!
+        isProfileLocked: true,
         atsScore: parsedProfile.atsScore || 92
       };
 
       updateUserProfile(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
-      // Persist in localStorage DB
-      try {
-        const stored = localStorage.getItem('skillgap_profiles_db');
-        const db = stored ? JSON.parse(stored) : {};
-        db[userEmail] = {
-          ...db[userEmail],
-          fullName: parsedProfile.fullName,
-          targetCareerRole: parsedProfile.currentRole,
-          bio: parsedProfile.headline,
-          resumeFileName: parsedProfile.documentName,
-          resumeDocument: documentPayload,
-          skills: convertedSkills,
-          isProfileLocked: true,
-          atsScore: parsedProfile.atsScore || 92,
-          lastUpdated: new Date().toISOString()
-        };
-        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
-      } catch (e) {
-        console.warn('Profile DB save error', e);
+      if (userEmail) {
+        try {
+          const storedProfiles = JSON.parse(localStorage.getItem('skillgap_registered_profiles') || '{}');
+          storedProfiles[userEmail] = updatedUser;
+          localStorage.setItem('skillgap_registered_profiles', JSON.stringify(storedProfiles));
+        } catch (e) {
+          console.warn('Failed writing to skillgap_registered_profiles', e);
+        }
       }
 
-      setParsedProfile(prev => ({ ...prev, isSubmitted: true }));
-      showToast('Profile officially submitted and locked! Only administrators can authorize further changes.', 'success');
+      setParsedProfile({
+        ...parsedProfile,
+        isSubmitted: true
+      });
+
+      showToast('Candidate Profile & Resume submitted and locked for Recruiter & Admin review!', 'success');
     } catch (err) {
-      console.warn('Submission failed', err);
-      showToast('Failed to submit profile', 'error');
+      console.error('Submission failed', err);
+      showToast('Submission error. Please retry.', 'error');
     }
   };
 
-  // Administrator Unlock / Override Action
-  const handleAdminToggleLock = () => {
-    const newLockState = !isProfileLocked;
-    const updatedUser = {
-      ...user,
-      isProfileLocked: newLockState
-    };
-    updateUserProfile(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+  const isLocked = isProfileLocked && parsedProfile?.isSubmitted;
 
-    const userEmail = (user?.email || 'user@skillgap.com').toLowerCase();
-    try {
-      const stored = localStorage.getItem('skillgap_profiles_db');
-      const db = stored ? JSON.parse(stored) : {};
-      if (db[userEmail]) {
-        db[userEmail].isProfileLocked = newLockState;
-        localStorage.setItem('skillgap_profiles_db', JSON.stringify(db));
-      }
-    } catch (e) {}
-
-    showToast(newLockState ? 'Candidate profile is now locked.' : 'Administrator override: Candidate profile unlocked for editing!', 'info');
-  };
-
-  const isLocked = isProfileLocked && !isAdmin;
+  // Filter skills for inventory display
+  const currentSkillsList = parsedProfile?.extractedSkills || [];
+  const filteredSkills = currentSkillsList.filter((sk) => {
+    const matchesSearch = !skillSearchFilter || sk.toLowerCase().includes(skillSearchFilter.toLowerCase());
+    if (!matchesSearch) return false;
+    if (selectedCategoryFilter === 'ALL') return true;
+    const cat = parsedProfile?.skillsMetadata?.[sk]?.category || 'TECHNICAL';
+    return cat === selectedCategoryFilter;
+  });
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)]">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-darkbg text-slate-800 dark:text-gray-100 font-sans">
       <Sidebar />
-      <main className="flex-1 p-6 sm:p-8 overflow-y-auto font-sans">
-        <Breadcrumb items={[{ label: 'Candidate Dashboard', to: '/dashboard' }, { label: 'Resume & ATS Analyzer' }]} />
 
-        {/* Top Header Banner */}
-        <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
-          <div className="space-y-1 z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 dark:bg-emerald-500/10 text-sky-700 dark:text-emerald-400 rounded-full font-bold text-xs border border-sky-400/20 dark:border-emerald-500/20">
-              <span className="w-2 h-2 rounded-full bg-sky-500 dark:bg-emerald-400 animate-pulse" />
-              <span>ATS Semantic Parsing Engine &bull; Candidate Pre-Submission Review</span>
+      {/* Datalist for Autocomplete Suggestions */}
+      <datalist id="enterprise-skills-catalog">
+        {SKILL_TAXONOMY.map(s => (
+          <option key={s} value={s} />
+        ))}
+      </datalist>
+
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <Breadcrumb />
+
+        <div className="max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+          
+          {/* Header Banner */}
+          <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-2xl bg-sky-500/10 dark:bg-emerald-500/20 text-sky-600 dark:text-emerald-400 flex items-center justify-center">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                  Resume Ingestion & Candidate Competency Suite
+                </h1>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 max-w-3xl leading-relaxed">
+                Add, manage, and verify technical competencies directly on your resume. Enrich your profile with enterprise skill stacks, recalculate your real-time ATS match score, and synchronize with recruiter evaluation systems.
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              Resume Intelligence & ATS Analyzer
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 font-medium max-w-2xl">
-              Extract technical credentials, customize your document name and verified skills inventory before final submission. Once submitted, profile edits require administrative authorization.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-2 z-10">
-            {!isLocked && (
+            <div className="flex flex-col sm:flex-row items-center gap-3">
               <button
                 onClick={loadSampleResume}
-                className="px-4 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 font-bold text-xs rounded-xl border border-amber-400/40 transition flex items-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-sky-300 dark:border-emerald-500/40 bg-sky-50 dark:bg-emerald-950/40 text-sky-700 dark:text-emerald-300 hover:bg-sky-100 dark:hover:bg-emerald-900/50 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                title="Load full enterprise sample candidate resume"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <Sparkles className="w-4 h-4 text-sky-500 dark:text-emerald-400" />
                 <span>Load Sample Profile</span>
               </button>
-            )}
 
-            {/* Admin Override Badge */}
-            {isAdmin && (
-              <button
-                onClick={handleAdminToggleLock}
-                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-2 cursor-pointer"
-              >
-                {isProfileLocked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-                <span>{isProfileLocked ? 'Admin Unlock Profile' : 'Admin Lock Profile'}</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Lock Notice Banner if profile is locked */}
-        {isProfileLocked && (
-          <div className="mb-6 p-4 rounded-2xl bg-amber-500/15 border border-amber-400/50 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-amber-500 text-slate-950">
-                <Lock className="w-5 h-5" />
-              </div>
-              <div className="text-xs">
-                <h4 className="font-extrabold text-amber-900 dark:text-amber-300 uppercase tracking-wide">
-                  Candidate Profile Locked After Submission
-                </h4>
-                <p className="text-amber-800 dark:text-amber-200 mt-0.5">
-                  Your candidate profile, document name, and verified competencies have been locked following official submission. Only administrators and authorized recruiters have access to modify candidate profiles.
-                </p>
-              </div>
-            </div>
-
-            {isAdmin && (
-              <span className="px-3 py-1 bg-indigo-600 text-white font-bold text-[10px] rounded-full uppercase tracking-wider flex-shrink-0">
-                Admin Privileges Active
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Ingestion & Preview Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-          
-          {/* Left Ingestion Card (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md space-y-6">
-              
-              <div className="flex items-center justify-between border-b border-sky-400/20 dark:border-emerald-500/20 pb-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setActiveTab('upload')}
-                    disabled={isLocked}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                      activeTab === 'upload'
-                        ? 'bg-sky-600 text-white dark:bg-emerald-500 shadow-sm'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                    }`}
-                  >
-                    <UploadCloud className="w-3.5 h-3.5" />
-                    <span>Upload Document</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('paste')}
-                    disabled={isLocked}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                      activeTab === 'paste'
-                        ? 'bg-sky-600 text-white dark:bg-emerald-500 shadow-sm'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                    }`}
-                  >
-                    <ClipboardPaste className="w-3.5 h-3.5" />
-                    <span>Paste Text</span>
-                  </button>
-                </div>
-
-                <span className="text-[11px] font-bold text-slate-400">PDF, TXT, DOCX</span>
-              </div>
-
-              {activeTab === 'upload' ? (
-                <label className={`p-8 rounded-2xl border-2 border-dashed border-sky-400/40 dark:border-emerald-500/40 bg-sky-50/30 dark:bg-emerald-950/20 transition-all flex flex-col items-center justify-center text-center space-y-3 group ${
-                  isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-sky-500 dark:hover:border-emerald-400'
-                }`}>
-                  <input
-                    type="file"
-                    disabled={isLocked}
-                    accept=".pdf,.docx,.doc,.txt"
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e.target.files?.[0])}
-                  />
-                  <div className="w-14 h-14 rounded-2xl bg-sky-500/15 dark:bg-emerald-500/20 text-sky-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <UploadCloud className="w-7 h-7" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-extrabold text-slate-800 dark:text-white">
-                      {file ? file.name : (parsedProfile?.documentName || 'Select Resume Document or Drag & Drop')}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-gray-400">
-                      {isLocked ? 'Ingestion locked after submission' : 'Entity extraction for name, tenure, and skills'}
-                    </p>
-                  </div>
-                </label>
-              ) : (
-                <div className="space-y-3">
-                  <textarea
-                    rows="6"
-                    disabled={isLocked}
-                    value={pastedText}
-                    onChange={(e) => setPastedText(e.target.value)}
-                    placeholder="Paste resume text here..."
-                    className="w-full p-4 rounded-2xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-darkcard text-xs font-mono leading-relaxed focus:ring-2 focus:ring-sky-500 focus:outline-none disabled:opacity-50"
-                  />
-                  <button
-                    onClick={handlePasteSubmit}
-                    disabled={isLocked}
-                    className="w-full py-2.5 rounded-xl gradient-btn text-xs font-bold text-white shadow flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>Parse Text Content</span>
-                  </button>
-                </div>
+              {!parsedProfile && (
+                <button
+                  onClick={() => ensureCandidateProfileLoaded()}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  title="Initialize candidate skills editor directly"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Start Adding Skills</span>
+                </button>
               )}
+            </div>
+          </div>
 
-              {isParsing && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold text-sky-600 dark:text-emerald-400">
-                    <span>Extracting Profile Entities & Mapping Skills...</span>
-                    <span>{parsingProgress}%</span>
+          {/* Grid Layout: Left Document Parser (5 cols), Right Competency Suite (7 cols) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* Left Resume Ingestion Pane (5 cols) */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="glass p-6 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md space-y-4">
+                
+                <div className="flex items-center justify-between border-b border-sky-400/20 dark:border-emerald-500/20 pb-3">
+                  <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+                    <button
+                      onClick={() => setActiveTab('upload')}
+                      disabled={isLocked}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        activeTab === 'upload'
+                          ? 'bg-sky-600 text-white dark:bg-emerald-500 shadow-sm'
+                          : 'bg-transparent text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      <UploadCloud className="w-3.5 h-3.5" />
+                      <span>Upload Document</span>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab('paste')}
+                      disabled={isLocked}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        activeTab === 'paste'
+                          ? 'bg-sky-600 text-white dark:bg-emerald-500 shadow-sm'
+                          : 'bg-transparent text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      <ClipboardPaste className="w-3.5 h-3.5" />
+                      <span>Paste Text</span>
+                    </button>
                   </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-sky-500 to-indigo-600 dark:from-emerald-400 dark:to-teal-500 h-2 transition-all duration-300"
-                      style={{ width: `${parsingProgress}%` }}
+
+                  <span className="text-[11px] font-bold text-slate-400">PDF, TXT, DOCX</span>
+                </div>
+
+                {activeTab === 'upload' ? (
+                  <label className={`p-8 rounded-2xl border-2 border-dashed border-sky-400/40 dark:border-emerald-500/40 bg-sky-50/30 dark:bg-emerald-950/20 transition-all flex flex-col items-center justify-center text-center space-y-3 group ${
+                    isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-sky-500 dark:hover:border-emerald-400'
+                  }`}>
+                    <input
+                      type="file"
+                      disabled={isLocked}
+                      accept=".pdf,.docx,.doc,.txt"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e.target.files?.[0])}
                     />
+                    <div className="w-14 h-14 rounded-2xl bg-sky-500/15 dark:bg-emerald-500/20 text-sky-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <UploadCloud className="w-7 h-7" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-extrabold text-slate-800 dark:text-white">
+                        {file ? file.name : (parsedProfile?.documentName || 'Select Resume Document or Drag & Drop')}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-gray-400">
+                        {isLocked ? 'Ingestion locked after submission' : 'Entity extraction for name, tenure, and skills'}
+                      </p>
+                    </div>
+                  </label>
+                ) : (
+                  <div className="space-y-3">
+                    <textarea
+                      rows="6"
+                      disabled={isLocked}
+                      value={pastedText}
+                      onChange={(e) => setPastedText(e.target.value)}
+                      placeholder="Paste resume text here..."
+                      className="w-full p-4 rounded-2xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-mono leading-relaxed focus:ring-2 focus:ring-sky-500 focus:outline-none disabled:opacity-50"
+                    />
+                    <button
+                      onClick={handlePasteSubmit}
+                      disabled={isLocked}
+                      className="w-full py-2.5 rounded-xl gradient-btn text-xs font-bold text-white shadow flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>Parse Text Content</span>
+                    </button>
                   </div>
-                </div>
-              )}
+                )}
 
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-darkcard border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-gray-300 space-y-1.5">
-                <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span>Candidate Pre-Submission Verification:</span>
-                </p>
-                <p>&bull; Modify your PDF file name, candidate name, or role before submitting.</p>
-                <p>&bull; Add or delete skills in the review panel on the right.</p>
-                <p>&bull; Once submitted, profile locks permanently and requires administrator review.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Candidate Review & Pre-Submission Editor (7 cols) */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md space-y-6">
-              
-              <div className="flex items-center justify-between border-b border-sky-400/20 dark:border-emerald-500/20 pb-3">
-                <div className="flex items-center gap-2">
-                  <Edit2 className="w-4 h-4 text-sky-500 dark:text-emerald-400" />
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
-                    Candidate Profile & Competency Review
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {parsedProfile && (
-                    <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-400">
-                      ATS Score: {parsedProfile.atsScore || 92}%
-                    </span>
-                  )}
-                  {isProfileLocked ? (
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 flex items-center gap-1 uppercase tracking-wider">
-                      <Lock className="w-3 h-3" />
-                      <span>Locked</span>
-                    </span>
-                  ) : (
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500 text-white flex items-center gap-1 uppercase tracking-wider">
-                      <Unlock className="w-3 h-3" />
-                      <span>Editable</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {parsedProfile ? (
-                <div className="space-y-5 text-xs">
-                  
-                  {/* Candidate Identity Edit Form */}
-                  <div className="p-5 rounded-2xl bg-sky-50/70 dark:bg-emerald-950/30 border border-sky-200 dark:border-emerald-500/30 space-y-4">
-                    
-                    {/* 1. PDF / Document Name */}
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-1">
-                        Resume Document / PDF File Name
-                      </label>
-                      <input
-                        type="text"
-                        disabled={isLocked}
-                        value={parsedProfile.documentName || 'Candidate_Resume.pdf'}
-                        onChange={(e) => setParsedProfile({ ...parsedProfile, documentName: e.target.value })}
-                        className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkcard text-xs font-mono disabled:opacity-60"
+                {isParsing && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold text-sky-600 dark:text-emerald-400">
+                      <span>Extracting Profile Entities & Mapping Skills...</span>
+                      <span>{parsingProgress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-sky-500 to-indigo-600 dark:from-emerald-400 dark:to-teal-500 h-2 transition-all duration-300"
+                        style={{ width: `${parsingProgress}%` }}
                       />
                     </div>
-
-                    {/* 2. Full Name & Role */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-1">
-                          Candidate Full Name
-                        </label>
-                        <input
-                          type="text"
-                          disabled={isLocked}
-                          value={parsedProfile.fullName}
-                          onChange={(e) => setParsedProfile({ ...parsedProfile, fullName: e.target.value })}
-                          className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkcard text-xs font-bold disabled:opacity-60"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-1">
-                          Target Career Role
-                        </label>
-                        <input
-                          type="text"
-                          disabled={isLocked}
-                          value={parsedProfile.currentRole}
-                          onChange={(e) => setParsedProfile({ ...parsedProfile, currentRole: e.target.value })}
-                          className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-darkcard text-xs font-bold text-sky-700 dark:text-emerald-400 disabled:opacity-60"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Contact Metadata */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600 dark:text-gray-300 pt-2 border-t border-sky-200/60 dark:border-emerald-500/20">
-                      <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-sky-500" /> {parsedProfile.email}</span>
-                      <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-emerald-500" /> {parsedProfile.phone}</span>
-                      <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-rose-500" /> {parsedProfile.location}</span>
-                      <span className="flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5 text-indigo-500" /> {parsedProfile.degree}</span>
-                    </div>
                   </div>
+                )}
 
-                  {/* 3. Skills Editing & Removal Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300">
-                        Extracted Skills Inventory ({parsedProfile.extractedSkills?.length || 0}):
-                      </span>
-                      {!isLocked && (
-                        <span className="text-[10px] text-gray-500">Click &times; to delete, or add below</span>
-                      )}
-                    </div>
-
-                    {/* Skill Pills */}
-                    <div className="flex flex-wrap gap-2">
-                      {(parsedProfile.extractedSkills || []).map((sk) => (
-                        <span
-                          key={sk}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-sky-100 dark:bg-emerald-950/80 text-sky-800 dark:text-emerald-300 font-bold text-xs border border-sky-300/60 dark:border-emerald-500/40 shadow-xs"
-                        >
-                          <span>{sk}</span>
-                          {!isLocked && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSkill(sk)}
-                              className="text-rose-500 hover:text-rose-700 hover:scale-110 transition ml-0.5"
-                              title="Delete skill"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Add Custom Skill Form (Restricted to Recruiter and Admin) */}
-                    {!isLocked && (
-                      isPrivileged ? (
-                        <form onSubmit={handleAddSkill} className="flex gap-2 pt-1 font-tech">
-                          <input
-                            type="text"
-                            value={newSkillInput}
-                            onChange={(e) => setNewSkillInput(e.target.value)}
-                            placeholder="Add verified skill (Recruiter/Admin authority)..."
-                            className="flex-1 px-3 py-2 rounded-xl border border-indigo-300 dark:border-emerald-500/40 bg-white dark:bg-darkcard text-xs focus:ring-2 focus:ring-indigo-500"
-                          />
-                          <button
-                            type="submit"
-                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1 cursor-pointer whitespace-nowrap shadow-sm"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>Add Verified Skill</span>
-                          </button>
-                        </form>
-                      ) : (
-                        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-center gap-2">
-                          <Lock className="w-4 h-4 text-amber-500 shrink-0" />
-                          <span>
-                            <strong>Candidate Skill Addition Restricted:</strong> To maintain credential authenticity, manual skill entry is restricted to verified Recruiters & Administrators. All competencies must be verified from your uploaded resume or through official certificate audit.
-                          </span>
-                        </div>
-                      )
-                    )}
-                  </div>
-
-                  {/* Submission Action */}
-                  <div className="pt-2">
-                    {!isLocked ? (
-                      <button
-                        onClick={handleSubmitAndLockProfile}
-                        className="w-full py-4 text-xs font-black text-white gradient-btn rounded-xl shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] transition cursor-pointer uppercase tracking-wider"
-                      >
-                        <Lock className="w-4 h-4" />
-                        <span>Submit & Lock Candidate Profile</span>
-                      </button>
-                    ) : (
-                      <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-center text-xs text-slate-500 dark:text-slate-400 font-semibold">
-                        Profile submitted and locked. Only administrators have editing permissions.
-                      </div>
-                    )}
-                  </div>
+                {/* Candidate Pre-Submission Verification Card */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-darkcard border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-gray-300 space-y-1.5">
+                  <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                    <span>Infosys Enterprise Candidate Standard:</span>
+                  </p>
+                  <p>&bull; Freely add, search, and categorize competencies using the suite on the right.</p>
+                  <p>&bull; Apply one-click enterprise stacks (Full Stack Java, Cloud DevOps, AI & ML).</p>
+                  <p>&bull; Sync your skills to your verified candidate profile at any time.</p>
                 </div>
-              ) : (
-                <div className="py-16 text-center space-y-2 text-xs text-slate-400">
-                  <FileText className="w-10 h-10 text-slate-300 dark:text-slate-700 mx-auto" />
-                  <p className="font-bold">No resume document loaded yet.</p>
-                  <p>Upload a file, paste text, or load the verified sample profile to edit and submit.</p>
+              </div>
+
+              {/* My Pending Skill Endorsement Requests (If Any) */}
+              {myResumeSkillRequests.length > 0 && (
+                <div className="glass p-5 rounded-3xl border border-indigo-200 dark:border-indigo-900/50 shadow-sm space-y-3">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4" />
+                    <span>My Skill Endorsement Requests ({myResumeSkillRequests.length})</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {myResumeSkillRequests.map(r => (
+                      <div key={r.id} className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+                        <div>
+                          <div className="font-bold text-slate-900 dark:text-white">{r.skillName}</div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400">{r.proficiencyLevel} &bull; {r.category}</div>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                          r.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                        }`}>
+                          {r.status === 'APPROVED' ? 'Verified' : 'Pending Audit'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Right Candidate Review & Skill Addition Suite (7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="glass p-6 sm:p-8 rounded-3xl border border-sky-400/30 dark:border-emerald-500/30 shadow-md space-y-6">
+                
+                {/* Header with Live ATS Badge & Status */}
+                <div className="flex items-center justify-between border-b border-sky-400/20 dark:border-emerald-500/20 pb-3 flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <Edit2 className="w-4 h-4 text-sky-500 dark:text-emerald-400" />
+                    <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                      Candidate Profile & Competency Review
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {parsedProfile && (
+                      <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-400 flex items-center gap-1 shadow-xs">
+                        <Zap className="w-3.5 h-3.5 text-amber-500" />
+                        <span>ATS Score: {parsedProfile.atsScore || 92}%</span>
+                      </span>
+                    )}
+                    {isLocked ? (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 flex items-center gap-1 uppercase tracking-wider">
+                        <Lock className="w-3 h-3" />
+                        <span>Submitted & Locked</span>
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500 text-white flex items-center gap-1 uppercase tracking-wider">
+                        <Unlock className="w-3 h-3" />
+                        <span>Editable Draft</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {parsedProfile ? (
+                  <div className="space-y-6 text-xs">
+                    
+                    {/* Candidate Identity Edit Form */}
+                    <div className="p-5 rounded-2xl bg-sky-50/70 dark:bg-emerald-950/30 border border-sky-200 dark:border-emerald-500/30 space-y-4">
+                      
+                      {/* Document Name */}
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-gray-200 mb-1">
+                          Resume Document / PDF File Name
+                        </label>
+                        <input
+                          type="text"
+                          disabled={isLocked}
+                          value={parsedProfile.documentName || 'Candidate_Resume.pdf'}
+                          onChange={(e) => setParsedProfile({ ...parsedProfile, documentName: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-mono disabled:opacity-60 focus:ring-2 focus:ring-sky-500"
+                        />
+                      </div>
+
+                      {/* Full Name & Target Role */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-gray-200 mb-1">
+                            Candidate Full Name
+                          </label>
+                          <input
+                            type="text"
+                            disabled={isLocked}
+                            value={parsedProfile.fullName}
+                            onChange={(e) => setParsedProfile({ ...parsedProfile, fullName: e.target.value })}
+                            className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold disabled:opacity-60 focus:ring-2 focus:ring-sky-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-gray-200 mb-1">
+                            Target Career Role
+                          </label>
+                          <input
+                            type="text"
+                            disabled={isLocked}
+                            value={parsedProfile.currentRole}
+                            onChange={(e) => setParsedProfile({ ...parsedProfile, currentRole: e.target.value })}
+                            className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-xs font-bold text-sky-700 dark:text-emerald-400 disabled:opacity-60 focus:ring-2 focus:ring-sky-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Contact Metadata */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600 dark:text-gray-300 pt-2 border-t border-sky-200/60 dark:border-emerald-500/20">
+                        <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-sky-500" /> {parsedProfile.email}</span>
+                        <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-emerald-500" /> {parsedProfile.phone}</span>
+                        <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-rose-500" /> {parsedProfile.location}</span>
+                        <span className="flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5 text-indigo-500" /> {parsedProfile.degree}</span>
+                      </div>
+                    </div>
+
+                    {/* ------------------------------------------------------------- */}
+                    {/* ONE-CLICK ENTERPRISE SKILL PACKS (INFOSYS STANDARD)           */}
+                    {/* ------------------------------------------------------------- */}
+                    {!isLocked && (
+                      <div className="space-y-2 p-4 rounded-2xl bg-indigo-50/60 dark:bg-slate-900/60 border border-indigo-200 dark:border-slate-800">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                            <span>Quick Enterprise Skill Packs (Infosys Standard):</span>
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">1-Click Auto-Add</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                          {ENTERPRISE_SKILL_PACKS.map(pack => (
+                            <button
+                              key={pack.name}
+                              type="button"
+                              onClick={() => handleApplyEnterpriseSkillPack(pack)}
+                              className="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-left transition flex items-center justify-between group cursor-pointer shadow-xs"
+                              title={pack.description}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-base">{pack.icon}</span>
+                                <div>
+                                  <div className="font-black text-slate-900 dark:text-white text-xs group-hover:text-indigo-600 dark:group-hover:text-emerald-400">{pack.name}</div>
+                                  <div className="text-[9px] text-slate-500 dark:text-slate-400">{pack.skills.length} Enterprise Skills</div>
+                                </div>
+                              </div>
+                              <Plus className="w-3.5 h-3.5 text-indigo-500 group-hover:scale-125 transition-transform" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ------------------------------------------------------------- */}
+                    {/* CANDIDATE SKILL ADDITION FORM (INFOSYS PROJECT STANDARD)       */}
+                    {/* ------------------------------------------------------------- */}
+                    {!isLocked ? (
+                      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 space-y-3 shadow-xs">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <Plus className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>Add Technical Competency to Resume:</span>
+                          </label>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Type custom or select taxonomy</span>
+                        </div>
+
+                        <form onSubmit={handleAddSkill} className="space-y-3 font-tech">
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                            {/* Skill Input with Datalist Autocomplete */}
+                            <div className="sm:col-span-5">
+                              <input
+                                type="text"
+                                list="enterprise-skills-catalog"
+                                value={newSkillInput}
+                                onChange={(e) => setNewSkillInput(e.target.value)}
+                                placeholder="Skill (e.g. Java 21, React, AWS, Docker)..."
+                                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-indigo-500 placeholder-slate-400"
+                              />
+                            </div>
+
+                            {/* Category Selector */}
+                            <div className="sm:col-span-3">
+                              <select
+                                value={newSkillCategory}
+                                onChange={(e) => setNewSkillCategory(e.target.value)}
+                                className="w-full px-2.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                              >
+                                {SKILL_CATEGORIES.map(cat => (
+                                  <option key={cat.value} value={cat.value} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+                                    {cat.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* Proficiency Level Selector */}
+                            <div className="sm:col-span-2">
+                              <select
+                                value={newSkillProficiency}
+                                onChange={(e) => setNewSkillProficiency(e.target.value)}
+                                className="w-full px-2 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                              >
+                                {PROFICIENCY_LEVELS.map(lvl => (
+                                  <option key={lvl.value} value={lvl.value} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+                                    {lvl.value}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* Add Button */}
+                            <div className="sm:col-span-2">
+                              <button
+                                type="submit"
+                                className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl transition flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap shadow-sm"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add Skill</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Quick Suggestion Chips */}
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[10px]">
+                            <span className="text-slate-500 dark:text-slate-400 font-bold">Suggestions:</span>
+                            {['Java 21', 'Spring Boot 3', 'React', 'Docker', 'AWS', 'Python', 'PostgreSQL', 'Microservices'].map(suggest => (
+                              <button
+                                key={suggest}
+                                type="button"
+                                onClick={() => {
+                                  setNewSkillInput(suggest);
+                                }}
+                                className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-950 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-medium transition cursor-pointer"
+                              >
+                                + {suggest}
+                              </button>
+                            ))}
+                          </div>
+                        </form>
+                      </div>
+                    ) : (
+                      /* Profile Locked State - Show Endorsement Request Workflow */
+                      <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+                            <span>
+                              <strong>Profile Submitted & Locked:</strong> Direct inline editing is frozen. You can request skill endorsements for recruiter/admin audit or unlock this draft.
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setShowRequestModal(true)}
+                            className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                          >
+                            <Send className="w-3.5 h-3.5 text-slate-950" />
+                            <span>Request Skill Endorsement</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleUnlockDraftProfile}
+                            className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer border border-slate-300 dark:border-slate-700"
+                          >
+                            <Unlock className="w-3.5 h-3.5" />
+                            <span>Unlock Draft to Edit Skills</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ------------------------------------------------------------- */}
+                    {/* SKILLS INVENTORY & FILTERED PILLS CLOUD                       */}
+                    {/* ------------------------------------------------------------- */}
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                            Extracted Skills Inventory ({currentSkillsList.length}):
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300">
+                            {filteredSkills.length} Displayed
+                          </span>
+                        </div>
+
+                        {/* Search Filter for large skills list */}
+                        <div className="flex items-center gap-2">
+                          <div className="relative">
+                            <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                              type="text"
+                              value={skillSearchFilter}
+                              onChange={(e) => setSkillSearchFilter(e.target.value)}
+                              placeholder="Search skills..."
+                              className="pl-7 pr-3 py-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] text-slate-900 dark:text-white focus:ring-1 focus:ring-indigo-500 w-36 sm:w-44"
+                            />
+                          </div>
+
+                          {/* Save Skills Button */}
+                          <button
+                            type="button"
+                            onClick={handleSaveSkillsToProfile}
+                            disabled={isSavingSkills}
+                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl transition flex items-center gap-1 cursor-pointer shadow-xs whitespace-nowrap"
+                            title="Synchronize all skills directly to your verified profile and database"
+                          >
+                            <Save className="w-3 h-3" />
+                            <span>{isSavingSkills ? 'Syncing...' : 'Sync to Profile'}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Category Filter Tabs */}
+                      <div className="flex flex-wrap items-center gap-1 text-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCategoryFilter('ALL')}
+                          className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                            selectedCategoryFilter === 'ALL'
+                              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                          }`}
+                        >
+                          All ({currentSkillsList.length})
+                        </button>
+                        {SKILL_CATEGORIES.slice(0, 5).map(cat => (
+                          <button
+                            key={cat.value}
+                            type="button"
+                            onClick={() => setSelectedCategoryFilter(cat.value)}
+                            className={`px-2 py-1 rounded-lg font-medium transition cursor-pointer ${
+                              selectedCategoryFilter === cat.value
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            }`}
+                          >
+                            {cat.label.split('&')[0].trim()}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Skill Pills */}
+                      <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto p-1">
+                        {filteredSkills.map((sk) => {
+                          const meta = parsedProfile.skillsMetadata?.[sk] || {};
+                          const lvlObj = PROFICIENCY_LEVELS.find(l => l.value === (meta.level || 'ADVANCED')) || PROFICIENCY_LEVELS[2];
+                          return (
+                            <span
+                              key={sk}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 shadow-xs group"
+                            >
+                              <span>{sk}</span>
+                              <span className={`px-1.5 py-0.2 rounded-md text-[9px] font-black border uppercase tracking-wider ${lvlObj.badgeClass}`}>
+                                {meta.level || 'ADVANCED'}
+                              </span>
+                              {!isLocked && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSkill(sk)}
+                                  className="text-rose-500 hover:text-rose-700 hover:scale-125 transition ml-0.5 cursor-pointer"
+                                  title={`Remove ${sk}`}
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </span>
+                          );
+                        })}
+
+                        {filteredSkills.length === 0 && (
+                          <div className="w-full py-4 text-center text-xs text-slate-400">
+                            No skills found matching &ldquo;{skillSearchFilter}&rdquo;. Click &ldquo;Add Skill&rdquo; to add it!
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Submission / Lock Actions */}
+                    <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                      {!isLocked ? (
+                        <button
+                          onClick={handleSubmitAndLockProfile}
+                          className="w-full py-3.5 text-xs font-black text-white gradient-btn rounded-xl shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] transition cursor-pointer uppercase tracking-wider"
+                        >
+                          <Lock className="w-4 h-4" />
+                          <span>Submit & Lock Candidate Profile for Recruiter Review</span>
+                        </button>
+                      ) : (
+                        <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-center text-xs text-slate-600 dark:text-slate-300 font-semibold flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          <span>Profile submitted and locked. Verified by Recruiters & Administrators.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  /* Empty State - Prompt candidate to begin */
+                  <div className="py-16 text-center space-y-4 text-xs text-slate-500 dark:text-slate-400">
+                    <FileText className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto" />
+                    <div>
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">No Resume Document Loaded Yet</p>
+                      <p className="mt-1">Upload a PDF file, paste text content, or start building your skills directly.</p>
+                    </div>
+                    <div className="flex items-center justify-center gap-3 pt-2">
+                      <button
+                        onClick={loadSampleResume}
+                        className="px-4 py-2 rounded-xl gradient-btn text-white font-bold text-xs shadow-md cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Load Enterprise Sample Resume</span>
+                      </button>
+
+                      <button
+                        onClick={() => ensureCandidateProfileLoaded()}
+                        className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition cursor-pointer border border-slate-300 dark:border-slate-700 flex items-center gap-1.5"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Start Custom Profile</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Skill Request Endorsement Modal (For Locked Profile Candidates) */}
+        {showRequestModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <div className="glass bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-gray-200 dark:border-gray-800 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-800">
+                <div className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-indigo-600 dark:text-emerald-400" />
+                  <h3 className="font-extrabold text-gray-900 dark:text-white text-base">Request Skill Endorsement</h3>
+                </div>
+                <button
+                  onClick={() => setShowRequestModal(false)}
+                  className="p-1 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                Submit a new technical competency for administrative and recruiter audit. Verified skills will be endorsed to your profile.
+              </p>
+
+              <form onSubmit={handleCandidateSkillRequest} className="space-y-4 text-xs font-tech">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Competency Name</label>
+                  <input
+                    type="text"
+                    required
+                    list="enterprise-skills-catalog"
+                    value={requestSkillForm.skillName}
+                    onChange={(e) => setRequestSkillForm({ ...requestSkillForm, skillName: e.target.value })}
+                    placeholder="e.g. Apache Kafka, Rust, Kubernetes..."
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                    <select
+                      value={requestSkillForm.category}
+                      onChange={(e) => setRequestSkillForm({ ...requestSkillForm, category: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                    >
+                      {SKILL_CATEGORIES.map(c => (
+                        <option key={c.value} value={c.value} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{c.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Proficiency Level</label>
+                    <select
+                      value={requestSkillForm.proficiencyLevel}
+                      onChange={(e) => setRequestSkillForm({ ...requestSkillForm, proficiencyLevel: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                    >
+                      {PROFICIENCY_LEVELS.map(lvl => (
+                        <option key={lvl.value} value={lvl.value} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{lvl.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Justification & Certification Reference</label>
+                  <textarea
+                    rows="3"
+                    value={requestSkillForm.justification}
+                    onChange={(e) => setRequestSkillForm({ ...requestSkillForm, justification: e.target.value })}
+                    placeholder="Describe professional projects, certifications (e.g. AWS CKA), or production implementations..."
+                    className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowRequestModal(false)}
+                    className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl gradient-btn text-white font-bold transition flex items-center gap-1.5 shadow-md cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Submit Request</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
