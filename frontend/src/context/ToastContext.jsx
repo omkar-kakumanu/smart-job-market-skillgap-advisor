@@ -18,7 +18,8 @@ export const ToastProvider = ({ children }) => {
   return (
     <ToastContext.Provider value={{ showToast: addToast }}>
       {children}
-      <div className="fixed bottom-5 left-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+      {/* Positioned at bottom-right with z-[99999] so it is ALWAYS visible and never overlaps sidebars or modals */}
+      <div className="fixed bottom-6 right-6 z-[99999] flex flex-col gap-3 max-w-sm sm:max-w-md w-full pointer-events-none px-4 sm:px-0">
         {toasts.map((toast) => (
           <Toast
             key={toast.id}

@@ -84,17 +84,29 @@ const Dashboard = () => {
           <div className="mb-6 p-5 rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-indigo-700/60">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
-                <Trophy className="w-6 h-6 text-amber-300" />
+                {user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN' || user?.email?.toLowerCase().includes('admin') ? (
+                  <Shield className="w-6 h-6 text-amber-300" />
+                ) : (
+                  <Trophy className="w-6 h-6 text-amber-300" />
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-extrabold text-base">Candidate Leaderboard & Administrative Governance</h3>
+                  <h3 className="font-extrabold text-base">
+                    {user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN' || user?.email?.toLowerCase().includes('admin')
+                      ? 'System Administration & Candidate Governance'
+                      : 'Candidate Leaderboard & Talent Acquisition'}
+                  </h3>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
-                    Recruiter Console
+                    {user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN' || user?.email?.toLowerCase().includes('admin')
+                      ? 'System Administrator'
+                      : 'Recruiter Console'}
                   </span>
                 </div>
                 <p className="text-xs text-indigo-200 mt-0.5">
-                  Inspect multi-dimensional candidate rankings, view candidate dossiers, override profile locks, and audit verified certificates.
+                  {user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN' || user?.email?.toLowerCase().includes('admin')
+                    ? 'Review candidate registrations, approve/reject skills, manage candidate directory, and audit system credentials.'
+                    : 'Inspect multi-dimensional candidate rankings, view candidate dossiers, override profile locks, and audit verified certificates.'}
                 </p>
               </div>
             </div>
@@ -104,7 +116,11 @@ const Dashboard = () => {
               className="px-5 py-2.5 rounded-xl bg-white text-indigo-900 hover:bg-indigo-50 font-black text-xs shadow transition flex items-center gap-1.5 shrink-0"
             >
               <Shield className="w-4 h-4 text-indigo-600" />
-              <span>Open Candidate Rankings Console &rarr;</span>
+              <span>
+                {user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN' || user?.email?.toLowerCase().includes('admin')
+                  ? 'Open System Admin Console →'
+                  : 'Open Candidate Rankings Console →'}
+              </span>
             </Link>
           </div>
         )}

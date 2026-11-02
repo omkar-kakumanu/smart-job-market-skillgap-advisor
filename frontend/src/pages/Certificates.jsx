@@ -426,7 +426,9 @@ const Certificates = () => {
                       type="button"
                       onClick={() => setThemeStyle('gold')}
                       className={`py-2 rounded-xl border transition ${
-                        themeStyle === 'gold' ? 'border-amber-500 bg-amber-500/20 text-amber-400 ring-2 ring-amber-500/40' : 'border-gray-300 dark:border-gray-700'
+                        themeStyle === 'gold'
+                          ? 'border-amber-500 bg-amber-500/20 text-amber-800 dark:text-amber-300 ring-2 ring-amber-500/40 font-black'
+                          : 'border-slate-300 dark:border-gray-700 text-slate-700 dark:text-gray-300 bg-white/60 dark:bg-darkcard/60 hover:bg-slate-50'
                       }`}
                     >
                       Gold
@@ -435,7 +437,9 @@ const Certificates = () => {
                       type="button"
                       onClick={() => setThemeStyle('emerald')}
                       className={`py-2 rounded-xl border transition ${
-                        themeStyle === 'emerald' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500/40' : 'border-gray-300 dark:border-gray-700'
+                        themeStyle === 'emerald'
+                          ? 'border-emerald-500 bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 ring-2 ring-emerald-500/40 font-black'
+                          : 'border-slate-300 dark:border-gray-700 text-slate-700 dark:text-gray-300 bg-white/60 dark:bg-darkcard/60 hover:bg-slate-50'
                       }`}
                     >
                       Emerald
@@ -444,7 +448,9 @@ const Certificates = () => {
                       type="button"
                       onClick={() => setThemeStyle('indigo')}
                       className={`py-2 rounded-xl border transition ${
-                        themeStyle === 'indigo' ? 'border-indigo-500 bg-indigo-500/20 text-indigo-400 ring-2 ring-indigo-500/40' : 'border-gray-300 dark:border-gray-700'
+                        themeStyle === 'indigo'
+                          ? 'border-indigo-500 bg-indigo-500/20 text-indigo-800 dark:text-indigo-300 ring-2 ring-indigo-500/40 font-black'
+                          : 'border-slate-300 dark:border-gray-700 text-slate-700 dark:text-gray-300 bg-white/60 dark:bg-darkcard/60 hover:bg-slate-50'
                       }`}
                     >
                       Indigo
@@ -453,7 +459,9 @@ const Certificates = () => {
                       type="button"
                       onClick={() => setThemeStyle('dark')}
                       className={`py-2 rounded-xl border transition ${
-                        themeStyle === 'dark' ? 'border-gray-400 bg-gray-800 text-white ring-2 ring-gray-400/40' : 'border-gray-300 dark:border-gray-700'
+                        themeStyle === 'dark'
+                          ? 'border-slate-800 bg-slate-900 text-white ring-2 ring-slate-600 font-black'
+                          : 'border-slate-300 dark:border-gray-700 text-slate-700 dark:text-gray-300 bg-white/60 dark:bg-darkcard/60 hover:bg-slate-50'
                       }`}
                     >
                       Dark

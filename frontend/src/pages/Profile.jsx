@@ -486,7 +486,7 @@ const Profile = () => {
                 <div className="flex items-center gap-2">
                   <h4 className="font-extrabold text-sm sm:text-base">Recruiter & Administrator Candidate Management</h4>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
-                    Recruiter Privileges
+                    {isAdmin ? 'Administrator Privileges' : 'Recruiter Privileges'}
                   </span>
                 </div>
                 <p className="text-xs text-indigo-200 mt-0.5">
@@ -526,8 +526,8 @@ const Profile = () => {
                 to="/admin"
                 className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow transition flex items-center gap-1.5 shrink-0 cursor-pointer"
               >
-                <Trophy className="w-4 h-4 text-slate-950" />
-                <span>Recruiter Console &rarr;</span>
+                {isAdmin ? <Shield className="w-4 h-4 text-slate-950" /> : <Trophy className="w-4 h-4 text-slate-950" />}
+                <span>{isAdmin ? 'System Admin Console →' : 'Recruiter Console →'}</span>
               </Link>
             </div>
           </div>
