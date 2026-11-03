@@ -74,17 +74,6 @@ const Navbar = () => {
 
             {/* Right Header Controls */}
             <div className="flex items-center space-x-3">
-              {/* Universal Sync Data Button (Localhost <-> Vercel) */}
-              <button
-                type="button"
-                onClick={() => setIsSyncModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md transition cursor-pointer border border-amber-300 active:scale-95"
-                title="Sync all candidate accounts, resumes, test scores, and jobs between Localhost and Vercel"
-              >
-                <RefreshCw className="w-3.5 h-3.5 text-slate-950" />
-                <span className="hidden sm:inline">Sync Data</span>
-              </button>
-
               <button
                 onClick={toggleTheme}
                 className="p-2.5 rounded-xl text-slate-700 dark:text-emerald-400 hover:bg-slate-100 dark:hover:bg-emerald-950/50 border border-slate-200 dark:border-emerald-500/30 transition-all duration-200 shadow-sm cursor-pointer"
@@ -97,14 +86,27 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <div className="flex items-center space-x-3">
                   {isAdmin && (
-                    <Link
-                      to="/admin"
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-md transition cursor-pointer border border-white/20"
-                      title="Open System Administrator Governance Console"
-                    >
-                      <Shield className="w-3.5 h-3.5 text-amber-400 dark:text-white" />
-                      <span className="hidden sm:inline">Admin Console</span>
-                    </Link>
+                    <>
+                      {/* Sync Data Button (Admin Only) */}
+                      <button
+                        type="button"
+                        onClick={() => setIsSyncModalOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md transition cursor-pointer border border-amber-300 active:scale-95"
+                        title="Admin Sync: Copy/Paste JSON to transfer all data between Localhost and Vercel"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 text-slate-950" />
+                        <span className="hidden sm:inline">Sync Data</span>
+                      </button>
+
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-md transition cursor-pointer border border-white/20"
+                        title="Open System Administrator Governance Console"
+                      >
+                        <Shield className="w-3.5 h-3.5 text-amber-400 dark:text-white" />
+                        <span className="hidden sm:inline">Admin Console</span>
+                      </Link>
+                    </>
                   )}
 
                   {isRecruiter && (
@@ -175,11 +177,13 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Sync Data Modal */}
-      <SyncDataModal
-        isOpen={isSyncModalOpen}
-        onClose={() => setIsSyncModalOpen(false)}
-      />
+      {/* Sync Data Modal (Admin Only) */}
+      {isAdmin && (
+        <SyncDataModal
+          isOpen={isSyncModalOpen}
+          onClose={() => setIsSyncModalOpen(false)}
+        />
+      )}
     </>
   );
 };

@@ -16,9 +16,16 @@ import {
   Code2,
   Zap
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import { syncEnterpriseMasterData } from '../utils/enterpriseSync';
 
 export const SyncDataModal = ({ isOpen, onClose, initialTab = 'copy' }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin' || user?.email?.includes('admin') || user?.email === 'omkar.kakumanu17@gmail.com';
+
+  // Strict Admin-only programmatic access control
+  if (!isOpen || !isAdmin) return null;
+
   const [activeTab, setActiveTab] = useState(initialTab); // 'copy' | 'paste' | 'master'
   const [copied, setCopied] = useState(false);
   const [pasteString, setPasteString] = useState('');

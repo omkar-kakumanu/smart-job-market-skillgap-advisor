@@ -1169,11 +1169,13 @@ const Profile = () => {
           </form>
         </div>
       </main>
-      {/* Sync Data Modal */}
-      <SyncDataModal
-        isOpen={isSyncModalOpen}
-        onClose={() => setIsSyncModalOpen(false)}
-      />
+            {/* Sync Data Modal (Admin Only) */}
+      {isAdmin && (
+        <SyncDataModal
+          isOpen={isSyncModalOpen}
+          onClose={() => setIsSyncModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
