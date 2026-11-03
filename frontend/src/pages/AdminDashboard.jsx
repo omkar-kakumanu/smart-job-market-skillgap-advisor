@@ -4135,12 +4135,14 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Sync Data Modal */}
-      <SyncDataModal
-        isOpen={isSyncModalOpen}
-        onClose={() => setIsSyncModalOpen(false)}
-        initialTab={syncModalTab}
-      />
+            {/* Sync Data Modal (Admin Only) */}
+      {isSyncModalOpen && (
+        <SyncDataModal
+          isOpen={isSyncModalOpen}
+          onClose={() => setIsSyncModalOpen(false)}
+          initialTab={syncModalTab}
+        />
+      )}
     </div>
   );
 };

@@ -21,10 +21,15 @@ import { syncEnterpriseMasterData } from '../utils/enterpriseSync';
 
 export const SyncDataModal = ({ isOpen, onClose, initialTab = 'copy' }) => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin' || user?.email?.includes('admin') || user?.email === 'omkar.kakumanu17@gmail.com';
-
-  // Strict Admin-only programmatic access control
-  if (!isOpen || !isAdmin) return null;
+  const isAdmin = Boolean(
+    user && (
+      user.role === 'ROLE_ADMIN' ||
+      user.role === 'ADMIN' ||
+      user.role === 'admin' ||
+      user.email?.toLowerCase().includes('admin') ||
+      user.email === 'omkar.kakumanu17@gmail.com'
+    )
+  );
 
   const [activeTab, setActiveTab] = useState(initialTab); // 'copy' | 'paste' | 'master'
   const [copied, setCopied] = useState(false);
@@ -62,7 +67,7 @@ export const SyncDataModal = ({ isOpen, onClose, initialTab = 'copy' }) => {
 
   // Pre-generate export JSON when modal opens or on focus
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && isAdmin) {
       try {
         const data = getExportData();
         const str = JSON.stringify(data, null, 2);
@@ -74,9 +79,10 @@ export const SyncDataModal = ({ isOpen, onClose, initialTab = 'copy' }) => {
         console.warn('Error reading localStorage for export:', err);
       }
     }
-  }, [isOpen]);
+  }, [isOpen, isAdmin]);
 
-  if (!isOpen) return null;
+  // Strict Admin-only programmatic access control AFTER all hooks
+  if (!isOpen || !isAdmin) return null;
 
   // Copy stringified sync data to clipboard
   const handleCopySyncString = () => {

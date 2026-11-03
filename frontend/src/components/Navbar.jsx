@@ -178,7 +178,7 @@ const Navbar = () => {
       </nav>
 
       {/* Sync Data Modal (Admin Only) */}
-      {isAdmin && (
+      {isAdmin && isSyncModalOpen && (
         <SyncDataModal
           isOpen={isSyncModalOpen}
           onClose={() => setIsSyncModalOpen(false)}
