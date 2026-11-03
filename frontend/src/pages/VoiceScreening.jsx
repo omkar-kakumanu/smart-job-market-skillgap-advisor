@@ -44,8 +44,13 @@ const VoiceScreening = () => {
 
   // Historical Records
   const [history, setHistory] = useState(() => {
-    const saved = localStorage.getItem('skillgap_voice_records');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('skillgap_voice_records');
+      const p = saved ? JSON.parse(saved) : [];
+      return Array.isArray(p) ? p : [];
+    } catch {
+      return [];
+    }
   });
 
   const isAdminOrRecruiter = user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_RECRUITER';

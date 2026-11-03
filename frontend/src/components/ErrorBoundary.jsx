@@ -4,7 +4,7 @@ import { AlertTriangle, RefreshCw, Home, ShieldAlert, Sparkles, Terminal } from 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null, showDetails: false };
+    this.state = { hasError: false, error: null, errorInfo: null, showDetails: true };
   }
 
   static getDerivedStateFromError(error) {
@@ -17,18 +17,27 @@ class ErrorBoundary extends React.Component {
   }
 
   handleReload = () => {
+    try {
+      sessionStorage.clear();
+      localStorage.removeItem('sidebar_collapsed');
+      localStorage.removeItem('sidebar_position');
+    } catch (_) {}
     window.location.reload();
   };
 
   handleReset = () => {
+    try {
+      sessionStorage.clear();
+      localStorage.removeItem('sidebar_collapsed');
+      localStorage.removeItem('sidebar_position');
+    } catch (_) {}
     this.setState({ hasError: false, error: null, errorInfo: null });
     window.location.href = '/';
   };
 
   handleClearSession = () => {
     try {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.clear();
       sessionStorage.clear();
     } catch (e) {
       console.warn('Unable to clear local storage:', e);
@@ -64,14 +73,19 @@ class ErrorBoundary extends React.Component {
 
             {this.state.error && (
               <div className="text-left space-y-2">
-                <button
-                  type="button"
-                  onClick={() => this.setState(prev => ({ showDetails: !prev.showDetails }))}
-                  className="text-xs font-mono text-slate-400 hover:text-emerald-400 transition flex items-center gap-1 cursor-pointer"
-                >
-                  <Terminal className="w-3.5 h-3.5" />
-                  <span>{this.state.showDetails ? 'Hide Diagnostics' : 'View Diagnostics'}</span>
-                </button>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                    <Terminal className="w-3.5 h-3.5 text-emerald-400" />
+                    Diagnostics
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => this.setState(prev => ({ showDetails: !prev.showDetails }))}
+                    className="text-[10px] font-mono text-emerald-400 hover:underline cursor-pointer"
+                  >
+                    {this.state.showDetails ? 'Hide Details' : 'Show Details'}
+                  </button>
+                </div>
                 {this.state.showDetails && (
                   <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-xs font-mono text-emerald-300 max-h-36 overflow-y-auto overflow-x-hidden break-words selection:bg-emerald-900">
                     {this.state.error.toString()}
@@ -98,12 +112,12 @@ class ErrorBoundary extends React.Component {
               </button>
             </div>
 
-            <div className="pt-2 border-t border-slate-800/80">
+            <div className="pt-2 border-t border-slate-800/80 flex flex-col items-center gap-2">
               <button
                 onClick={this.handleClearSession}
-                className="text-xs text-slate-400 hover:text-amber-400 transition-colors underline underline-offset-4 cursor-pointer"
+                className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono text-xs transition cursor-pointer"
               >
-                Reset session cache & re-enter portal
+                ✨ Clear Corrupted Cache & Fresh Start
               </button>
             </div>
           </div>

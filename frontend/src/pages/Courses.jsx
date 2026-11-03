@@ -22,11 +22,19 @@ const Courses = () => {
 
         // Load custom courses added by admin
         const storedAdminCourses = localStorage.getItem('skillgap_admin_courses');
-        const customCourses = storedAdminCourses ? JSON.parse(storedAdminCourses) : [];
+        let customCourses = [];
+        try {
+          const c = storedAdminCourses ? JSON.parse(storedAdminCourses) : [];
+          if (Array.isArray(c)) customCourses = c;
+        } catch (_) {}
 
         // Load custom skills defined by admin
         const storedAdminSkills = localStorage.getItem('skillgap_admin_skills');
-        const customSkills = storedAdminSkills ? JSON.parse(storedAdminSkills) : [];
+        let customSkills = [];
+        try {
+          const s = storedAdminSkills ? JSON.parse(storedAdminSkills) : [];
+          if (Array.isArray(s)) customSkills = s;
+        } catch (_) {}
 
         // Combine courses
         const combinedCourses = [...customCourses, ...(courseData || [])];

@@ -1157,16 +1157,24 @@ Led full stack product features serving 500k+ active corporate users.`,
 export const syncEnterpriseMasterData = ({ force = true } = {}) => {
   try {
     // 1. Recover Passwords Map
-    const existingPasswords = JSON.parse(localStorage.getItem('skillgap_user_passwords') || '{}');
+    let existingPasswords = {};
+    try {
+      const p = JSON.parse(localStorage.getItem('skillgap_user_passwords') || '{}');
+      if (p && typeof p === 'object' && !Array.isArray(p)) existingPasswords = p;
+    } catch (_) {}
     const mergedPasswords = { ...DEFAULT_USER_PASSWORDS, ...existingPasswords };
     for (const [em, pass] of Object.entries(DEFAULT_USER_PASSWORDS)) {
       mergedPasswords[em] = pass;
-      localStorage.setItem('rc_password_' + em, pass);
+      try { localStorage.setItem('rc_password_' + em, pass); } catch (_) {}
     }
     localStorage.setItem('skillgap_user_passwords', JSON.stringify(mergedPasswords));
 
     // 2. Recover Candidate Profiles Database (skillgap_profiles_db)
-    const existingDb = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+    let existingDb = {};
+    try {
+      const d = JSON.parse(localStorage.getItem('skillgap_profiles_db') || '{}');
+      if (d && typeof d === 'object' && !Array.isArray(d)) existingDb = d;
+    } catch (_) {}
     const updatedDb = { ...MASTER_CANDIDATES };
 
     // Also inject accounts as valid profiles
@@ -1186,29 +1194,41 @@ export const syncEnterpriseMasterData = ({ force = true } = {}) => {
         ...stored,
         approvalStatus: stored.approvalStatus || base.approvalStatus || 'APPROVED',
         isApproved: stored.isApproved !== undefined ? stored.isApproved : (base.isApproved !== undefined ? base.isApproved : true),
-        skills: (stored.skills && stored.skills.length > 0) ? stored.skills : (base.skills || []),
-        voiceRecords: (stored.voiceRecords && stored.voiceRecords.length > 0) ? stored.voiceRecords : (base.voiceRecords || []),
-        interviewAttempts: (stored.interviewAttempts && stored.interviewAttempts.length > 0) ? stored.interviewAttempts : (base.interviewAttempts || [])
+        skills: (stored.skills && Array.isArray(stored.skills) && stored.skills.length > 0) ? stored.skills : (base.skills || []),
+        voiceRecords: (stored.voiceRecords && Array.isArray(stored.voiceRecords) && stored.voiceRecords.length > 0) ? stored.voiceRecords : (base.voiceRecords || []),
+        interviewAttempts: (stored.interviewAttempts && Array.isArray(stored.interviewAttempts) && stored.interviewAttempts.length > 0) ? stored.interviewAttempts : (base.interviewAttempts || [])
       };
     });
 
     localStorage.setItem('skillgap_profiles_db', JSON.stringify(updatedDb));
 
     // 3. Recover Registered Profiles Map
-    const existingReg = JSON.parse(localStorage.getItem('skillgap_registered_profiles') || '{}');
+    let existingReg = {};
+    try {
+      const r = JSON.parse(localStorage.getItem('skillgap_registered_profiles') || '{}');
+      if (r && typeof r === 'object' && !Array.isArray(r)) existingReg = r;
+    } catch (_) {}
     const mergedReg = { ...updatedDb, ...existingReg };
     localStorage.setItem('skillgap_registered_profiles', JSON.stringify(mergedReg));
 
     // 4. Recover Resumes Store
-    const existingResumes = JSON.parse(localStorage.getItem('skillgap_resumes_store') || '{}');
+    let existingResumes = {};
+    try {
+      const res = JSON.parse(localStorage.getItem('skillgap_resumes_store') || '{}');
+      if (res && typeof res === 'object' && !Array.isArray(res)) existingResumes = res;
+    } catch (_) {}
     const mergedResumes = { ...MASTER_RESUME_DOCS, ...existingResumes };
     localStorage.setItem('skillgap_resumes_store', JSON.stringify(mergedResumes));
     for (const [em, doc] of Object.entries(mergedResumes)) {
-      localStorage.setItem('skillgap_resume_doc_' + em, JSON.stringify(doc));
+      try { localStorage.setItem('skillgap_resume_doc_' + em, JSON.stringify(doc)); } catch (_) {}
     }
 
     // 5. Recover Skill Requests
-    const existingSkillReqs = JSON.parse(localStorage.getItem('skillgap_skill_requests') || '[]');
+    let existingSkillReqs = [];
+    try {
+      const sr = JSON.parse(localStorage.getItem('skillgap_skill_requests') || '[]');
+      if (Array.isArray(sr)) existingSkillReqs = sr;
+    } catch (_) {}
     const reqIds = new Set(existingSkillReqs.map(r => r.id));
     const mergedSkillReqs = [...existingSkillReqs];
     MASTER_SKILL_REQUESTS.forEach(r => {
@@ -1229,17 +1249,21 @@ export const syncEnterpriseMasterData = ({ force = true } = {}) => {
       years: parseFloat(sk.years || sk.yearsExperience) || 2.0
     });
 
-    const existingCertReqs = JSON.parse(localStorage.getItem('skillgap_cert_requests') || '[]');
+    let existingCertReqs = [];
+    try {
+      const cr = JSON.parse(localStorage.getItem('skillgap_cert_requests') || '[]');
+      if (Array.isArray(cr)) existingCertReqs = cr;
+    } catch (_) {}
     const certIds = new Set(existingCertReqs.map(c => c.id));
     const mergedCertReqs = existingCertReqs.map(c => ({
       ...c,
-      skills: (c.skills || []).map(normalizeSkillItem)
+      skills: (Array.isArray(c.skills) ? c.skills : []).map(normalizeSkillItem)
     }));
     MASTER_CERT_REQUESTS.forEach(c => {
       if (!certIds.has(c.id)) {
         mergedCertReqs.push({
           ...c,
-          skills: (c.skills || []).map(normalizeSkillItem)
+          skills: (Array.isArray(c.skills) ? c.skills : []).map(normalizeSkillItem)
         });
         certIds.add(c.id);
       }
@@ -1247,7 +1271,11 @@ export const syncEnterpriseMasterData = ({ force = true } = {}) => {
     localStorage.setItem('skillgap_cert_requests', JSON.stringify(mergedCertReqs));
 
     // 7. Recover Jobs Database
-    const existingJobs = JSON.parse(localStorage.getItem('skillgap_jobs_db') || '[]');
+    let existingJobs = [];
+    try {
+      const jb = JSON.parse(localStorage.getItem('skillgap_jobs_db') || '[]');
+      if (Array.isArray(jb)) existingJobs = jb;
+    } catch (_) {}
     const jobTitles = new Set(existingJobs.map(j => j.title));
     const mergedJobs = [...existingJobs];
     MASTER_JOBS.forEach(j => {
@@ -1259,7 +1287,11 @@ export const syncEnterpriseMasterData = ({ force = true } = {}) => {
     localStorage.setItem('skillgap_jobs_db', JSON.stringify(mergedJobs));
 
     // 8. Recover Admin Courses
-    const existingCourses = JSON.parse(localStorage.getItem('skillgap_admin_courses') || '[]');
+    let existingCourses = [];
+    try {
+      const ac = JSON.parse(localStorage.getItem('skillgap_admin_courses') || '[]');
+      if (Array.isArray(ac)) existingCourses = ac;
+    } catch (_) {}
     const courseIds = new Set(existingCourses.map(c => c.id));
     const mergedCourses = [...existingCourses];
     MASTER_COURSES.forEach(c => {
@@ -1271,7 +1303,11 @@ export const syncEnterpriseMasterData = ({ force = true } = {}) => {
     localStorage.setItem('skillgap_admin_courses', JSON.stringify(mergedCourses));
 
     // 9. Recover Admin Skills
-    const existingSkills = JSON.parse(localStorage.getItem('skillgap_admin_skills') || '[]');
+    let existingSkills = [];
+    try {
+      const as = JSON.parse(localStorage.getItem('skillgap_admin_skills') || '[]');
+      if (Array.isArray(as)) existingSkills = as;
+    } catch (_) {}
     const skillNames = new Set(existingSkills.map(s => s.name?.toLowerCase()));
     const mergedSkills = [...existingSkills];
     MASTER_SKILLS.forEach(s => {

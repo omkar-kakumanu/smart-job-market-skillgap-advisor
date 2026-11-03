@@ -4,13 +4,21 @@ const SidebarContext = createContext();
 
 export const SidebarProvider = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(() => {
-    const saved = localStorage.getItem('sidebar_collapsed');
-    return saved ? JSON.parse(saved) : false;
+    try {
+      const saved = localStorage.getItem('sidebar_collapsed');
+      return saved ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
   });
 
   const [position, setPosition] = useState(() => {
-    const saved = localStorage.getItem('sidebar_position');
-    return saved || 'left';
+    try {
+      const saved = localStorage.getItem('sidebar_position');
+      return (saved === 'left' || saved === 'right') ? saved : 'left';
+    } catch {
+      return 'left';
+    }
   });
 
   useEffect(() => {

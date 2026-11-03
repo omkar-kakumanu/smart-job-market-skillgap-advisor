@@ -530,8 +530,13 @@ const InterviewSimulation = () => {
   
   // Multi-Attempt History Management
   const [allAttempts, setAllAttempts] = useState(() => {
-    const saved = localStorage.getItem('skillgap_interview_attempts');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('skillgap_interview_attempts');
+      const p = saved ? JSON.parse(saved) : [];
+      return Array.isArray(p) ? p : [];
+    } catch {
+      return [];
+    }
   });
 
   // Privacy: A candidate can ONLY see their own response while admin/recruiter can see all
