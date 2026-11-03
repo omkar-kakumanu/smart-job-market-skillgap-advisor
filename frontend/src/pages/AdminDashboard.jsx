@@ -8,6 +8,7 @@ import { useToast } from '../hooks/useToast';
 import { jobService } from '../services/jobService';
 import { userService } from '../services/userService';
 import { syncEnterpriseMasterData } from '../utils/enterpriseSync';
+import SyncDataModal from '../components/SyncDataModal';
 import { updateCandidateApprovalStatus, getUserPassword, setUserPassword, isProtectedMainAdmin } from '../context/AuthContext';
 import { 
   Shield, 
@@ -81,6 +82,7 @@ const AdminDashboard = () => {
   // Reset Directory Confirmation Modal State
   const [showResetDirectoryModal, setShowResetDirectoryModal] = useState(false);
   const [isSyncingData, setIsSyncingData] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   // Check if active session is Admin
 //   const isAdmin = user?.role === 'ROLE_ADMIN' || user?.email?.toLowerCase().includes('admin');
@@ -1725,7 +1727,17 @@ const AdminDashboard = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsSyncModalOpen(true)}
+              className="px-3.5 py-2 rounded-2xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-md border border-amber-300 cursor-pointer active:scale-95 shrink-0"
+              title="Sync all candidates & data between Localhost and Vercel"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-slate-950" />
+              <span>Sync Data</span>
+            </button>
+            <div className="flex flex-wrap items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
             {/* Tab 1: Candidate Rankings */}
             <button
               onClick={() => setActiveTab('rankings')}
@@ -1820,6 +1832,7 @@ const AdminDashboard = () => {
             </button>
           </div>
         </div>
+      </div>
 
         {/* Particular Candidate Inspection Studio Selector Banner */}
         <div className="glass p-5 rounded-3xl border border-indigo-200/80 dark:border-indigo-800/40 shadow-sm mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-emerald-500/5">
@@ -4063,6 +4076,11 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Sync Data Modal */}
+      <SyncDataModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+      />
     </div>
   );
 };

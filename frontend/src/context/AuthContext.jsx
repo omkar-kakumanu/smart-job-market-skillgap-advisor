@@ -179,6 +179,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Ensure all enterprise master data is seeded for fresh Vercel sessions
+    try {
+      ensureMasterDataSeeded();
+    } catch (e) {
+      console.warn("Could not auto-seed master data", e);
+    }
+
     // Initialize default passwords in localStorage if not set
     try {
       const current = JSON.parse(localStorage.getItem('skillgap_user_passwords') || '{}');

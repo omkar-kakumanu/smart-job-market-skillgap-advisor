@@ -15,6 +15,7 @@ import { useToast } from '../hooks/useToast';
 import { userService } from '../services/userService';
 import { jobService } from '../services/jobService';
 import { syncEnterpriseMasterData } from '../utils/enterpriseSync';
+import SyncDataModal from '../components/SyncDataModal';
 import { 
   User, 
   Plus, 
@@ -155,6 +156,7 @@ const Profile = () => {
   const [proficiency, setProficiency] = useState('INTERMEDIATE');
   const [years, setYears] = useState('2.0');
   const [saving, setSaving] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   // Skill Request State for Candidate
   const [showSkillRequestModal, setShowSkillRequestModal] = useState(false);
@@ -633,7 +635,7 @@ const Profile = () => {
                     </p>
                     <button
                       type="button"
-                      onClick={handleSyncMasterData}
+                      onClick={() => setIsSyncModalOpen(true)}
                       disabled={syncingData}
                       className="w-full py-2.5 px-3 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer border border-amber-300 active:scale-95"
                     >
@@ -1167,6 +1169,11 @@ const Profile = () => {
           </form>
         </div>
       </main>
+      {/* Sync Data Modal */}
+      <SyncDataModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+      />
     </div>
   );
 };

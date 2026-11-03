@@ -28,6 +28,8 @@ import { getStoredProfileByEmail, saveStoredProfileByEmail, getUserPassword, set
 import { useToast } from '../hooks/useToast';
 import { useTheme } from '../hooks/useTheme';
 import { authService } from '../services/authService';
+import SyncDataModal from '../components/SyncDataModal';
+import { RefreshCw } from 'lucide-react';
 import ProfilePhotoUploader from '../components/ProfilePhotoUploader';
 import { EXPERIENCE_LEVELS } from '../utils/constants';
 import { ensureMasterDataSeeded } from '../utils/enterpriseSync';
@@ -87,6 +89,7 @@ const Login = ({ initialMode = 'ADMIN' }) => {
   const { theme, toggleTheme } = useTheme();
 
   // Mode: 'RECRUITER' | 'CANDIDATE' | 'ADMIN' | 'SIGN_UP'
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [mode, setMode] = useState(() => {
     if (location.pathname === '/register') return 'SIGN_UP';
     return initialMode;
@@ -748,6 +751,17 @@ const Login = ({ initialMode = 'ADMIN' }) => {
                 </button>
               </div>
 
+              {/* Sync Data Button (Localhost <-> Vercel) */}
+              <button
+                type="button"
+                onClick={() => setIsSyncModalOpen(true)}
+                className="px-2.5 py-2 rounded-xl border border-amber-400/60 bg-amber-400/20 text-amber-800 dark:text-amber-300 hover:bg-amber-400/30 transition-all cursor-pointer shrink-0 font-bold text-xs flex items-center gap-1 shadow-sm"
+                title="Sync all candidate accounts, resumes, test scores, and jobs between Localhost and Vercel"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-amber-500" />
+                <span className="hidden sm:inline">Sync Data</span>
+              </button>
+
               {/* Theme Toggle Button */}
               <button
                 type="button"
@@ -1382,6 +1396,12 @@ const Login = ({ initialMode = 'ADMIN' }) => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Sync Data Modal */}
+      <SyncDataModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+      />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 import { useToast } from '../hooks/useToast';
 import { syncEnterpriseMasterData } from '../utils/enterpriseSync';
+import SyncDataModal from './SyncDataModal';
 import { 
   Sun, 
   Moon, 
@@ -11,7 +12,8 @@ import {
   Cpu,
   Shield,
   Briefcase,
-  RefreshCw
+  RefreshCw,
+  Database
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -19,24 +21,7 @@ const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
-  const { showToast } = useToast();
-  const [isSyncing, setIsSyncing] = useState(false);
-
-  const handleSyncData = () => {
-    setIsSyncing(true);
-    try {
-      const res = syncEnterpriseMasterData({ force: true });
-      window.dispatchEvent(new Event('skillgap_data_synced'));
-      showToast(
-        `Enterprise Data Synchronized! Recovered ${res.accountsCount} accounts, ${res.candidatesCount} candidate dossiers, and ${res.jobsCount} job requisitions.`,
-        'success'
-      );
-    } catch (err) {
-      showToast('Failed to sync master data.', 'error');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   const isAdmin = isAuthenticated && (
     user?.role === 'ROLE_ADMIN' ||
@@ -63,54 +48,55 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-40 bg-white/95 dark:bg-[#09120e]/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-emerald-500/30 transition-all duration-300 shadow-[0_4px_25px_rgba(15,23,42,0.05)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.5)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group flex-shrink-0">
-            <div className="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center shadow-brand-glow dark:shadow-emerald-glow group-hover:scale-105 transition-all duration-300 border border-indigo-400/40 dark:border-emerald-400/30">
-              <Cpu className="w-6 h-6 text-white animate-pulse" />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center space-x-1.5">
-                <span className="font-heading font-black text-lg tracking-wider text-slate-900 dark:text-white">
-                  SKILLGAP
-                </span>
-                <span className="px-1.5 py-0.5 text-[10px] font-tech font-extrabold uppercase bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-500/40 rounded tracking-widest">
-                  ADVISOR
+    <>
+      <nav className="sticky top-0 z-40 bg-white/95 dark:bg-[#09120e]/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-emerald-500/30 transition-all duration-300 shadow-[0_4px_25px_rgba(15,23,42,0.05)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.5)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-3 group flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center shadow-brand-glow dark:shadow-emerald-glow group-hover:scale-105 transition-all duration-300 border border-indigo-400/40 dark:border-emerald-400/30">
+                <Cpu className="w-6 h-6 text-white animate-pulse" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center space-x-1.5">
+                  <span className="font-heading font-black text-lg tracking-wider text-slate-900 dark:text-white">
+                    SKILLGAP
+                  </span>
+                  <span className="px-1.5 py-0.5 text-[10px] font-tech font-extrabold uppercase bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-500/40 rounded tracking-widest">
+                    ADVISOR
+                  </span>
+                </div>
+                <span className="text-[11px] font-tech font-bold text-indigo-600 dark:text-emerald-400 uppercase tracking-widest -mt-1">
+                  Competency & Career Intelligence
                 </span>
               </div>
-              <span className="text-[11px] font-tech font-bold text-indigo-600 dark:text-emerald-400 uppercase tracking-widest -mt-1">
-                Competency & Career Intelligence
-              </span>
-            </div>
-          </Link>
+            </Link>
 
-          {/* Right Header Controls */}
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 rounded-xl text-slate-700 dark:text-emerald-400 hover:bg-slate-100 dark:hover:bg-emerald-950/50 border border-slate-200 dark:border-emerald-500/30 transition-all duration-200 shadow-sm cursor-pointer"
-              aria-label="Toggle Theme"
-              title="Toggle Light/Dark Theme"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-600" />}
-            </button>
+            {/* Right Header Controls */}
+            <div className="flex items-center space-x-3">
+              {/* Universal Sync Data Button (Localhost <-> Vercel) */}
+              <button
+                type="button"
+                onClick={() => setIsSyncModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md transition cursor-pointer border border-amber-300 active:scale-95"
+                title="Sync all candidate accounts, resumes, test scores, and jobs between Localhost and Vercel"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-slate-950" />
+                <span className="hidden sm:inline">Sync Data</span>
+              </button>
 
-            {isAuthenticated ? (
-              <div className="flex items-center space-x-3">
-                {isAdmin && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleSyncData}
-                      disabled={isSyncing}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md transition cursor-pointer border border-amber-300 active:scale-95"
-                      title="Admin Master Sync: Recover all candidate accounts, resumes, jobs, and telemetry"
-                    >
-                      <RefreshCw className={`w-3.5 h-3.5 text-slate-950 ${isSyncing ? 'animate-spin' : ''}`} />
-                      <span className="hidden sm:inline">{isSyncing ? 'Syncing...' : 'Sync Data'}</span>
-                    </button>
+              <button
+                onClick={toggleTheme}
+                className="p-2.5 rounded-xl text-slate-700 dark:text-emerald-400 hover:bg-slate-100 dark:hover:bg-emerald-950/50 border border-slate-200 dark:border-emerald-500/30 transition-all duration-200 shadow-sm cursor-pointer"
+                aria-label="Toggle Theme"
+                title="Toggle Light/Dark Theme"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-600" />}
+              </button>
+
+              {isAuthenticated ? (
+                <div className="flex items-center space-x-3">
+                  {isAdmin && (
                     <Link
                       to="/admin"
                       className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-md transition cursor-pointer border border-white/20"
@@ -119,71 +105,82 @@ const Navbar = () => {
                       <Shield className="w-3.5 h-3.5 text-amber-400 dark:text-white" />
                       <span className="hidden sm:inline">Admin Console</span>
                     </Link>
-                  </>
-                )}
-
-                {isRecruiter && (
-                  <Link
-                    to="/admin"
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow transition cursor-pointer"
-                    title="Open Talent Acquisition & Recruiter Console"
-                  >
-                    <Briefcase className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Recruiter Console</span>
-                  </Link>
-                )}
-
-                {/* Profile Link with appropriate role-based label */}
-                <Link
-                  to="/profile"
-                  className="flex items-center space-x-2 p-1.5 rounded-xl border border-slate-200 dark:border-emerald-500/30 hover:border-indigo-400 dark:hover:border-emerald-400 bg-slate-50 dark:bg-emerald-950/40 transition"
-                  title={isAdmin ? 'Administrator Profile & Security' : isRecruiter ? 'Recruiter Profile & Security' : 'Candidate Profile & Competency Matrix'}
-                >
-                  {user?.profileImageUrl && !imgError ? (
-                    <img
-                      src={user.profileImageUrl}
-                      alt="Profile"
-                      onError={() => setImgError(true)}
-                      className="w-8 h-8 rounded-full object-cover border-2 border-indigo-400 dark:border-emerald-400"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 dark:from-emerald-500 dark:to-teal-700 text-white font-extrabold text-xs flex items-center justify-center border border-white/20">
-                      {isAdmin ? <Shield className="w-4 h-4 text-amber-300" /> : isRecruiter ? <Briefcase className="w-4 h-4 text-white" /> : getInitials(user?.fullName)}
-                    </div>
                   )}
-                  <span className="hidden sm:inline font-tech font-bold text-xs text-slate-800 dark:text-white">
-                    {isAdmin ? 'Admin' : isRecruiter ? 'Recruiter' : user?.fullName?.split(' ')[0]}
-                  </span>
-                </Link>
 
-                <button
-                  onClick={logout}
-                  className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-transparent hover:border-rose-400/30 transition cursor-pointer"
-                  title="Logout"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2 font-tech">
-                <Link
-                  to="/login"
-                  className="px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-emerald-400 transition"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-4 py-2 text-xs font-extrabold text-white gradient-btn rounded-xl shadow-sm hover:scale-105 transition"
-                >
-                  Register
-                </Link>
-              </div>
-            )}
+                  {isRecruiter && (
+                    <Link
+                      to="/admin"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow transition cursor-pointer"
+                      title="Open Talent Acquisition & Recruiter Console"
+                    >
+                      <Briefcase className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Recruiter Console</span>
+                    </Link>
+                  )}
+
+                  {/* Profile Link with appropriate role-based label */}
+                  <Link
+                    to="/profile"
+                    className="flex items-center space-x-2 p-1.5 rounded-xl border border-slate-200 dark:border-emerald-500/30 hover:border-indigo-400 dark:hover:border-emerald-400 bg-slate-50 dark:bg-emerald-950/40 transition"
+                    title={isAdmin ? 'Administrator Profile & Security' : isRecruiter ? 'Recruiter Profile & Security' : 'Candidate Profile & Competency Matrix'}
+                  >
+                    <div className="w-7 h-7 rounded-lg overflow-hidden bg-gradient-to-tr from-indigo-500 to-sky-400 dark:from-emerald-600 dark:to-teal-500 flex items-center justify-center text-white text-xs font-bold font-tech shadow-inner">
+                      {user?.profileImageUrl && !imgError ? (
+                        <img
+                          src={user.profileImageUrl}
+                          alt={user.fullName || 'User'}
+                          className="w-full h-full object-cover"
+                          onError={() => setImgError(true)}
+                        />
+                      ) : (
+                        <span>{getInitials(user?.fullName)}</span>
+                      )}
+                    </div>
+                    <div className="hidden md:flex flex-col text-left">
+                      <span className="text-xs font-bold font-tech text-slate-800 dark:text-gray-200 truncate max-w-[120px]">
+                        {user?.fullName?.split(' ')[0] || 'User'}
+                      </span>
+                      <span className="text-[10px] text-indigo-600 dark:text-emerald-400 font-semibold uppercase -mt-0.5">
+                        {isAdmin ? 'Admin' : isRecruiter ? 'Recruiter' : 'Candidate'}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <button
+                    onClick={logout}
+                    className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition border border-transparent hover:border-rose-200 dark:hover:border-rose-900/50 cursor-pointer"
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Link
+                    to="/login"
+                    className="px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-emerald-400 transition"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="px-4 py-2 text-xs font-extrabold text-white gradient-btn rounded-xl shadow-sm hover:scale-105 transition"
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Sync Data Modal */}
+      <SyncDataModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+      />
+    </>
   );
 };
 

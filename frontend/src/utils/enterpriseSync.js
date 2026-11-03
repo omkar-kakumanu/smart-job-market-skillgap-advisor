@@ -5,6 +5,65 @@ import { DEFAULT_USER_PASSWORDS, EMAIL_ALIASES_MAP, PROTECTED_MAIN_ADMIN_EMAILS 
 
 export const MASTER_ACCOUNTS = [
   {
+    fullName: 'Omkar Kakumanu',
+    email: 'omkar.kakumanu17@gmail.com',
+    role: 'ROLE_USER',
+    targetCareerRole: 'Software Engineer / Full Stack Developer',
+    experienceLevel: 'MID_LEVEL',
+    bio: 'Software Engineer & Full Stack Developer with 3+ years experience building distributed backends, microservices, and interactive web apps with React, Python, Java 21, and Spring Boot.',
+    approvalStatus: 'APPROVED',
+    isApproved: true,
+    isProfileLocked: false,
+    skills: [
+      { skillName: 'Java 21', category: 'Backend', proficiencyLevel: 'EXPERT', yearsExperience: 3.5 },
+      { skillName: 'Spring Boot 3', category: 'Backend', proficiencyLevel: 'EXPERT', yearsExperience: 3.0 },
+      { skillName: 'React', category: 'Frontend', proficiencyLevel: 'EXPERT', yearsExperience: 3.0 },
+      { skillName: 'Python', category: 'Data & AI', proficiencyLevel: 'ADVANCED', yearsExperience: 3.0 },
+      { skillName: 'Docker', category: 'DevOps', proficiencyLevel: 'ADVANCED', yearsExperience: 2.5 },
+      { skillName: 'MySQL', category: 'Database', proficiencyLevel: 'ADVANCED', yearsExperience: 3.0 },
+      { skillName: 'RESTful APIs', category: 'Backend', proficiencyLevel: 'EXPERT', yearsExperience: 3.0 },
+      { skillName: 'Git', category: 'DevOps', proficiencyLevel: 'EXPERT', yearsExperience: 3.5 },
+      { skillName: 'LLM & AI Prompting', category: 'Data & AI', proficiencyLevel: 'ADVANCED', yearsExperience: 2.0 },
+      { skillName: 'Tailwind CSS', category: 'Frontend', proficiencyLevel: 'EXPERT', yearsExperience: 3.0 }
+    ]
+  },
+  {
+    fullName: 'Sarah Johnson',
+    email: 'sarah.johnson@example.com',
+    role: 'ROLE_USER',
+    targetCareerRole: 'Senior Machine Learning Engineer',
+    experienceLevel: 'SENIOR_LEVEL',
+    bio: 'Senior Machine Learning Engineer with 5+ years experience building production ML pipelines, deep learning architectures, and distributed model serving.',
+    approvalStatus: 'APPROVED',
+    isApproved: true,
+    isProfileLocked: false,
+    skills: [
+      { skillName: 'Python', category: 'Data & AI', proficiencyLevel: 'EXPERT', yearsExperience: 5.0 },
+      { skillName: 'Machine Learning', category: 'Data & AI', proficiencyLevel: 'EXPERT', yearsExperience: 5.0 },
+      { skillName: 'TensorFlow', category: 'Data & AI', proficiencyLevel: 'ADVANCED', yearsExperience: 4.0 },
+      { skillName: 'PyTorch', category: 'Data & AI', proficiencyLevel: 'ADVANCED', yearsExperience: 4.0 },
+      { skillName: 'AWS SageMaker', category: 'Cloud', proficiencyLevel: 'ADVANCED', yearsExperience: 3.5 },
+      { skillName: 'SQL', category: 'Database', proficiencyLevel: 'ADVANCED', yearsExperience: 4.0 }
+    ]
+  },
+  {
+    fullName: 'Abhishek Sharma',
+    email: 'abhishek@gmail.com',
+    role: 'ROLE_USER',
+    targetCareerRole: 'DevOps & Cloud Systems Architect',
+    experienceLevel: 'MID_LEVEL',
+    bio: 'DevOps specialist building Kubernetes clusters, Docker automation, and CI/CD pipelines.',
+    approvalStatus: 'APPROVED',
+    isApproved: true,
+    isProfileLocked: false,
+    skills: [
+      { skillName: 'Kubernetes', category: 'DevOps', proficiencyLevel: 'ADVANCED', yearsExperience: 3.5 },
+      { skillName: 'Docker', category: 'DevOps', proficiencyLevel: 'EXPERT', yearsExperience: 4.0 },
+      { skillName: 'AWS Cloud', category: 'Cloud', proficiencyLevel: 'ADVANCED', yearsExperience: 3.5 },
+      { skillName: 'Terraform', category: 'DevOps', proficiencyLevel: 'INTERMEDIATE', yearsExperience: 2.5 }
+    ]
+  },
+  {
     fullName: 'System Administrator',
     email: 'admin@skillgap.com',
     role: 'ROLE_ADMIN',
@@ -115,6 +174,146 @@ export const MASTER_ACCOUNTS = [
 ];
 
 export const MASTER_CANDIDATES = {
+  'omkar.kakumanu17@gmail.com': {
+    fullName: 'Omkar Kakumanu',
+    email: 'omkar.kakumanu17@gmail.com',
+    targetCareerRole: 'Software Engineer / Full Stack Developer',
+    experienceLevel: 'MID_LEVEL',
+    bio: 'Software Engineer with 3+ years experience building distributed backends, RESTful microservices, and modern responsive frontends with React, TypeScript, Python, and Java 21.',
+    resumeName: 'Omkar_Kakumanu_Software_Engineer_Resume.pdf',
+    isProfileLocked: false,
+    approvalStatus: 'APPROVED',
+    isApproved: true,
+    role: 'ROLE_USER',
+    atsScore: 98,
+    skillMatchScore: 96,
+    interviewScore: 94,
+    voiceScore: 93,
+    skills: [
+      { skillName: 'Java 21', category: 'Backend', proficiencyLevel: 'EXPERT', yearsExperience: 3.5 },
+      { skillName: 'Spring Boot 3', category: 'Backend', proficiencyLevel: 'EXPERT', yearsExperience: 3.0 },
+      { skillName: 'React', category: 'Frontend', proficiencyLevel: 'EXPERT', yearsExperience: 3.0 },
+      { skillName: 'Python', category: 'Data & AI', proficiencyLevel: 'ADVANCED', yearsExperience: 3.0 },
+      { skillName: 'Docker', category: 'DevOps', proficiencyLevel: 'ADVANCED', yearsExperience: 2.5 },
+      { skillName: 'MySQL', category: 'Database', proficiencyLevel: 'ADVANCED', yearsExperience: 3.0 },
+      { skillName: 'RESTful APIs', category: 'Backend', proficiencyLevel: 'EXPERT', yearsExperience: 3.0 },
+      { skillName: 'Git', category: 'DevOps', proficiencyLevel: 'EXPERT', yearsExperience: 3.5 },
+      { skillName: 'LLM & AI Prompting', category: 'Data & AI', proficiencyLevel: 'ADVANCED', yearsExperience: 2.0 },
+      { skillName: 'Tailwind CSS', category: 'Frontend', proficiencyLevel: 'EXPERT', yearsExperience: 3.0 }
+    ],
+    submissionDate: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
+    certStatus: 'APPROVED',
+    voiceRecords: [
+      {
+        id: 'v-omkar-1',
+        question: 'Describe a major technical project where you solved a critical system bottleneck. What methodology did you follow?',
+        transcript: 'Architected high-throughput microservices using Spring Boot, Java 21, and Docker. Optimized database queries and connection pools, reducing API response times by 65%. Implemented modern responsive frontends with React and Tailwind CSS.',
+        durationSeconds: 55,
+        overall: 93,
+        clarity: 94,
+        fluency: 92,
+        technicalDepth: 94,
+        detectedKeywords: ['spring boot', 'java 21', 'react', 'docker', 'database optimization'],
+        recommendation: 'STRONGLY RECOMMENDED - TOP TIER CANDIDATE',
+        feedback: 'Exceptional depth in full stack architecture, API optimization, and distributed systems.',
+        timestamp: new Date(Date.now() - 3600000 * 24).toISOString()
+      }
+    ],
+    interviewAttempts: [
+      {
+        id: 'att-omkar-1',
+        candidateName: 'Omkar Kakumanu',
+        candidateEmail: 'omkar.kakumanu17@gmail.com',
+        role: 'Software Engineer / Full Stack Developer',
+        attemptNumber: 1,
+        completedQuestions: 10,
+        totalQuestions: 10,
+        avgClarity: 95,
+        avgRelevance: 94,
+        overallScore: 94,
+        status: 'COMPLETED',
+        timestamp: new Date(Date.now() - 3600000 * 20).toISOString(),
+        responses: [
+          {
+            questionId: 1,
+            question: 'Describe an end-to-end machine learning project where you had to optimize model performance, latency, or compute requirements.',
+            questionType: 'descriptive',
+            answer: 'Implemented scalable inference pipelines with Docker containerization, batch processing, and GPU acceleration.',
+            isCorrect: true,
+            clarity: 94,
+            relevance: 93,
+            overall: 94,
+            feedback: 'Demonstrates strong technical depth and clear domain articulation.'
+          },
+          {
+            questionId: 2,
+            question: 'How do you detect, monitor, and mitigate dataset shift, concept drift, and data quality degradation in live production pipelines?',
+            questionType: 'descriptive',
+            answer: 'Configured automated metric drift monitoring, statistical Kolmogorov-Smirnov tests, and rolling validation thresholds with alerting.',
+            isCorrect: true,
+            clarity: 95,
+            relevance: 94,
+            overall: 95,
+            feedback: 'Rigorous diagnostic workflow and proactive mitigation strategy.'
+          }
+        ]
+      }
+    ]
+  },
+  'sarah.johnson@example.com': {
+    fullName: 'Sarah Johnson',
+    email: 'sarah.johnson@example.com',
+    targetCareerRole: 'Senior Machine Learning Engineer',
+    experienceLevel: 'SENIOR_LEVEL',
+    bio: 'Senior Machine Learning Engineer with 5+ years experience building production ML pipelines, deep learning architectures, and distributed model serving on cloud platforms.',
+    resumeName: 'Sarah_Johnson_ML_Engineer_Resume.pdf',
+    isProfileLocked: false,
+    approvalStatus: 'APPROVED',
+    isApproved: true,
+    role: 'ROLE_USER',
+    atsScore: 92,
+    skillMatchScore: 90,
+    interviewScore: 89,
+    voiceScore: 90,
+    skills: [
+      { skillName: 'Python', category: 'Data & AI', proficiencyLevel: 'EXPERT', yearsExperience: 5.0 },
+      { skillName: 'Machine Learning', category: 'Data & AI', proficiencyLevel: 'EXPERT', yearsExperience: 5.0 },
+      { skillName: 'TensorFlow', category: 'Data & AI', proficiencyLevel: 'ADVANCED', yearsExperience: 4.0 },
+      { skillName: 'PyTorch', category: 'Data & AI', proficiencyLevel: 'ADVANCED', yearsExperience: 4.0 },
+      { skillName: 'AWS SageMaker', category: 'Cloud', proficiencyLevel: 'ADVANCED', yearsExperience: 3.5 },
+      { skillName: 'SQL', category: 'Database', proficiencyLevel: 'ADVANCED', yearsExperience: 4.0 }
+    ],
+    submissionDate: new Date(Date.now() - 3600000 * 48).toISOString(),
+    certStatus: 'APPROVED',
+    voiceRecords: [],
+    interviewAttempts: []
+  },
+  'abhishek@gmail.com': {
+    fullName: 'Abhishek Sharma',
+    email: 'abhishek@gmail.com',
+    targetCareerRole: 'DevOps & Cloud Systems Architect',
+    experienceLevel: 'MID_LEVEL',
+    bio: 'Cloud Native DevOps engineer specializing in Kubernetes clusters, Docker automation, Terraform IaC, and zero-downtime CI/CD pipelines.',
+    resumeName: 'Abhishek_Sharma_DevOps_Resume.pdf',
+    isProfileLocked: false,
+    approvalStatus: 'APPROVED',
+    isApproved: true,
+    role: 'ROLE_USER',
+    atsScore: 90,
+    skillMatchScore: 88,
+    interviewScore: 86,
+    voiceScore: 88,
+    skills: [
+      { skillName: 'Kubernetes', category: 'DevOps', proficiencyLevel: 'ADVANCED', yearsExperience: 3.5 },
+      { skillName: 'Docker', category: 'DevOps', proficiencyLevel: 'EXPERT', yearsExperience: 4.0 },
+      { skillName: 'AWS Cloud', category: 'Cloud', proficiencyLevel: 'ADVANCED', yearsExperience: 3.5 },
+      { skillName: 'Terraform', category: 'DevOps', proficiencyLevel: 'INTERMEDIATE', yearsExperience: 2.5 }
+    ],
+    submissionDate: new Date(Date.now() - 3600000 * 36).toISOString(),
+    certStatus: 'APPROVED',
+    voiceRecords: [],
+    interviewAttempts: []
+  },
   'devansh.verma@example.com': {
     fullName: 'Devansh Verma',
     email: 'devansh.verma@example.com',
@@ -551,6 +750,47 @@ export const MASTER_SKILL_REQUESTS = [
 
 export const MASTER_CERT_REQUESTS = [
   {
+    id: 'cert_req_omkar',
+    candidateEmail: 'omkar.kakumanu17@gmail.com',
+    candidateName: 'Omkar Kakumanu',
+    targetCareerRole: 'Software Engineer / Full Stack Developer',
+    certTitle: 'Certified Full Stack Software Engineer & AI Systems Specialist',
+    themeStyle: 'gold',
+    status: 'APPROVED',
+    approvedDate: new Date(Date.now() - 3600000 * 20).toISOString(),
+    approvedBy: 'Platform Governance Board',
+    verificationCode: 'SKG-2026-AUTH-7719',
+    skills: [
+      { name: 'Java 21', skillName: 'Java 21', category: 'BACKEND', proficiency: 'EXPERT', proficiencyLevel: 'EXPERT', years: 3.5 },
+      { name: 'Spring Boot 3', skillName: 'Spring Boot 3', category: 'BACKEND', proficiency: 'EXPERT', proficiencyLevel: 'EXPERT', years: 3.0 },
+      { name: 'React', skillName: 'React', category: 'FRONTEND', proficiency: 'EXPERT', proficiencyLevel: 'EXPERT', years: 3.0 },
+      { name: 'Python', skillName: 'Python', category: 'AI_ML', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.0 },
+      { name: 'Docker', skillName: 'Docker', category: 'CLOUD_DEVOPS', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 2.5 },
+      { name: 'MySQL', skillName: 'MySQL', category: 'DATABASE', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.0 },
+      { name: 'LLM & AI Prompting', skillName: 'LLM & AI Prompting', category: 'AI_ML', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 2.0 }
+    ],
+    requestedAt: new Date(Date.now() - 3600000 * 30).toISOString()
+  },
+  {
+    id: 'cert_req_sarah_j',
+    candidateEmail: 'sarah.johnson@example.com',
+    candidateName: 'Sarah Johnson',
+    targetCareerRole: 'Senior Machine Learning Engineer',
+    certTitle: 'Certified Machine Learning & Cloud Architect',
+    themeStyle: 'emerald',
+    status: 'APPROVED',
+    approvedDate: new Date(Date.now() - 3600000 * 15).toISOString(),
+    approvedBy: 'Platform Governance Board',
+    verificationCode: 'SKG-2026-AUTH-3312',
+    skills: [
+      { name: 'Python', skillName: 'Python', category: 'AI_ML', proficiency: 'EXPERT', proficiencyLevel: 'EXPERT', years: 5.0 },
+      { name: 'Machine Learning', skillName: 'Machine Learning', category: 'AI_ML', proficiency: 'EXPERT', proficiencyLevel: 'EXPERT', years: 5.0 },
+      { name: 'PyTorch', skillName: 'PyTorch', category: 'AI_ML', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 4.0 },
+      { name: 'AWS SageMaker', skillName: 'AWS SageMaker', category: 'CLOUD_DEVOPS', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.5 }
+    ],
+    requestedAt: new Date(Date.now() - 3600000 * 25).toISOString()
+  },
+  {
     id: 'cert_req_1',
     candidateEmail: 'devansh.verma@example.com',
     candidateName: 'Devansh Verma',
@@ -774,6 +1014,44 @@ export const MASTER_SKILLS = [
 ];
 
 export const MASTER_RESUME_DOCS = {
+  'omkar.kakumanu17@gmail.com': {
+    fileName: 'Omkar_Kakumanu_Software_Engineer_Resume.pdf',
+    fileType: 'application/pdf',
+    fileSize: 184520,
+    uploadedAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
+    rawText: `OMKAR KAKUMANU | omkar.kakumanu17@gmail.com | +91 98765 43210 | San Francisco, CA / Bengaluru
+Software Engineer & Full Stack Developer with 3+ years experience building distributed backends and scalable web applications.
+Technical Competencies: Python, Java 21, Spring Boot 3, React, Tailwind CSS, Docker, Git, MySQL, PostgreSQL, LLMs, RESTful APIs, Microservices Architecture.
+Experience: Architected high-throughput microservices using Spring Boot, Java 21, and Docker. Developed modern interactive frontends using React and Tailwind CSS.
+Education: Computer Science Engineering — State University.`,
+    extractedSkills: ['Java 21', 'Spring Boot 3', 'React', 'Python', 'Docker', 'MySQL', 'RESTful APIs', 'Git', 'LLMs', 'Tailwind CSS'],
+    candidateName: 'Omkar Kakumanu',
+    candidateEmail: 'omkar.kakumanu17@gmail.com'
+  },
+  'sarah.johnson@example.com': {
+    fileName: 'Sarah_Johnson_ML_Engineer_Resume.pdf',
+    fileType: 'application/pdf',
+    fileSize: 148520,
+    uploadedAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString(),
+    rawText: `SARAH JOHNSON | sarah.johnson@example.com | San Francisco, CA
+Senior Machine Learning Engineer with 5+ years experience building production ML pipelines and distributed model serving on cloud platforms.
+Technical Skills: Python, TensorFlow, PyTorch, MLOps, AWS SageMaker, Docker, SQL, Data Analysis.
+Education: Master of Science (MS) in Computer Science — Stanford University.`,
+    extractedSkills: ['Python', 'Machine Learning', 'TensorFlow', 'PyTorch', 'AWS SageMaker', 'Docker', 'SQL'],
+    candidateName: 'Sarah Johnson',
+    candidateEmail: 'sarah.johnson@example.com'
+  },
+  'abhishek@gmail.com': {
+    fileName: 'Abhishek_Sharma_DevOps_Resume.pdf',
+    fileType: 'application/pdf',
+    fileSize: 154200,
+    uploadedAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
+    rawText: `ABHISHEK SHARMA | abhishek@gmail.com | Bengaluru
+Cloud Native DevOps Engineer with 4+ years experience with Kubernetes, Docker, AWS Cloud, Terraform, and CI/CD pipelines.`,
+    extractedSkills: ['Kubernetes', 'Docker', 'AWS Cloud', 'Terraform', 'CI/CD Pipelines'],
+    candidateName: 'Abhishek Sharma',
+    candidateEmail: 'abhishek@gmail.com'
+  },
   'devansh.verma@example.com': {
     fileName: 'Devansh_Verma_Enterprise_Architect.pdf',
     fileType: 'application/pdf',
