@@ -1,10 +1,10 @@
 import React from 'react';
-import { AlertTriangle, RefreshCw, Home, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, ShieldAlert, Sparkles, Terminal } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, error: null, errorInfo: null, showDetails: false };
   }
 
   static getDerivedStateFromError(error) {
@@ -29,60 +29,81 @@ class ErrorBoundary extends React.Component {
     try {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      sessionStorage.clear();
     } catch (e) {
       console.warn('Unable to clear local storage:', e);
     }
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4 font-sans select-none">
-          <div className="max-w-lg w-full bg-slate-800/90 border border-slate-700/80 backdrop-blur-xl rounded-2xl p-8 shadow-2xl text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 mx-auto flex items-center justify-center shadow-inner">
-              <AlertTriangle className="w-8 h-8 animate-pulse" />
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-[#0a1310] to-slate-900 text-white flex items-center justify-center p-4 font-sans select-none relative overflow-hidden">
+          {/* Subtle animated background glowing blobs */}
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="max-w-lg w-full bg-slate-900/90 border border-slate-700/80 backdrop-blur-2xl rounded-3xl p-8 shadow-2xl text-center space-y-6 relative z-10">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/10">
+              <ShieldAlert className="w-8 h-8 animate-pulse text-emerald-400" />
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold tracking-tight text-white">
-                Application Experience Safeguard
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold tracking-wider uppercase">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Enterprise Experience Safeguard</span>
+              </div>
+              <h2 className="text-2xl font-black tracking-tight text-white font-heading">
+                Session Restored & Protected
               </h2>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                An unexpected client-side runtime exception occurred. The safety boundary prevented a blank screen and preserved your system state.
+              <p className="text-sm text-slate-400 leading-relaxed font-sans">
+                A client-side state transition was intercepted. The platform safety boundary prevented data loss and maintained your profile integrity.
               </p>
             </div>
 
             {this.state.error && (
-              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 text-left text-xs font-mono text-rose-300 max-h-32 overflow-y-auto overflow-x-hidden break-words">
-                {this.state.error.toString()}
+              <div className="text-left space-y-2">
+                <button
+                  type="button"
+                  onClick={() => this.setState(prev => ({ showDetails: !prev.showDetails }))}
+                  className="text-xs font-mono text-slate-400 hover:text-emerald-400 transition flex items-center gap-1 cursor-pointer"
+                >
+                  <Terminal className="w-3.5 h-3.5" />
+                  <span>{this.state.showDetails ? 'Hide Diagnostics' : 'View Diagnostics'}</span>
+                </button>
+                {this.state.showDetails && (
+                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-xs font-mono text-emerald-300 max-h-36 overflow-y-auto overflow-x-hidden break-words selection:bg-emerald-900">
+                    {this.state.error.toString()}
+                  </div>
+                )}
               </div>
             )}
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
               <button
                 onClick={this.handleReload}
-                className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all shadow-md active:scale-95"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-sm transition-all shadow-lg shadow-emerald-600/30 active:scale-95 cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Reload Page
+                Reload Application
               </button>
 
               <button
                 onClick={this.handleReset}
-                className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-semibold transition-all active:scale-95"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition-all border border-slate-700 active:scale-95 cursor-pointer"
               >
                 <Home className="w-4 h-4 mr-2" />
-                Go to Home
+                Return to Home
               </button>
             </div>
 
-            <div className="pt-2 border-t border-slate-700/50">
+            <div className="pt-2 border-t border-slate-800/80">
               <button
                 onClick={this.handleClearSession}
-                className="text-xs text-slate-400 hover:text-amber-400 transition-colors underline underline-offset-4"
+                className="text-xs text-slate-400 hover:text-amber-400 transition-colors underline underline-offset-4 cursor-pointer"
               >
-                Troubleshoot session: Clear cache & re-login
+                Reset session cache & re-enter portal
               </button>
             </div>
           </div>
