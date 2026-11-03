@@ -555,14 +555,18 @@ export const MASTER_CERT_REQUESTS = [
     candidateEmail: 'devansh.verma@example.com',
     candidateName: 'Devansh Verma',
     targetCareerRole: 'Full Stack Java Developer',
+    certTitle: 'Certified Enterprise Java & Cloud Architect',
+    themeStyle: 'gold',
     status: 'APPROVED',
     approvedDate: new Date(Date.now() - 3600000 * 24).toISOString(),
     approvedBy: 'Platform Governance Board',
     verificationCode: 'SKG-2026-AUTH-9821',
     skills: [
-      { skillName: 'Java 21', category: 'Backend', proficiencyLevel: 'EXPERT' },
-      { skillName: 'Spring Boot 3', category: 'Backend', proficiencyLevel: 'EXPERT' },
-      { skillName: 'PostgreSQL', category: 'Database', proficiencyLevel: 'ADVANCED' }
+      { name: 'Java 21', skillName: 'Java 21', category: 'BACKEND', proficiency: 'EXPERT', proficiencyLevel: 'EXPERT', years: 5.0 },
+      { name: 'Spring Boot 3', skillName: 'Spring Boot 3', category: 'BACKEND', proficiency: 'EXPERT', proficiencyLevel: 'EXPERT', years: 4.5 },
+      { name: 'PostgreSQL', skillName: 'PostgreSQL', category: 'DATABASE', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 4.0 },
+      { name: 'Docker', skillName: 'Docker', category: 'CLOUD_DEVOPS', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.5 },
+      { name: 'AWS Cloud', skillName: 'AWS Cloud', category: 'CLOUD_DEVOPS', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.0 }
     ],
     requestedAt: new Date(Date.now() - 3600000 * 48).toISOString()
   },
@@ -571,11 +575,15 @@ export const MASTER_CERT_REQUESTS = [
     candidateEmail: 'sarah.jenkins@talentcorp.io',
     candidateName: 'Sarah Jenkins',
     targetCareerRole: 'Cloud Native DevOps Engineer',
+    certTitle: 'Certified Cloud Native Infrastructure Specialist',
+    themeStyle: 'emerald',
     status: 'PENDING_APPROVAL',
-    verificationCode: null,
+    verificationCode: 'SKG-2026-PENDING-REVIEW',
     skills: [
-      { skillName: 'Kubernetes', category: 'DevOps', proficiencyLevel: 'EXPERT' },
-      { skillName: 'Terraform', category: 'DevOps', proficiencyLevel: 'ADVANCED' }
+      { name: 'Kubernetes', skillName: 'Kubernetes', category: 'CLOUD_DEVOPS', proficiency: 'EXPERT', proficiencyLevel: 'EXPERT', years: 4.0 },
+      { name: 'Terraform', skillName: 'Terraform', category: 'CLOUD_DEVOPS', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.0 },
+      { name: 'Docker', skillName: 'Docker', category: 'CLOUD_DEVOPS', proficiency: 'EXPERT', proficiencyLevel: 'EXPERT', years: 4.0 },
+      { name: 'AWS Cloud', skillName: 'AWS Cloud', category: 'CLOUD_DEVOPS', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.5 }
     ],
     requestedAt: new Date(Date.now() - 3600000 * 18).toISOString()
   },
@@ -584,14 +592,17 @@ export const MASTER_CERT_REQUESTS = [
     candidateEmail: 'user@skillgap.com',
     candidateName: 'Alex Mercer',
     targetCareerRole: 'Full Stack Java Developer',
+    certTitle: 'Certified Skill Gap & Market Competency Certificate',
+    themeStyle: 'indigo',
     status: 'APPROVED',
     approvedDate: new Date(Date.now() - 3600000 * 10).toISOString(),
     approvedBy: 'Platform Governance Board',
     verificationCode: 'SKG-2026-AUTH-4412',
     skills: [
-      { skillName: 'Java 21', category: 'Backend', proficiencyLevel: 'ADVANCED' },
-      { skillName: 'Spring Boot 3', category: 'Backend', proficiencyLevel: 'ADVANCED' },
-      { skillName: 'React', category: 'Frontend', proficiencyLevel: 'ADVANCED' }
+      { name: 'Java 21', skillName: 'Java 21', category: 'BACKEND', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.5 },
+      { name: 'Spring Boot 3', skillName: 'Spring Boot 3', category: 'BACKEND', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.0 },
+      { name: 'React', skillName: 'React', category: 'FRONTEND', proficiency: 'ADVANCED', proficiencyLevel: 'ADVANCED', years: 3.0 },
+      { name: 'PostgreSQL', skillName: 'PostgreSQL', category: 'DATABASE', proficiency: 'INTERMEDIATE', proficiencyLevel: 'INTERMEDIATE', years: 2.0 }
     ],
     requestedAt: new Date(Date.now() - 3600000 * 30).toISOString()
   }
@@ -890,12 +901,27 @@ export const syncEnterpriseMasterData = ({ force = true } = {}) => {
     localStorage.setItem('skillgap_skill_requests', JSON.stringify(mergedSkillReqs));
 
     // 6. Recover Certificate Requests
+    const normalizeSkillItem = (sk) => ({
+      name: sk.name || sk.skillName || 'Skill',
+      skillName: sk.name || sk.skillName || 'Skill',
+      category: sk.category || 'TECHNICAL',
+      proficiency: sk.proficiency || sk.proficiencyLevel || 'ADVANCED',
+      proficiencyLevel: sk.proficiency || sk.proficiencyLevel || 'ADVANCED',
+      years: parseFloat(sk.years || sk.yearsExperience) || 2.0
+    });
+
     const existingCertReqs = JSON.parse(localStorage.getItem('skillgap_cert_requests') || '[]');
     const certIds = new Set(existingCertReqs.map(c => c.id));
-    const mergedCertReqs = [...existingCertReqs];
+    const mergedCertReqs = existingCertReqs.map(c => ({
+      ...c,
+      skills: (c.skills || []).map(normalizeSkillItem)
+    }));
     MASTER_CERT_REQUESTS.forEach(c => {
       if (!certIds.has(c.id)) {
-        mergedCertReqs.push(c);
+        mergedCertReqs.push({
+          ...c,
+          skills: (c.skills || []).map(normalizeSkillItem)
+        });
         certIds.add(c.id);
       }
     });
@@ -936,6 +962,18 @@ export const syncEnterpriseMasterData = ({ force = true } = {}) => {
       }
     });
     localStorage.setItem('skillgap_admin_skills', JSON.stringify(mergedSkills));
+    localStorage.setItem('skillgap_master_skills', JSON.stringify(mergedSkills));
+
+    // 10. Secondary Candidate DB Synced Stores
+    localStorage.setItem('skillgap_candidates_db', JSON.stringify(updatedDb));
+    localStorage.setItem('skillgap_candidate_profiles', JSON.stringify(updatedDb));
+
+    // Dispatch global sync notification event across active tabs/components
+    try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('skillgap_data_synced', { detail: { timestamp: Date.now() } }));
+      }
+    } catch (_) {}
 
     return {
       success: true,
@@ -961,7 +999,11 @@ export const ensureMasterDataSeeded = () => {
   try {
     const hasProfiles = Boolean(localStorage.getItem('skillgap_profiles_db'));
     const hasPasswords = Boolean(localStorage.getItem('skillgap_user_passwords'));
-    if (!hasProfiles || !hasPasswords) {
+    const hasCerts = Boolean(localStorage.getItem('skillgap_cert_requests'));
+    const hasSkills = Boolean(localStorage.getItem('skillgap_admin_skills'));
+    const hasResumes = Boolean(localStorage.getItem('skillgap_resumes_store'));
+    const hasJobs = Boolean(localStorage.getItem('skillgap_jobs_db'));
+    if (!hasProfiles || !hasPasswords || !hasCerts || !hasSkills || !hasResumes || !hasJobs) {
       syncEnterpriseMasterData({ force: false });
     }
   } catch (e) {
