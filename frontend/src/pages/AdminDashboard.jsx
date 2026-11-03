@@ -33,6 +33,8 @@ import {
   Filter,
   Eye,
   Sparkles,
+  Copy,
+  ClipboardPaste,
   Bot,
   Mic,
   FileText,
@@ -83,6 +85,39 @@ const AdminDashboard = () => {
   const [showResetDirectoryModal, setShowResetDirectoryModal] = useState(false);
   const [isSyncingData, setIsSyncingData] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncModalTab, setSyncModalTab] = useState('copy');
+
+  const handleCopyAdminJson = () => {
+    try {
+      const exportPayload = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (
+          key &&
+          (key.startsWith('skillgap_') ||
+            key.startsWith('rc_') ||
+            key.startsWith('copilot_') ||
+            key === 'user' ||
+            key === 'token' ||
+            key === 'theme' ||
+            key === 'sidebar_collapsed' ||
+            key === 'sidebar_position')
+        ) {
+          const val = localStorage.getItem(key);
+          if (val) exportPayload[key] = val;
+        }
+      }
+      const str = JSON.stringify(exportPayload, null, 2);
+      navigator.clipboard.writeText(str).then(() => {
+        showToast(`Copied local project admin JSON (${Object.keys(exportPayload).length} keys) to clipboard! Paste it on Vercel.`, 'success');
+      }).catch(() => {
+        setSyncModalTab('copy');
+        setIsSyncModalOpen(true);
+      });
+    } catch (e) {
+      showToast('Error copying JSON: ' + e.message, 'error');
+    }
+  };
 
   // Check if active session is Admin
 //   const isAdmin = user?.role === 'ROLE_ADMIN' || user?.email?.toLowerCase().includes('admin');
@@ -1727,15 +1762,39 @@ const AdminDashboard = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => setIsSyncModalOpen(true)}
-              className="px-3.5 py-2 rounded-2xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-md border border-amber-300 cursor-pointer active:scale-95 shrink-0"
-              title="Sync all candidates & data between Localhost and Vercel"
+              onClick={handleCopyAdminJson}
+              className="px-3.5 py-2 rounded-2xl text-xs font-black bg-sky-600 hover:bg-sky-500 text-white transition flex items-center gap-1.5 shadow-md cursor-pointer active:scale-95 shrink-0"
+              title="Copy entire local admin state as JSON to clipboard"
+            >
+              <Copy className="w-3.5 h-3.5 text-white" />
+              <span>Copy JSON</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSyncModalTab('paste');
+                setIsSyncModalOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-2xl text-xs font-black bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1.5 shadow-md cursor-pointer active:scale-95 shrink-0"
+              title="Paste JSON from local project to restore all data on Vercel"
+            >
+              <ClipboardPaste className="w-3.5 h-3.5 text-white" />
+              <span>Paste JSON</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSyncModalTab('copy');
+                setIsSyncModalOpen(true);
+              }}
+              className="px-3 py-2 rounded-2xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-md border border-amber-300 cursor-pointer active:scale-95 shrink-0"
+              title="Open full Localhost <-> Vercel Data Sync modal"
             >
               <RefreshCw className="w-3.5 h-3.5 text-slate-950" />
-              <span>Sync Data</span>
+              <span className="hidden sm:inline">Sync Modal</span>
             </button>
             <div className="flex flex-wrap items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
             {/* Tab 1: Candidate Rankings */}
@@ -4080,6 +4139,7 @@ const AdminDashboard = () => {
       <SyncDataModal
         isOpen={isSyncModalOpen}
         onClose={() => setIsSyncModalOpen(false)}
+        initialTab={syncModalTab}
       />
     </div>
   );

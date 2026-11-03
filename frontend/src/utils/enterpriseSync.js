@@ -1,7 +1,48 @@
 // Enterprise Master Data & Account Recovery Engine (Infosys Enterprise Standard)
 // Restores all user accounts, candidate profiles, resumes, skill requests, jobs, and interview telemetry.
 
-import { DEFAULT_USER_PASSWORDS, EMAIL_ALIASES_MAP, PROTECTED_MAIN_ADMIN_EMAILS } from '../context/AuthContext';
+export const DEFAULT_USER_PASSWORDS = {
+  'admin@skillgap.com': 'AdminPass123!',
+  'admin@copilot.com': 'admin123',
+  'admin@smartjobadvisor.com': 'AdminPass123!',
+  'j.manju.raghvin@gmail.com': 'admin123',
+  'manager@skillgap.com': 'Password123!',
+  'recruiter@skillgap.com': 'Password123!',
+  'recruiter@copilot.com': 'recruiter123',
+  'sarah.jenkins@gmail.com': 'recruiter123',
+  'user@skillgap.com': 'Password123!',
+  'candidate@skillgap.com': 'Password123!',
+  'candidate@copilot.com': 'candidate123',
+  'devansh.verma@example.com': 'Password123!',
+  'rohan.mehta@cloudhire.io': 'Password123!',
+  'priya.sharma@aimodels.io': 'Password123!',
+  'sarah.johnson@example.com': 'candidate123',
+  'sarah.johnson@gmail.com': 'candidate123',
+  'abhishek@gmail.com': 'candidate123',
+  'omkar.kakumanu17@gmail.com': 'candidate123'
+};
+
+export const EMAIL_ALIASES_MAP = {
+  'admin@skillgap.com': ['admin@copilot.com', 'admin@smartjobadvisor.com', 'j.manju.raghvin@gmail.com'],
+  'admin@copilot.com': ['admin@skillgap.com', 'admin@smartjobadvisor.com', 'j.manju.raghvin@gmail.com'],
+  'j.manju.raghvin@gmail.com': ['admin@skillgap.com', 'admin@copilot.com', 'admin@smartjobadvisor.com'],
+  'manager@skillgap.com': ['recruiter@skillgap.com', 'recruiter@copilot.com', 'sarah.jenkins@gmail.com'],
+  'recruiter@skillgap.com': ['manager@skillgap.com', 'recruiter@copilot.com', 'sarah.jenkins@gmail.com'],
+  'recruiter@copilot.com': ['manager@skillgap.com', 'recruiter@skillgap.com', 'sarah.jenkins@gmail.com'],
+  'sarah.jenkins@gmail.com': ['manager@skillgap.com', 'recruiter@skillgap.com', 'recruiter@copilot.com'],
+  'user@skillgap.com': ['candidate@skillgap.com', 'candidate@copilot.com'],
+  'candidate@skillgap.com': ['user@skillgap.com', 'candidate@copilot.com'],
+  'candidate@copilot.com': ['user@skillgap.com', 'candidate@skillgap.com', 'sarah.johnson@example.com', 'sarah.johnson@gmail.com'],
+  'sarah.johnson@example.com': ['sarah.johnson@gmail.com', 'candidate@copilot.com', 'user@skillgap.com'],
+  'sarah.johnson@gmail.com': ['sarah.johnson@example.com', 'candidate@copilot.com', 'user@skillgap.com']
+};
+
+export const PROTECTED_MAIN_ADMIN_EMAILS = [
+  'admin@skillgap.com',
+  'admin@smartjobadvisor.com',
+  'admin@copilot.com',
+  'j.manju.raghvin@gmail.com'
+];
 
 export const MASTER_ACCOUNTS = [
   {
