@@ -30,6 +30,7 @@ import { useTheme } from '../hooks/useTheme';
 import { authService } from '../services/authService';
 import ProfilePhotoUploader from '../components/ProfilePhotoUploader';
 import { EXPERIENCE_LEVELS } from '../utils/constants';
+import { ensureMasterDataSeeded } from '../utils/enterpriseSync';
 
 const PRE_REGISTERED_SYSTEM_EMAILS = [
   'admin@skillgap.com',

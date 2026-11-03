@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { userService } from '../services/userService';
+import { ensureMasterDataSeeded, syncEnterpriseMasterData } from '../utils/enterpriseSync';
 
 export const AuthContext = createContext(null);
 
@@ -287,3 +288,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export { syncEnterpriseMasterData };

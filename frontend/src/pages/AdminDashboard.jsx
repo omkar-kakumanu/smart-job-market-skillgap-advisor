@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { jobService } from '../services/jobService';
 import { userService } from '../services/userService';
+import { syncEnterpriseMasterData } from '../utils/enterpriseSync';
 import { updateCandidateApprovalStatus, getUserPassword, setUserPassword, isProtectedMainAdmin } from '../context/AuthContext';
 import { 
   Shield, 
@@ -79,6 +80,7 @@ const AdminDashboard = () => {
 
   // Reset Directory Confirmation Modal State
   const [showResetDirectoryModal, setShowResetDirectoryModal] = useState(false);
+  const [isSyncingData, setIsSyncingData] = useState(false);
 
   // Check if active session is Admin
 //   const isAdmin = user?.role === 'ROLE_ADMIN' || user?.email?.toLowerCase().includes('admin');
@@ -1447,6 +1449,27 @@ const AdminDashboard = () => {
     setCertRequests(updated);
     localStorage.setItem('skillgap_cert_requests', JSON.stringify(updated));
     showToast('Certificate request dismissed and removed from interface.', 'info');
+  };
+
+  const handleSyncEnterpriseMasterData = async () => {
+    setIsSyncingData(true);
+    try {
+      const res = syncEnterpriseMasterData({ force: true });
+      loadCandidates();
+      loadSkillRequests();
+      loadCertificateRequests();
+      await fetchData();
+      window.dispatchEvent(new Event('skillgap_data_synced'));
+      showToast(
+        `Enterprise Data Synchronized! Recovered ${res.accountsCount} user accounts, ${res.candidatesCount} candidate dossiers, and ${res.jobsCount} job requisitions.`,
+        'success'
+      );
+    } catch (err) {
+      console.error('Master data sync failed', err);
+      showToast('Failed to sync master data. Please try again.', 'error');
+    } finally {
+      setIsSyncingData(false);
+    }
   };
 
   // Safe reset directory with confirmation

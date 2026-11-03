@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
+import { useToast } from '../hooks/useToast';
+import { syncEnterpriseMasterData } from '../utils/enterpriseSync';
 import { 
   Sun, 
   Moon, 
   LogOut, 
   Cpu,
   Shield,
-  Briefcase
+  Briefcase,
+  RefreshCw
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -16,6 +19,24 @@ const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
+  const { showToast } = useToast();
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncData = () => {
+    setIsSyncing(true);
+    try {
+      const res = syncEnterpriseMasterData({ force: true });
+      window.dispatchEvent(new Event('skillgap_data_synced'));
+      showToast(
+        `Enterprise Data Synchronized! Recovered ${res.accountsCount} accounts, ${res.candidatesCount} candidate dossiers, and ${res.jobsCount} job requisitions.`,
+        'success'
+      );
+    } catch (err) {
+      showToast('Failed to sync master data.', 'error');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const isAdmin = isAuthenticated && (
     user?.role === 'ROLE_ADMIN' ||
@@ -79,14 +100,26 @@ const Navbar = () => {
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
                 {isAdmin && (
-                  <Link
-                    to="/admin"
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-md transition cursor-pointer border border-white/20"
-                    title="Open System Administrator Governance Console"
-                  >
-                    <Shield className="w-3.5 h-3.5 text-amber-400 dark:text-white" />
-                    <span className="hidden sm:inline">Admin Console</span>
-                  </Link>
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleSyncData}
+                      disabled={isSyncing}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md transition cursor-pointer border border-amber-300 active:scale-95"
+                      title="Admin Master Sync: Recover all candidate accounts, resumes, jobs, and telemetry"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-slate-950 ${isSyncing ? 'animate-spin' : ''}`} />
+                      <span className="hidden sm:inline">{isSyncing ? 'Syncing...' : 'Sync Data'}</span>
+                    </button>
+                    <Link
+                      to="/admin"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-md transition cursor-pointer border border-white/20"
+                      title="Open System Administrator Governance Console"
+                    >
+                      <Shield className="w-3.5 h-3.5 text-amber-400 dark:text-white" />
+                      <span className="hidden sm:inline">Admin Console</span>
+                    </Link>
+                  </>
                 )}
 
                 {isRecruiter && (

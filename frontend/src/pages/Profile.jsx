@@ -14,6 +14,7 @@ import {
 import { useToast } from '../hooks/useToast';
 import { userService } from '../services/userService';
 import { jobService } from '../services/jobService';
+import { syncEnterpriseMasterData } from '../utils/enterpriseSync';
 import { 
   User, 
   Plus, 
@@ -615,6 +616,32 @@ const Profile = () => {
                     </div>
                   </div>
                 </div>
+
+                {isAdmin && (
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-400/40 space-y-2.5 pt-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4 text-amber-500" />
+                        <strong className="text-gray-900 dark:text-white text-xs">Enterprise Master Data & Account Recovery</strong>
+                      </div>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950">
+                        Admin Only
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-600 dark:text-gray-300">
+                      Synchronize and recover all candidate profiles, test accounts, credentials, resumes, and interview telemetry for the Vercel cloud environment.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleSyncMasterData}
+                      disabled={syncingData}
+                      className="w-full py-2.5 px-3 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer border border-amber-300 active:scale-95"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-slate-950 ${syncingData ? 'animate-spin' : ''}`} />
+                      <span>{syncingData ? 'Syncing...' : '⚡ Sync Data (Recover All Accounts)'}</span>
+                    </button>
+                  </div>
+                )}
 
                 <div className="pt-2">
                   <Link
